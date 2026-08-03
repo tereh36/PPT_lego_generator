@@ -8,7 +8,7 @@ app.setName("Brick4Kidz");
 
 const ENGINE_DIR = path.join(__dirname, "engine");
 const CONFIG_PATH = path.join(app.getPath("userData"), "config.json");
-const OUTPUT_ROOT = path.join(app.getPath("documents"), "LEGO Lesson App");
+const OUTPUT_ROOT = path.join(app.getPath("documents"), "Brick4Kidz");
 
 // Everything the engine GENERATES (content.json, downloaded images, built
 // pptx/pdf) must live in a WRITABLE folder outside the app's own install

@@ -183,9 +183,6 @@ def page3_full_story(c, content, has_images=True):
 def page4_game_printout(c, gen_dir, content):
     game2 = content.get("game2", {})
     colors = game2.get("colors", [])
-    if not colors:
-        c.showPage()
-        return
     n = len(colors)
     cols = min(n, 4)
     rows = (n + cols - 1) // cols
@@ -237,7 +234,8 @@ def main():
         page1_story_props(c, content, props_dir)
         page2_story_background(c, gen_dir)
         page3_full_story(c, content)
-        page4_game_printout(c, gen_dir, content)
+        if content.get("game2", {}).get("colors"):
+            page4_game_printout(c, gen_dir, content)
         page5_pattern_sheet(c, content)
     else:
         print("No images found (no API key) - building story-only page.")

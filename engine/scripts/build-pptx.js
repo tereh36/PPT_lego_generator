@@ -22,10 +22,10 @@ const COLORS = {
 };
 const ALPHABET_CYCLE = [COLORS.RED, COLORS.BLUE, COLORS.GREEN, COLORS.PURPLE, COLORS.YELLOW, COLORS.TEAL];
 const SPEAKER_STYLE = {
-  children: { color: COLORS.BLUE, italic: false },
-  teacher: { color: COLORS.RED, italic: false },
-  action: { color: "555555", italic: true },
-  instruction: { color: "222222", italic: false }
+  children: { color: "2E6DA4", italic: false },
+  teacher: { color: "A94442", italic: false },
+  action: { color: "666666", italic: true },
+  instruction: { color: "333333", italic: false }
 };
 
 const EMU_PER_INCH = 914400;
@@ -269,13 +269,23 @@ function buildPatternSheet(pres, letter) {
 }
 
 function addScript(slide, script, boxSpec) {
+  const lines = script || [];
+  // Auto-shrink font size for longer scripts so text never overflows the box.
+  let fontSize = 20;
+  if (lines.length > 4) fontSize = 18;
+  if (lines.length > 6) fontSize = 16;
+  if (lines.length > 8) fontSize = 14;
+  const spacerSize = Math.max(4, Math.round(fontSize * 0.3));
+
   const runs = [];
-  (script || []).forEach((line) => {
+  lines.forEach((line, i) => {
     const style = SPEAKER_STYLE[line.speaker] || SPEAKER_STYLE.instruction;
-    runs.push({ text: line.text, options: { color: style.color, italic: style.italic, fontSize: 18, breakLine: true } });
-    runs.push({ text: "", options: { breakLine: true, fontSize: 6 } });
+    runs.push({ text: line.text, options: { color: style.color, italic: style.italic, fontSize, breakLine: true } });
+    if (i < lines.length - 1) {
+      runs.push({ text: "", options: { breakLine: true, fontSize: spacerSize } });
+    }
   });
-  slide.addText(runs, { ...boxSpec, fontFace: "Arial", align: "left", valign: "top" });
+  slide.addText(runs, { ...boxSpec, fontFace: "Arial", align: "left", valign: "top", autoFit: true });
 }
 
 function buildGame1(pres, content) {
@@ -289,19 +299,26 @@ function buildGame2(pres, content, assetsDir) {
   const slide = pres.addSlide();
   addSquares(slide, STYLE_B);
   addContentTitle(slide, content.game2.title);
-  addScript(slide, content.game2.script, boxIn(0.8, 1.85, 5.3, 4.9));
   const colors = content.game2.colors || [];
-  if (colors.length) {
-    const cols = 3;
-    colors.forEach((color, i) => {
-      const cx = 6.5 + (i % cols) * 1.7;
-      const cy = 1.85 + Math.floor(i / cols) * 1.7;
-      const imgPath = path.join(assetsDir, `game2_${color.toLowerCase()}.png`);
-      if (fs.existsSync(imgPath)) slide.addImage({ path: imgPath, ...containFit(imgPath, cx, cy, 1.5, 1.5) });
-    });
+  const hasVisual = colors.length > 0 || fs.existsSync(path.join(assetsDir, "game2_printout.png"));
+
+  if (hasVisual) {
+    addScript(slide, content.game2.script, boxIn(0.8, 1.85, 5.6, 4.9));
+    if (colors.length) {
+      const cols = 3;
+      colors.forEach((color, i) => {
+        const cx = 6.7 + (i % cols) * 1.7;
+        const cy = 1.85 + Math.floor(i / cols) * 1.7;
+        const imgPath = path.join(assetsDir, `game2_${color.toLowerCase()}.png`);
+        if (fs.existsSync(imgPath)) slide.addImage({ path: imgPath, ...containFit(imgPath, cx, cy, 1.5, 1.5) });
+      });
+    } else {
+      const printoutImg = path.join(assetsDir, "game2_printout.png");
+      slide.addImage({ path: printoutImg, ...containFit(printoutImg, 6.7, 1.85, 5.6, 4.9) });
+    }
   } else {
-    const printoutImg = path.join(assetsDir, "game2_printout.png");
-    if (fs.existsSync(printoutImg)) slide.addImage({ path: printoutImg, ...containFit(printoutImg, 6.5, 1.85, 5.3, 4.9) });
+    // Sensory / no-visual games: let the text use the full slide width, like Game 1 and 3.
+    addScript(slide, content.game2.script, boxIn(1.3, 1.85, 10.7, 4.9));
   }
 }
 
@@ -317,13 +334,12 @@ function buildChallenge(pres, content, assetsDir) {
   addSquares(slide, STYLE_B);
   addContentTitle(slide, "Challenge + Free Play");
   slide.addText(content.challenge.text, {
-    ...box(914400, 1417320, 10332720, 1188720), fontFace: "Arial", fontSize: 18, color: "666666", align: "center", valign: "middle"
+    ...box(914400, 1200000, 10332720, 1000000), fontFace: "Arial", fontSize: 18, color: "666666", align: "center", valign: "middle"
   });
   const challengeImg = path.join(assetsDir, "challenge.png");
-  // free_play.png is static/read-only, packaged with the app -> always from ROOT.
-  const freePlayImg = path.join(ROOT, "assets", "free_play.png");
-  if (fs.existsSync(challengeImg)) slide.addImage({ path: challengeImg, ...containFit(challengeImg, inch(914400), inch(2800000), inch(4800000), inch(3200000)) });
-  if (fs.existsSync(freePlayImg)) slide.addImage({ path: freePlayImg, ...containFit(freePlayImg, inch(6400000), inch(2800000), inch(4800000), inch(3200000)) });
+  if (fs.existsSync(challengeImg)) {
+    slide.addImage({ path: challengeImg, ...containFit(challengeImg, inch(3400000), inch(2400000), inch(5400000), inch(4000000)) });
+  }
 }
 
 function buildPresentation(pres, content) {
