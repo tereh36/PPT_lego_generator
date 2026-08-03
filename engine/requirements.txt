@@ -1,5 +1,0 @@
-reportlab
-pdfplumber
-Pillow
-python-pptx
-markitdown[pptx]
