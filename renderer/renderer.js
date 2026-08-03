@@ -162,8 +162,19 @@ els.openFolderBtn.addEventListener("click", () => {
 window.api.onUpdateStatus((msg) => {
   if (!msg) {
     els.updateBanner.classList.add("hidden");
+    els.updateBanner.classList.remove("clickable");
+    els.updateBanner.onclick = null;
     return;
   }
+  if (msg.startsWith("READY:")) {
+    els.updateBanner.textContent = "🔄 " + msg.slice(6) + " (click here)";
+    els.updateBanner.classList.add("clickable");
+    els.updateBanner.onclick = () => window.api.installUpdateNow();
+    els.updateBanner.classList.remove("hidden");
+    return;
+  }
+  els.updateBanner.classList.remove("clickable");
+  els.updateBanner.onclick = null;
   els.updateBanner.textContent = "🔄 " + msg;
   els.updateBanner.classList.remove("hidden");
   if (msg.toLowerCase().includes("latest version") || msg.toLowerCase().includes("not available")) {

@@ -4,12 +4,27 @@ const fs = require("fs");
 const { spawn } = require("child_process");
 const { autoUpdater } = require("electron-updater");
 
+app.setName("Brick4Kidz");
+
 const ENGINE_DIR = path.join(__dirname, "engine");
 const CONFIG_PATH = path.join(app.getPath("userData"), "config.json");
 const OUTPUT_ROOT = path.join(app.getPath("documents"), "LEGO Lesson App");
 
+// Everything the engine GENERATES (content.json, downloaded images, built
+// pptx/pdf) must live in a WRITABLE folder outside the app's own install
+// directory — Windows blocks writing into an installed app's resources
+// folder without admin rights. Static/read-only assets (letter patterns,
+// free_play.png, the scripts themselves) stay inside ENGINE_DIR as before.
+const DATA_DIR = path.join(app.getPath("userData"), "engine-data");
+
 // This is not a secret — it just points at the (password-protected) backend.
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbylvbSBXtjWZe9rzHUxOSjZVBqxAqDKaOofNKjYuQTYNaZ4F9iKK0IESloU8Juyei2N/exec";
+
+function ensureDataDirs() {
+  fs.mkdirSync(path.join(DATA_DIR, "content"), { recursive: true });
+  fs.mkdirSync(path.join(DATA_DIR, "assets", "generated"), { recursive: true });
+  fs.mkdirSync(path.join(DATA_DIR, "output"), { recursive: true });
+}
 
 // ---------- настройки (логин, пароль, режим картинок) ----------
 function loadConfig() {
@@ -43,6 +58,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  ensureDataDirs();
   createWindow();
   autoUpdater.checkForUpdatesAndNotify().catch(() => {});
   app.on("activate", () => {
@@ -79,7 +95,7 @@ autoUpdater.on("error", () => {
   sendUpdateStatus("");
 });
 autoUpdater.on("download-progress", (p) => sendUpdateStatus(`Downloading update: ${Math.round(p.percent)}%`));
-autoUpdater.on("update-downloaded", () => sendUpdateStatus("Update ready, will install on restart."));
+autoUpdater.on("update-downloaded", () => sendUpdateStatus("READY:Update downloaded! Click here to restart and install."));
 
 ipcMain.handle("update:installNow", () => {
   autoUpdater.quitAndInstall();
@@ -178,12 +194,15 @@ ipcMain.handle("lesson:create", async (event, { topic, track }) => {
     return { ok: false, needsAccount: true };
   }
 
+  ensureDataDirs();
+
   const slug = topic.trim().toLowerCase().replace(/\s+/g, "_");
-  const contentPath = path.join(ENGINE_DIR, "content", `${slug}.json`);
+  const contentPath = path.join(DATA_DIR, "content", `${slug}.json`);
   const extraEnv = {
     BRICK_USERNAME: cfg.username,
     BRICK_PASSWORD: cfg.password,
     BRICK_BACKEND_URL: BACKEND_URL,
+    BRICK_DATA_DIR: DATA_DIR,
   };
 
   function reportFailure(label, output) {
@@ -208,31 +227,32 @@ ipcMain.handle("lesson:create", async (event, { topic, track }) => {
 
   if (cfg.withImages) {
     send("🎨 Illustrator is painting the pictures...");
-    const r = await runStep("node", ["scripts/generate-images-remote.js", `content/${slug}.json`], extraEnv);
+    const r = await runStep("node", ["scripts/generate-images-remote.js", contentPath], extraEnv);
     if (!r.ok) reportFailure("Illustrator", r.output);
   } else {
     send("🎨 Skipping images - slides will show prompt text instead.");
   }
 
   send("🧱 Builder is assembling the slides...");
-  const built = await runStep("node", ["scripts/build-pptx.js", `content/${slug}.json`], {});
+  const built = await runStep("node", ["scripts/build-pptx.js", contentPath], extraEnv);
   if (!built.ok) {
     reportFailure("Builder", built.output);
     return { ok: false };
   }
 
+  const pptxSrc = path.join(DATA_DIR, "output", `${slug}.pptx`);
+  const pdfSrc = path.join(DATA_DIR, "output", `${slug}_printables.pdf`);
+
   send("🔍 Inspector is checking everything...");
-  const qa = await runStep("python", ["scripts/qa-validate.py", `output/${slug}.pptx`, `content/${slug}.json`], {});
+  const qa = await runStep("python", ["scripts/qa-validate.py", pptxSrc, contentPath], extraEnv);
   if (!qa.ok) reportFailure("Inspector", qa.output);
 
   send("🖨️  Printer is preparing the handout PDF...");
-  const pdf = await runStep("python", ["scripts/build-print-pdf.py", `content/${slug}.json`], {});
+  const pdf = await runStep("python", ["scripts/build-print-pdf.py", contentPath], extraEnv);
   if (!pdf.ok) reportFailure("Printer", pdf.output);
 
   const finalDir = path.join(OUTPUT_ROOT, slug);
   fs.mkdirSync(finalDir, { recursive: true });
-  const pptxSrc = path.join(ENGINE_DIR, "output", `${slug}.pptx`);
-  const pdfSrc = path.join(ENGINE_DIR, "output", `${slug}_printables.pdf`);
   let copiedAny = false;
   if (fs.existsSync(pptxSrc)) {
     fs.copyFileSync(pptxSrc, path.join(finalDir, `${slug}.pptx`));

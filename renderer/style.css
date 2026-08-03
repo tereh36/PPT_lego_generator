@@ -223,6 +223,12 @@ input[type="text"]:focus, input[type="password"]:focus { outline: none; border-c
   font-weight: 700;
   text-align: center;
 }
+.update-banner.clickable {
+  cursor: pointer;
+  background: var(--green);
+  color: white;
+}
+.update-banner.clickable:hover { filter: brightness(1.05); }
 
 .modal-overlay {
   position: fixed;

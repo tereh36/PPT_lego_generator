@@ -1,82 +1,83 @@
-/**
- * build-pptx.js
- * Собирает готовую презентацию урока из content/<topic>.json + assets/*
- * Все координаты и стили — 1:1 из DESIGN_SYSTEM.md, ничего не придумывается заново.
- *
- * Запуск:  node scripts/build-pptx.js content/umbrella.json
- * Результат: output/<topic>.pptx
- */
+// build-pptx.js
+// Usage: node scripts/build-pptx.js <absolute path to content.json>
+// Builds <BRICK_DATA_DIR>/output/<topic_slug>.pptx following DESIGN_SYSTEM.md.
+//
+// Static, read-only assets (letters, free_play.png) are read from the app's
+// own install folder (__dirname-based ROOT). Everything generated per-lesson
+// (content.json, assets/generated/<slug>, output) lives in BRICK_DATA_DIR —
+// a writable folder outside the install directory (Windows blocks writing
+// into an installed app's own folder without admin rights).
+
 const fs = require("fs");
 const path = require("path");
 const pptxgen = require("pptxgenjs");
 
-const ROOT = path.resolve(__dirname, "..");
-const ASSETS = path.join(ROOT, "assets");
+const ROOT = path.join(__dirname, "..");
+const DATA_DIR = process.env.BRICK_DATA_DIR || ROOT;
 
-// ---------- палитра и константы (DESIGN_SYSTEM.md) ----------
 const COLORS = {
-  RED: "D03331",
-  BLUE: "3095D4",
-  GREEN: "6FC141",
-  PURPLE: "A441C2",
-  YELLOW: "FCD900",
-  TEAL: "0097A7",
+  RED: "D03331", BLUE: "3095D4", GREEN: "6FC141",
+  PURPLE: "A441C2", YELLOW: "FCD900", TEAL: "0097A7",
+  TITLE_GRAY: "404040", VIDEO_BG: "141414", ALPHABET_BG: "F3EEE2"
 };
-const EXTRA_COLORS = {
-  ORANGE: "F5811F",
-  BROWN: "8B5A2B",
-  PINK: "F48FB1",
-  BLACK: "333333",
-  WHITE: "FFFFFF",
-  GRAY: "888888",
-  GREY: "888888",
-};
-function resolveColorHex(name) {
-  const key = (name || "").toUpperCase();
-  return COLORS[key] || EXTRA_COLORS[key] || "AAAAAA";
-}
-function isLightColor(hex) {
-  const r = parseInt(hex.substr(0, 2), 16), g = parseInt(hex.substr(2, 2), 16), b = parseInt(hex.substr(4, 2), 16);
-  return (r * 299 + g * 587 + b * 114) / 1000 > 165;
-}
-const CYCLE = ["RED", "BLUE", "GREEN", "PURPLE", "YELLOW", "TEAL"];
-const DARKGRAY = "404040";
-const FONT = "Arial";
-
-const EMU = (v) => v / 914400; // EMU -> inches
-
-const CONST_VIDEOS = {
-  alphabet: { id: "ezmsrB59mj8", caption: "Alphabet Song" },
+const ALPHABET_CYCLE = [COLORS.RED, COLORS.BLUE, COLORS.GREEN, COLORS.PURPLE, COLORS.YELLOW, COLORS.TEAL];
+const SPEAKER_STYLE = {
+  children: { color: COLORS.BLUE, italic: false },
+  teacher: { color: COLORS.RED, italic: false },
+  action: { color: "555555", italic: true },
+  instruction: { color: "222222", italic: false }
 };
 
-// letter-specific video ids, заполняется один раз пользователем
-let LETTER_VIDEOS = {};
-const letterVideoPath = path.join(__dirname, "letter-videos.json");
-if (fs.existsSync(letterVideoPath)) {
-  LETTER_VIDEOS = JSON.parse(fs.readFileSync(letterVideoPath, "utf8"));
+const EMU_PER_INCH = 914400;
+const inch = (emu) => emu / EMU_PER_INCH;
+const box = (x, y, w, h) => ({ x: inch(x), y: inch(y), w: inch(w), h: inch(h) });
+const boxIn = (x, y, w, h) => ({ x, y, w, h });
+
+function imgSize(filePath) {
+  const buf = fs.readFileSync(filePath);
+  if (buf.length >= 24 && buf[0] === 0x89 && buf[1] === 0x50) {
+    return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+  }
+  let offset = 2;
+  while (offset < buf.length) {
+    if (buf[offset] !== 0xff) { offset++; continue; }
+    const marker = buf[offset + 1];
+    if (marker === 0xc0 || marker === 0xc2) {
+      return { h: buf.readUInt16BE(offset + 5), w: buf.readUInt16BE(offset + 7) };
+    }
+    const len = buf.readUInt16BE(offset + 2);
+    offset += 2 + len;
+  }
+  return { w: 1, h: 1 };
 }
 
-// ---------- декоративные наборы квадратов (координаты как есть, EMU) ----------
+function containFit(filePath, boxX, boxY, boxW, boxH) {
+  const { w: iw, h: ih } = imgSize(filePath);
+  const scale = Math.min(boxW / iw, boxH / ih);
+  const drawW = iw * scale, drawH = ih * scale;
+  return { x: boxX + (boxW - drawW) / 2, y: boxY + (boxH - drawH) / 2, w: drawW, h: drawH };
+}
+
 const STYLE_A = [
   [11431829, 4573829, 760781, 1516990, "PURPLE"], [11431829, 0, 760781, 760781, "RED"],
   [10686593, 0, 760781, 760781, "RED"], [9932213, 0, 760781, 760781, "YELLOW"],
   [9177833, 0, 760781, 760781, "YELLOW"], [0, 5334610, 760781, 760781, "YELLOW"],
   [1829, 0, 760781, 760781, "BLUE"], [755294, 0, 760781, 760781, "BLUE"],
   [1829, 6090818, 760781, 760781, "GREEN"], [755294, 6090818, 760781, 760781, "GREEN"],
-  [1506017, 6090818, 760781, 760781, "GREEN"], [11431829, 6090818, 760781, 760781, "BLUE"],
+  [1506017, 6090818, 760781, 760781, "GREEN"], [11431829, 6090818, 760781, 760781, "BLUE"]
 ];
 const STYLE_B = [
   [11430914, 0, 760781, 760781, "BLUE"], [11431829, 747979, 760781, 760781, "PURPLE"],
   [11430914, 1508760, 760781, 760781, "YELLOW"], [0, 6101791, 3004718, 760781, "RED"],
   [0, 5341010, 760781, 760781, "BLUE"], [11431829, 6090818, 760781, 760781, "GREEN"],
-  [10699394, 6090818, 760781, 760781, "GREEN"], [0, 0, 760781, 760781, "PURPLE"],
+  [10699394, 6090818, 760781, 760781, "GREEN"], [0, 0, 760781, 760781, "PURPLE"]
 ];
 const STYLE_MARKER = [
   [0, -1829, 760781, 760781, "BLUE"], [747979, -1829, 2282342, 760781, "GREEN"],
   [0, 2304288, 760781, 760781, "GREEN"], [757123, 5339182, 760781, 1517904, "PURPLE"],
   [0, 758952, 1530706, 760781, "PURPLE"], [0, 3821278, 760781, 760781, "RED"],
   [0, 3065069, 1530706, 760781, "YELLOW"], [1517904, 6099962, 2277770, 758952, "YELLOW"],
-  [0, 4582058, 760781, 2275942, "BLUE"],
+  [0, 4582058, 760781, 2275942, "BLUE"]
 ];
 const STYLE_CLEANUP = [
   [2240280, 4511650, 760781, 760781, "YELLOW"], [4517136, 3763670, 760781, 760781, "RED"],
@@ -90,542 +91,342 @@ const STYLE_CLEANUP = [
   [2253996, 3015691, 760781, 760781, "RED"], [3001061, 2267712, 760781, 3004718, "BLUE"],
   [3761842, 3763670, 760781, 1508760, "PURPLE"], [0, 5334610, 760781, 760781, "YELLOW"],
   [755294, 6090818, 760781, 760781, "GREEN"], [1506017, 6090818, 760781, 760781, "GREEN"],
-  [0, 6090818, 760781, 760781, "YELLOW"], [2253996, 6090818, 760781, 760781, "GREEN"],
-];
-const STYLE_WRAPUP = [
-  // 16 фигур, бело-цветная мозаика справа; один элемент намеренно выходит за край (оригинальный дизайн)
-  [10700000, 0, 760781, 760781, "GREEN"], [11431829, 0, 760781, 760781, "YELLOW"],
-  [10700000, 747979, 760781, 760781, "PURPLE"], [11431829, 747979, 760781, 760781, "BLUE"],
-  [10700000, 1508760, 760781, 760781, "YELLOW"], [11431829, 1508760, 760781, 760781, "GREEN"],
-  [10700000, 2256739, 760781, 760781, "BLUE"], [11431829, 2256739, 760781, 760781, "PURPLE"],
-  [10700000, 5334610, 760781, 760781, "YELLOW"], [11431829, 5334610, 760781, 760781, "GREEN"],
-  [10700000, 6090818, 760781, 760781, "GREEN"], [11431829, 6090818, 760781, 760781, "YELLOW"],
-  [0, 0, 760781, 760781, "PURPLE"], [0, 6090818, 760781, 760781, "BLUE"],
-  [755294, 0, 760781, 760781, "BLUE"], [12192000, 6090818, 760781, 760781, "PURPLE"], // выходит за край - оригинальный дизайн
+  [0, 6090818, 760781, 760781, "YELLOW"], [2253996, 6090818, 760781, 760781, "GREEN"]
 ];
 
-function addDecor(slide, set) {
+function addSquares(slide, set) {
   set.forEach(([x, y, w, h, colorKey]) => {
-    slide.addShape("rect", {
-      x: EMU(x), y: EMU(y), w: EMU(w), h: EMU(h),
-      fill: { color: COLORS[colorKey] },
-      line: { type: "none" },
-    });
+    slide.addShape("rect", { ...box(x, y, w, h), fill: { color: COLORS[colorKey] }, line: { type: "none" } });
   });
 }
-
-function contentTitle(slide, text) {
+function addContentTitle(slide, text) {
   slide.addText(text, {
-    x: EMU(3122676), y: EMU(274320), w: EMU(5943600), h: EMU(777240),
-    fontFace: FONT, fontSize: 32, bold: true, color: DARKGRAY,
-    align: "center", valign: "middle", margin: 0,
+    ...box(3122676, 274320, 5943600, 777240),
+    fontFace: "Arial", fontSize: 32, bold: true, color: COLORS.TITLE_GRAY, align: "center", valign: "middle"
   });
 }
 
-function letterColor(letter) {
-  const idx = (letter.toUpperCase().charCodeAt(0) - 65) % 6;
-  return COLORS[CYCLE[idx]];
-}
-
-// ---------- честный contain-fit (БЕЗ pptxgenjs "sizing" — он растягивает картинку до box,
-// искажая пропорции; это и было причиной "поплывшей" буквы) ----------
-function getImageSize(buf) {
-  if (buf.length > 24 && buf[0] === 0x89 && buf.toString("ascii", 1, 4) === "PNG") {
-    return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
-  }
-  if (buf[0] === 0xff && buf[1] === 0xd8) {
-    let offset = 2;
-    while (offset < buf.length - 8) {
-      if (buf[offset] !== 0xff) { offset++; continue; }
-      const marker = buf[offset + 1];
-      if (marker === 0xd8 || marker === 0xd9) { offset += 2; continue; }
-      const segLength = buf.readUInt16BE(offset + 2);
-      if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
-        return { height: buf.readUInt16BE(offset + 5), width: buf.readUInt16BE(offset + 7) };
-      }
-      offset += 2 + segLength;
-    }
-  }
-  return null;
-}
-
-function containFit(boxX, boxY, boxW, boxH, filePath) {
-  let dims = null;
-  try {
-    dims = getImageSize(fs.readFileSync(filePath));
-  } catch (e) { /* ignore */ }
-  if (!dims || !dims.width || !dims.height) return { x: boxX, y: boxY, w: boxW, h: boxH };
-  const scale = Math.min(boxW / dims.width, boxH / dims.height);
-  const w = dims.width * scale, h = dims.height * scale;
-  return { x: boxX + (boxW - w) / 2, y: boxY + (boxH - h) / 2, w, h };
-}
-
-// вставка картинки: реальный contain-fit по пикселям + safe fallback на placeholder, если файла нет
-function safeImage(slide, filePath, opts, placeholderLabel, promptText) {
-  if (filePath && fs.existsSync(filePath)) {
-    const fit = containFit(opts.x, opts.y, opts.w, opts.h, filePath);
-    slide.addImage({ path: filePath, x: fit.x, y: fit.y, w: fit.w, h: fit.h });
-  } else {
-    slide.addShape("rect", {
-      x: opts.x, y: opts.y, w: opts.w, h: opts.h,
-      fill: { color: "EAF3FB" }, line: { color: COLORS.BLUE, width: 2, dashType: "dash" },
-    });
-    if (promptText) {
-      // текст промпта показывается прямо на слайде - скопировать, сгенерировать
-      // самому (например через ChatGPT), вставить картинку на это место вручную
-      slide.addText(
-        [
-          { text: "🖼  " + (placeholderLabel || "IMAGE PROMPT") + "\n", options: { bold: true, fontSize: 12, color: COLORS.BLUE, breakLine: true } },
-          { text: promptText, options: { fontSize: 10, italic: true, color: "444444" } },
-        ],
-        {
-          x: opts.x + 0.15, y: opts.y + 0.15, w: opts.w - 0.3, h: opts.h - 0.3,
-          align: "left", valign: "top", fontFace: FONT, wrap: true,
-        }
-      );
-    } else {
-      slide.addText("🖼  " + (placeholderLabel || "MISSING IMAGE"), {
-        x: opts.x, y: opts.y, w: opts.w, h: opts.h,
-        align: "center", valign: "middle", fontFace: FONT, fontSize: 14, bold: true, color: COLORS.BLUE,
-      });
-    }
-  }
-}
-
-// единый рендер сценария игры: прямые реплики выделены цветом+подчёркиванием,
-// действия обычным текстом, инструкции жирным чёрным — один стиль на Game 1/2/3
-function renderGameScript(slide, script, box) {
-  const runs = [];
-  (script || []).forEach((line) => {
-    let opts = { fontSize: 18, breakLine: true };
-    if (line.speaker === "children") {
-      opts = { ...opts, color: COLORS.BLUE };
-    } else if (line.speaker === "teacher") {
-      opts = { ...opts, color: COLORS.RED };
-    } else if (line.speaker === "instruction") {
-      opts = { ...opts, color: "222222" };
-    } else {
-      opts = { ...opts, italic: true, color: "555555", fontSize: 16 };
-    }
-    runs.push({ text: line.text, options: opts });
-    runs.push({ text: "", options: { fontSize: 7, breakLine: true } });
-  });
-  slide.addText(runs, { x: box.x, y: box.y, w: box.w, h: box.h, fontFace: FONT, align: "left", valign: "top" });
-}
-
-// алфавит-слайд: общий на все уроки, меняется только подпись снизу (DESIGN_SYSTEM.md)
-function alphabetSlide(pres, content) {
-  const slide = pres.addSlide();
-  slide.background = { color: "F3EEE2" };
-  const rows = [
-    { letters: "ABCDEFGHI", y: 457200 },
-    { letters: "JKLMNOPQR", y: 2423160 },
-    { letters: "STUVWXYZ", y: 4389120 },
-  ];
-  rows.forEach((row) => {
-    const chars = row.letters.split("");
-    const runs = chars.map((ch, i) => ({
-      text: ch + (i < chars.length - 1 ? " " : ""),
-      options: { color: letterColor(ch), fontFace: "Comic Sans MS", fontSize: 68, bold: true },
-    }));
-    slide.addText(runs, {
-      x: EMU(182880), y: EMU(row.y), w: EMU(11795760), h: EMU(1828800),
-      align: "center", valign: "middle", margin: 0, wrap: false,
-    });
-  });
-  const caption = content.alphabet_caption ||
-    `Point to each letter until students guess: ${content.letter.toUpperCase()} is for ${content.topic}!`;
-  slide.addText(caption, {
-    x: EMU(548640), y: EMU(6263640), w: EMU(11064240), h: EMU(548640),
-    fontFace: FONT, fontSize: 14, color: "666666", align: "center",
-  });
-  return slide;
-}
-
-function videoSlide(pres, { title, youtubeId, caption }) {
-  const slide = pres.addSlide();
-  slide.background = { color: "141414" };
-  slide.addShape("roundRect", {
-    x: EMU(457200), y: EMU(411480), w: EMU(11247120), h: EMU(5486400),
-    fill: { color: "2A2A2A" }, line: { color: "555555", width: 1 }, rectRadius: 0.05,
-  });
-  if (youtubeId) {
-    slide.addMedia({
-      type: "online",
-      link: `https://www.youtube.com/embed/${youtubeId}`,
-      x: EMU(457200), y: EMU(411480), w: EMU(11247120), h: EMU(5486400),
-    });
-  } else {
-    slide.addText("🎬  INSERT VIDEO HERE", {
-      x: EMU(457200), y: EMU(411480), w: EMU(11247120), h: EMU(5486400),
-      fontFace: FONT, fontSize: 28, bold: true, color: "888888", align: "center", valign: "middle",
-    });
-  }
-  slide.addText(caption || title, {
-    x: EMU(457200), y: EMU(411480 + 5486400 + 40000), w: EMU(11247120), h: EMU(300000),
-    fontFace: FONT, fontSize: 13, color: "AAAAAA", align: "center",
-  });
-  if (youtubeId) {
-    slide.addText("Link to Youtube", {
-      x: 0, y: EMU(6080760), w: EMU(12161520), h: EMU(365760),
-      fontFace: FONT, fontSize: 15, color: "6FB6FF", align: "center",
-      hyperlink: { url: `https://www.youtube.com/watch?v=${youtubeId}` },
-    });
-  }
-  return slide;
-}
-
-function markerSlide(pres, text) {
+function buildCover(pres, content) {
   const slide = pres.addSlide();
   slide.background = { color: COLORS.BLUE };
-  addDecor(slide, STYLE_MARKER);
-  slide.addText(text, {
-    x: 0, y: EMU(2450592), w: EMU(12161520), h: EMU(1947672),
-    fontFace: FONT, fontSize: 72, bold: true, color: "FFFFFF",
-    align: "center", valign: "middle", margin: 0,
+  addSquares(slide, STYLE_A);
+  slide.addText(content.topic.toUpperCase(), {
+    ...box(0, 0, 12161520, 6858000),
+    fontFace: "Arial", fontSize: 60, bold: true, color: "FFFFFF", align: "center", valign: "middle"
   });
-  return slide;
 }
 
-// ---------- главная сборка ----------
-function build(contentPath) {
-  const content = JSON.parse(fs.readFileSync(contentPath, "utf8"));
-  const topicSlug = content.topic.toLowerCase().replace(/\s+/g, "_");
-  const genDir = path.join(ASSETS, "generated", topicSlug);
-  const propsDir = path.join(ASSETS, "story_props", topicSlug);
-  const stepsDir = path.join(ASSETS, "steps", topicSlug);
-
-  const pres = new pptxgen();
-  pres.defineLayout({ name: "LEGO", width: 13.333, height: 7.5 });
-  pres.layout = "LEGO";
-
-  // 1. COVER
-  {
-    const slide = pres.addSlide();
-    slide.background = { color: COLORS.BLUE };
-    addDecor(slide, STYLE_A); // мозаика по краям вместо фото, как в STYLE_COVER
-    slide.addText(content.topic, {
-      x: 0, y: 0, w: EMU(12161520), h: EMU(6858000),
-      fontFace: FONT, fontSize: 72, bold: true, color: "FFFFFF",
-      align: "center", valign: "middle", margin: 0,
-    });
-  }
-
-  // 2. INTRO VIDEO
-  videoSlide(pres, {
-    title: "Intro Video",
-    youtubeId: content.intro_video_youtube_id || null,
-    caption: content.intro_video_youtube_id
-      ? content.intro_video_caption
-      : `Fun movement/dance song for "${content.topic}" - insert video`,
+function buildMarker(pres, label) {
+  const slide = pres.addSlide();
+  slide.background = { color: COLORS.BLUE };
+  addSquares(slide, STYLE_MARKER);
+  slide.addText(label, {
+    ...box(0, 2450592, 12161520, 1947672),
+    fontFace: "Arial", fontSize: 66, bold: true, color: "FFFFFF", align: "center", valign: "middle"
   });
+}
 
-  // 3. STORY
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_A);
-    contentTitle(slide, content.topic + " Story");
-    safeImage(slide, path.join(genDir, "story_background.png"),
-      { x: 0.5, y: 1.3, w: 3.6, h: 2.4 }, "STORY BG THUMBNAIL", content.story.background_image_prompt);
-    let y = 1.3;
-    slide.addText([{ text: "Short summary: ", options: { bold: true, fontSize: 13 } },
-      { text: content.story.short_summary, options: { fontSize: 13, breakLine: true } }],
-      { x: 4.5, y, w: 8.1, h: 1.0, fontFace: FONT, color: "222222" });
-    y += 1.1;
-    slide.addText("Characters:", { x: 4.5, y, w: 8.1, h: 0.3, fontFace: FONT, fontSize: 13, bold: true });
-    y += 0.32;
-    content.story.characters.forEach((c) => {
-      slide.addText(c, { x: 4.5, y, w: 8.1, h: 0.28, fontFace: FONT, fontSize: 12 });
-      y += 0.3;
-    });
-    y += 0.05;
-    slide.addText([{ text: "Key phrase: ", options: { bold: true, fontSize: 13 } },
-      { text: content.story.key_phrase, options: { fontSize: 13 } }],
-      { x: 4.5, y, w: 8.1, h: 0.4, fontFace: FONT });
-    y += 0.45;
-    slide.addText(content.story.call_and_response_note, {
-      x: 4.5, y, w: 8.1, h: 0.6, fontFace: FONT, fontSize: 12, color: "666666",
-    });
-    slide.addNotes(
-      `FULL STORY (speaker notes):\n${content.story.full_story_speaker_notes}\n\nOBSERVATION:\n${content.story.observation_questions.join("\n")}`
-    );
-  }
-
-  // 4. STORY PROPS
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_A);
-    contentTitle(slide, "Story Props");
-    const n = content.story_props.length;
-    const cols = Math.min(n, 4);
-    const cellW = 10.5 / cols;
-    content.story_props.forEach((prop, i) => {
-      const x = 1.4 + (i % cols) * cellW;
-      const y = 2.0 + Math.floor(i / cols) * 3.0;
-      const slug = prop.name.toLowerCase().replace(/\s+/g, "_");
-      safeImage(slide, path.join(propsDir, `prop_${slug}.png`),
-        { x, y, w: cellW - 0.4, h: 2.2 }, prop.name, prop.image_prompt);
-      slide.addText(prop.name, {
-        x, y: y + 2.25, w: cellW - 0.4, h: 0.35, align: "center", fontFace: FONT, fontSize: 13,
-      });
-    });
-  }
-
-  // 5. MODEL BUILDING (marker)
-  markerSlide(pres, "Model Building");
-
-  // 6. REAL OBJECT PHOTO (no title, but keep the corner decor so it doesn't look broken/blank)
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_A);
-    safeImage(slide, path.join(genDir, "real_object.png"),
-      { x: 3.0, y: 0.8, w: 7.3, h: 5.9 }, "REAL OBJECT PHOTO", content.real_object_image_prompt);
-  }
-
-  // 7. OUR GOAL
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_A);
-    contentTitle(slide, "Our Goal");
-    if (content.our_goal && content.our_goal.split) {
-      safeImage(slide, path.join(genDir, "goal_easy.png"), { x: 0.8, y: 1.6, w: 5.5, h: 4.8 }, content.our_goal.easy_note || "EASY VERSION");
-      safeImage(slide, path.join(genDir, "goal_hard.png"), { x: 6.9, y: 1.6, w: 5.5, h: 4.8 }, content.our_goal.hard_note || "HARD VERSION");
-    } else {
-      safeImage(slide, path.join(genDir, "goal.png"), { x: 3.5, y: 1.6, w: 6.3, h: 4.8 }, "GOAL MODEL PHOTO");
-    }
-  }
-
-  // 8. STEP BY STEP
-  if (content.step_by_step_placeholder !== false && (!fs.existsSync(stepsDir) || fs.readdirSync(stepsDir).length === 0)) {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_A);
-    contentTitle(slide, "Step by Step");
-    slide.addText("BUILD STEPS PLACEHOLDER", {
-      x: 1.5, y: 2.8, w: 10.3, h: 1.5, align: "center", valign: "middle",
-      fontFace: FONT, fontSize: 28, color: "999999", fill: { color: "F5F5F5" },
+function buildVideoSlide(pres, title, youtubeId, caption) {
+  const slide = pres.addSlide();
+  slide.background = { color: COLORS.VIDEO_BG };
+  addContentTitle(slide, title);
+  if (youtubeId && youtubeId !== "SEARCH_NEEDED" && youtubeId.trim()) {
+    slide.addMedia({ type: "online", link: `https://www.youtube.com/embed/${youtubeId}`, ...box(457200, 411480, 11247120, 5486400) });
+    slide.addText("Link to Youtube", {
+      hyperlink: { url: `https://www.youtube.com/watch?v=${youtubeId}` },
+      ...box(0, 6080760, 12161520, 365760), fontFace: "Arial", fontSize: 15, color: "6FB6FF", align: "center"
     });
   } else {
-    const files = fs.readdirSync(stepsDir).sort();
-    files.forEach((f, i) => {
-      const slide = pres.addSlide();
-      addDecor(slide, STYLE_A);
-      contentTitle(slide, `Step ${i + 1}`);
-      safeImage(slide, path.join(stepsDir, f), { x: 3.2, y: 1.5, w: 6.9, h: 5.2 }, `Step ${i + 1}`);
+    slide.addText(`[NEEDS REAL YOUTUBE ID: ${caption || ""}]`, {
+      ...box(457200, 411480, 11247120, 5486400), fontFace: "Arial", fontSize: 20, color: "888888", align: "center", valign: "middle"
     });
   }
-
-  // 9. PRESENTATION
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_CLEANUP);
-    slide.addText("Presentation", {
-      x: EMU(6400800), y: EMU(448056), w: EMU(5120640), h: EMU(1362456),
-      fontFace: FONT, fontSize: 54, color: DARKGRAY, align: "left", valign: "middle", margin: 0,
-    });
-    const runs = [];
-    content.presentation_qa.forEach((qa, i) => {
-      runs.push({ text: qa.q, options: { bold: true, fontSize: 20, breakLine: true } });
-      runs.push({ text: qa.a, options: { fontSize: 20, breakLine: true } });
-      if (i < content.presentation_qa.length - 1) runs.push({ text: "", options: { fontSize: 8, breakLine: true } });
-    });
-    slide.addText(runs, { x: EMU(6400800), y: EMU(2103120), w: EMU(5120640), h: EMU(4206240), fontFace: FONT, color: "222222" });
-  }
-
-  // 10. GAME 1
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_B);
-    contentTitle(slide, content.game1.title);
-    renderGameScript(slide, content.game1.script, { x: 1.3, y: 1.85, w: 10.7, h: 4.9 });
-  }
-
-  // 11. GAME 2 — визуальная часть зависит от content.game2.type, текстовая часть всегда одинакова
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_B);
-    contentTitle(slide, content.game2.title);
-    renderGameScript(slide, content.game2.script, { x: 0.8, y: 1.85, w: 5.3, h: 4.9 });
-
-    const type = content.game2.type || (content.game2.colors ? "color_matching" : "generic");
-    const panelX = 6.5, panelW = 5.3;
-
-    if (type === "color_matching" && content.game2.colors && content.game2.colors.length) {
-      const cols = Math.min(content.game2.colors.length, 4);
-      const rows = Math.ceil(content.game2.colors.length / cols);
-      const cellW = panelW / cols;
-      const cellH = 4.6 / rows;
-      content.game2.colors.forEach((c, i) => {
-        const col = i % cols, row = Math.floor(i / cols);
-        const x = panelX + col * cellW, y = 1.9 + row * cellH;
-        const w = cellW - 0.15, h = cellH - 0.15;
-        const imgPath = path.join(genDir, `game2_${c.toLowerCase()}.png`);
-        if (fs.existsSync(imgPath)) {
-          safeImage(slide, imgPath, { x, y, w, h }, c);
-        } else {
-          // пока не перекрашено (recolor-game2.py) - просто цветной прямоугольник с подписью,
-          // без лишнего текста-инструкции - мы и так точно знаем, какой это цвет
-          const hex = resolveColorHex(c);
-          slide.addShape("roundRect", {
-            x, y, w, h, fill: { color: hex }, line: { color: "FFFFFF", width: 2 }, rectRadius: 0.08,
-          });
-          slide.addText(c, {
-            x, y, w, h, align: "center", valign: "middle",
-            fontFace: FONT, fontSize: 14, bold: true, color: isLightColor(hex) ? "222222" : "FFFFFF",
-          });
-        }
-      });
-    } else if (type === "shape_build") {
-      safeImage(slide, path.join(genDir, "game2_shape_reference.png"), { x: panelX, y: 1.9, w: panelW, h: 2.2 }, "REFERENCE SHAPE", content.game2.shape_reference_prompt);
-      safeImage(slide, path.join(genDir, "game2_shape_pieces.png"), { x: panelX, y: 4.3, w: panelW, h: 2.2 }, "SHAPE PIECES (max 5-6)", content.game2.shape_pieces_prompt);
-    } else {
-      safeImage(slide, path.join(genDir, "game2_printout.png"), { x: panelX, y: 1.9, w: panelW, h: 4.6 }, "GAME 2 PRINTOUT", content.game2.printout_prompt);
-    }
-  }
-
-  // 12. ABC SONG VIDEO
-  videoSlide(pres, { title: "Alphabet Song", youtubeId: CONST_VIDEOS.alphabet.id, caption: CONST_VIDEOS.alphabet.caption });
-
-  // 13. WHICH LETTER? — это и есть алфавит-слайд (общий на все уроки), учитель водит по буквам
-  alphabetSlide(pres, content);
-
-  // 14. LETTER-SPECIFIC VIDEO
-  {
-    const vid = LETTER_VIDEOS[content.letter.toUpperCase()];
-    videoSlide(pres, {
-      title: `Letter ${content.letter} Phonics`,
-      youtubeId: vid,
-      caption: vid ? `Letter ${content.letter} Phonics - Little Fox` : `MISSING: add id for letter ${content.letter} to scripts/letter-videos.json`,
-    });
-  }
-
-  // 15. WHAT LETTER IS IT?
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_A);
-    slide.addText("What letter is it?", {
-      x: EMU(548640), y: EMU(320040), w: EMU(11064240), h: EMU(822960),
-      fontFace: FONT, fontSize: 40, color: "000000", align: "center", valign: "middle", margin: 0,
-    });
-    slide.addText(content.letter.toUpperCase(), {
-      x: 0, y: EMU(1440180), w: EMU(12161520), h: EMU(3657600),
-      fontFace: FONT, fontSize: 250, bold: true, color: letterColor(content.letter),
-      align: "center", valign: "middle", margin: 0,
-    });
-    slide.addText("Have students drill the letter and sound chorally and individually.", {
-      x: EMU(1371600), y: EMU(5394960), w: EMU(9418320), h: EMU(731520),
-      fontFace: FONT, fontSize: 16, color: "000000", align: "center",
-    });
-    slide.addNotes(
-      "Teacher script:\n" + content.letter_slide_script_notes.map((s, i) => `${i + 1}. ${s}`).join("\n")
-    );
-  }
-
-  // 16. PATTERN SHEET
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_A);
-    contentTitle(slide, "Pattern Sheet");
-    slide.addText(
-      [
-        { text: "Pass out bricks and pattern sheet", options: { breakLine: true } },
-        { text: "Let's place the bricks on the pattern sheet.", options: { breakLine: true } },
-        { text: "Challenge students to build the letter on the baseplate", options: { breakLine: true } },
-        { text: "Reward: one toy dollar!", options: {} },
-      ],
-      { x: 0.6, y: 2.2, w: 4.3, h: 3.5, fontFace: FONT, fontSize: 18, color: "222222" }
-    );
-    // box подобран под aspect ratio самой буквы (~0.755), чтобы не оставалось пустого поля
-    const patternPath = path.join(ASSETS, "letters", `${content.letter.toUpperCase()}_pattern.png`);
-    safeImage(slide, patternPath, { x: 7.3, y: 1.2, w: 4.3, h: 5.7 }, "PATTERN");
-  }
-
-  // 17. GAME 3
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_B);
-    contentTitle(slide, content.game3.title);
-    renderGameScript(slide, content.game3.script, { x: 1.3, y: 1.85, w: 10.7, h: 4.9 });
-  }
-
-  // 18. CHALLENGE + FREE PLAY
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_B);
-    contentTitle(slide, "Challenge or Free Play");
-    slide.addText(content.challenge.text, {
-      x: EMU(914400), y: EMU(1417320), w: EMU(10332720), h: EMU(1188720),
-      fontFace: FONT, fontSize: 18, bold: true, color: COLORS.RED, align: "center", valign: "middle",
-    });
-    safeImage(slide, path.join(genDir, "challenge.png"), { x: 1.2, y: 3.0, w: 5.0, h: 3.6 }, "CHALLENGE IMAGE", content.challenge.challenge_image_prompt);
-    safeImage(slide, path.join(ASSETS, "free_play.png"), { x: 7.2, y: 3.0, w: 5.0, h: 3.6 }, "FREE PLAY");
-  }
-
-  // 19. MODEL BUILDING (repeat, marker)
-  markerSlide(pres, "Model Building");
-
-  // 20. CLEAN UP
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_CLEANUP);
-    slide.addText("Clean Up", {
-      x: EMU(5577840), y: EMU(2481760), w: EMU(6309360), h: EMU(1437280),
-      fontFace: FONT, fontSize: 72, color: DARKGRAY, align: "left", valign: "middle", margin: 0,
-    });
-    slide.addText("Everyone who helps clean up earns one toy dollar!", {
-      x: EMU(5577840), y: EMU(3749040), w: EMU(6309360), h: EMU(600000),
-      fontFace: FONT, fontSize: 18, color: "000000",
-    });
-  }
-
-  // 21. WRAP UP
-  {
-    const slide = pres.addSlide();
-    slide.background = { color: COLORS.RED };
-    addDecor(slide, STYLE_WRAPUP);
-    slide.addText("Wrap up", {
-      x: 0, y: 0, w: EMU(12161520), h: EMU(6858000),
-      fontFace: FONT, fontSize: 72, bold: true, color: "FFFFFF", align: "center", valign: "middle", margin: 0,
-    });
-  }
-
-  // 22. LETTER AGAIN
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_A);
-    contentTitle(slide, `Letter ${content.letter.toUpperCase()} Again!`);
-    slide.addText(content.letter.toUpperCase(), {
-      x: 0, y: EMU(2125980), w: EMU(12161520), h: EMU(3657600),
-      fontFace: FONT, fontSize: 250, bold: true, color: letterColor(content.letter),
-      align: "center", valign: "middle", margin: 0,
-    });
-  }
-
-  // 23. WHAT IS THIS? (same real photo, no title, but keep the corner decor)
-  {
-    const slide = pres.addSlide();
-    addDecor(slide, STYLE_A);
-    safeImage(slide, path.join(genDir, "real_object.png"),
-      { x: 3.0, y: 0.8, w: 7.3, h: 5.9 }, "REAL OBJECT PHOTO (same as slide 6)", content.real_object_image_prompt);
-  }
-
-  // 24. CLOSING VIDEO
-  videoSlide(pres, { title: "Closing", youtubeId: null, caption: "Closing song (fingers and toes, etc.) - insert video" });
-
-  const outDir = path.join(ROOT, "output");
-  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-  const outPath = path.join(outDir, `${topicSlug}.pptx`);
-  return pres.writeFile({ fileName: outPath }).then(() => {
-    console.log("Written:", outPath);
-    return outPath;
+  slide.addText(caption || "", {
+    ...box(457200, 5950000, 11247120, 300000), fontFace: "Arial", fontSize: 13, color: "AAAAAA", align: "center"
   });
 }
 
-const contentArg = process.argv[2];
-if (!contentArg) {
-  console.error("Usage: node scripts/build-pptx.js content/<topic>.json");
-  process.exit(1);
+function buildStory(pres, content, assetsDir) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_A);
+  addContentTitle(slide, content.topic);
+
+  const bgImg = path.join(assetsDir, "story_background.png");
+  const imgBox = { x: 548640, y: 1150000, w: 4700000, h: 4900000 };
+  if (fs.existsSync(bgImg)) {
+    slide.addImage({ path: bgImg, ...containFit(bgImg, inch(imgBox.x), inch(imgBox.y), inch(imgBox.w), inch(imgBox.h)) });
+  } else {
+    slide.addShape("rect", { ...box(imgBox.x, imgBox.y, imgBox.w, imgBox.h), fill: { color: "F0F0F0" }, line: { color: "DDDDDD" } });
+  }
+
+  const textX = 5650000;
+  const textW = 5950000;
+  let y = 1150000;
+  const blockH = 900000;
+  slide.addText([{ text: "Short summary: ", options: { bold: true, fontSize: 15 } }, { text: content.story.short_summary, options: { fontSize: 15 } }],
+    { ...box(textX, y, textW, blockH + 200000), fontFace: "Arial", color: "333333", valign: "top" });
+  y += blockH + 350000;
+  slide.addText([{ text: "Characters: ", options: { bold: true, fontSize: 15 } }],
+    { ...box(textX, y, textW, 320000), fontFace: "Arial", color: "333333" });
+  y += 340000;
+  slide.addText(content.story.characters.join("\n"), { ...box(textX, y, textW, 600000), fontFace: "Arial", fontSize: 13, color: "333333" });
+  y += 720000;
+  slide.addText([{ text: "Key phrase: ", options: { bold: true, fontSize: 15 } }, { text: content.story.key_phrase, options: { fontSize: 15 } }],
+    { ...box(textX, y, textW, 500000), fontFace: "Arial", color: "333333" });
+  y += 600000;
+  slide.addText(content.story.call_and_response_note || "", { ...box(textX, y, textW, 700000), fontFace: "Arial", fontSize: 13, color: "666666", italic: true });
+
+  slide.addNotes(`FULL STORY:\n${content.story.full_story_speaker_notes}\n\nOBSERVATION:\n${(content.story.observation_questions || []).join("\n")}`);
 }
-build(path.resolve(contentArg)).catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+
+function buildStoryProps(pres, content, assetsDir) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_A);
+  addContentTitle(slide, "Story Props");
+  const props = content.story_props || [];
+  const cols = Math.min(props.length, 4) || 1;
+  const cellW = 10161520 / cols;
+  props.forEach((prop, i) => {
+    const x = 1000000 + i * cellW;
+    const imgPath = path.join(assetsDir, `${prop.name.toLowerCase().replace(/\s+/g, "_")}.png`);
+    if (fs.existsSync(imgPath)) {
+      slide.addImage({ path: imgPath, ...containFit(imgPath, inch(x), inch(1600000), inch(cellW - 200000), inch(3200000)) });
+    }
+    slide.addText(prop.name, { ...box(x, 5000000, cellW - 200000, 400000), fontFace: "Arial", fontSize: 16, align: "center" });
+  });
+}
+
+function buildRealObjectSlide(pres, assetsDir) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_A);
+  const imgPath = path.join(assetsDir, "real_object.png");
+  if (fs.existsSync(imgPath)) {
+    slide.addImage({ path: imgPath, ...containFit(imgPath, inch(2000000), inch(700000), inch(8161520), inch(5400000)) });
+  }
+}
+
+function buildOurGoal(pres, content, assetsDir) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_A);
+  addContentTitle(slide, "Our Goal");
+  const easyImg = path.join(assetsDir, "our_goal_easy.png");
+  const hardImg = path.join(assetsDir, "our_goal_hard.png");
+  if (fs.existsSync(easyImg)) slide.addImage({ path: easyImg, ...containFit(easyImg, inch(600000), inch(1400000), inch(5300000), inch(4800000)) });
+  else slide.addText(content.our_goal?.easy_note || "", { ...box(600000, 1400000, 5300000, 4800000), align: "center", valign: "middle", fontSize: 14, color: "999999" });
+  if (fs.existsSync(hardImg)) slide.addImage({ path: hardImg, ...containFit(hardImg, inch(6300000), inch(1400000), inch(5300000), inch(4800000)) });
+  else slide.addText(content.our_goal?.hard_note || "", { ...box(6300000, 1400000, 5300000, 4800000), align: "center", valign: "middle", fontSize: 14, color: "999999" });
+}
+
+function buildStepPlaceholder(pres) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_A);
+  slide.addText("BUILD STEPS PLACEHOLDER\n(add real step-by-step photos here, one photo per slide)", {
+    ...box(1000000, 2500000, 10161520, 1800000), fontFace: "Arial", fontSize: 24, color: "999999", align: "center", valign: "middle"
+  });
+}
+
+function buildAlphabetSlide(pres, content) {
+  const slide = pres.addSlide();
+  slide.background = { color: COLORS.ALPHABET_BG };
+  const rows = [{ letters: "ABCDEFGHI", y: 457200 }, { letters: "JKLMNOPQR", y: 2423160 }, { letters: "STUVWXYZ", y: 4389120 }];
+  rows.forEach(({ letters, y }) => {
+    const runs = letters.split("").map((ch) => ({ text: ch + " ", options: { color: ALPHABET_CYCLE[(ch.charCodeAt(0) - 65) % 6] } }));
+    slide.addText(runs, { ...box(182880, y, 11795760, 1828800), fontFace: "Comic Sans MS", fontSize: 80, bold: true, align: "center", valign: "middle" });
+  });
+  const caption = content.alphabet_caption || `Point to each letter until students guess: ${content.letter} is for ${content.topic}!`;
+  slide.addText(caption, { ...box(548640, 6263640, 11064240, 548640), fontFace: "Arial", fontSize: 14, color: "666666", align: "center" });
+}
+
+function buildWhatLetter(pres, letter, isRepeat) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_A);
+  const color = ALPHABET_CYCLE[(letter.charCodeAt(0) - 65) % 6];
+  if (!isRepeat) {
+    slide.addText("What letter is it?", { ...box(548640, 320040, 11064240, 822960), fontFace: "Arial", fontSize: 40, color: "000000", align: "center" });
+    slide.addText(letter, { ...box(0, 1440180, 12161520, 3657600), fontFace: "Arial", fontSize: 250, bold: true, color, align: "center", valign: "middle" });
+    slide.addText("Have students drill the letter and sound chorally and individually", {
+      ...box(1371600, 5394960, 9418320, 731520), fontFace: "Arial", fontSize: 16, color: "000000", align: "center"
+    });
+  } else {
+    addContentTitle(slide, `Letter ${letter} Again!`);
+    slide.addText(letter, { ...box(0, 2125980, 12161520, 3657600), fontFace: "Arial", fontSize: 250, bold: true, color, align: "center", valign: "middle" });
+  }
+}
+
+function buildPatternSheet(pres, letter) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_A);
+  addContentTitle(slide, "Pattern Sheet");
+  slide.addText(
+    "Pass out bricks and pattern sheet\nLet's place the bricks on the pattern sheet.\nChallenge students to build the letter on the baseplate\nReward: one toy dollar!",
+    { x: 0.6, y: 2.2, w: 4.3, h: 3.5, fontFace: "Arial", fontSize: 18, color: "000000" }
+  );
+  // Letters are static/read-only assets, packaged with the app -> always from ROOT.
+  const letterImg = path.join(ROOT, "assets", "letters", `${letter}_pattern.png`);
+  if (fs.existsSync(letterImg)) {
+    slide.addImage({ path: letterImg, ...containFit(letterImg, 7.3, 1.2, 4.3, 5.7) });
+  }
+}
+
+function addScript(slide, script, boxSpec) {
+  const runs = [];
+  (script || []).forEach((line) => {
+    const style = SPEAKER_STYLE[line.speaker] || SPEAKER_STYLE.instruction;
+    runs.push({ text: line.text, options: { color: style.color, italic: style.italic, fontSize: 18, breakLine: true } });
+    runs.push({ text: "", options: { breakLine: true, fontSize: 6 } });
+  });
+  slide.addText(runs, { ...boxSpec, fontFace: "Arial", align: "left", valign: "top" });
+}
+
+function buildGame1(pres, content) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_B);
+  addContentTitle(slide, content.game1.title);
+  addScript(slide, content.game1.script, boxIn(1.3, 1.85, 10.7, 4.9));
+}
+
+function buildGame2(pres, content, assetsDir) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_B);
+  addContentTitle(slide, content.game2.title);
+  addScript(slide, content.game2.script, boxIn(0.8, 1.85, 5.3, 4.9));
+  const colors = content.game2.colors || [];
+  if (colors.length) {
+    const cols = 3;
+    colors.forEach((color, i) => {
+      const cx = 6.5 + (i % cols) * 1.7;
+      const cy = 1.85 + Math.floor(i / cols) * 1.7;
+      const imgPath = path.join(assetsDir, `game2_${color.toLowerCase()}.png`);
+      if (fs.existsSync(imgPath)) slide.addImage({ path: imgPath, ...containFit(imgPath, cx, cy, 1.5, 1.5) });
+    });
+  } else {
+    const printoutImg = path.join(assetsDir, "game2_printout.png");
+    if (fs.existsSync(printoutImg)) slide.addImage({ path: printoutImg, ...containFit(printoutImg, 6.5, 1.85, 5.3, 4.9) });
+  }
+}
+
+function buildGame3(pres, content) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_B);
+  addContentTitle(slide, content.game3.title);
+  addScript(slide, content.game3.script, boxIn(1.3, 1.85, 10.7, 4.9));
+}
+
+function buildChallenge(pres, content, assetsDir) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_B);
+  addContentTitle(slide, "Challenge + Free Play");
+  slide.addText(content.challenge.text, {
+    ...box(914400, 1417320, 10332720, 1188720), fontFace: "Arial", fontSize: 18, color: "666666", align: "center", valign: "middle"
+  });
+  const challengeImg = path.join(assetsDir, "challenge.png");
+  // free_play.png is static/read-only, packaged with the app -> always from ROOT.
+  const freePlayImg = path.join(ROOT, "assets", "free_play.png");
+  if (fs.existsSync(challengeImg)) slide.addImage({ path: challengeImg, ...containFit(challengeImg, inch(914400), inch(2800000), inch(4800000), inch(3200000)) });
+  if (fs.existsSync(freePlayImg)) slide.addImage({ path: freePlayImg, ...containFit(freePlayImg, inch(6400000), inch(2800000), inch(4800000), inch(3200000)) });
+}
+
+function buildPresentation(pres, content) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_CLEANUP);
+  slide.addText("Presentation", { ...box(6400800, 448056, 5120640, 1362456), fontFace: "Arial", fontSize: 54, color: COLORS.TITLE_GRAY, align: "left", valign: "middle" });
+  const runs = [];
+  (content.presentation_qa || []).forEach(({ q, a }) => {
+    runs.push({ text: q, options: { bold: true, fontSize: 20, breakLine: true } });
+    runs.push({ text: a, options: { fontSize: 20, breakLine: true } });
+    runs.push({ text: "", options: { fontSize: 8, breakLine: true } });
+  });
+  slide.addText(runs, { ...box(6400800, 2103120, 5120640, 4206240), fontFace: "Arial", color: "333333" });
+}
+
+function buildCleanUp(pres) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_CLEANUP);
+  slide.addText("Clean Up", { ...box(5577840, 2651760, 6309360, 1097280), fontFace: "Arial", fontSize: 48, color: COLORS.TITLE_GRAY, align: "left", valign: "middle" });
+  slide.addText("Everyone who helps clean up earns one toy dollar!", { ...box(5577840, 3800000, 6309360, 600000), fontFace: "Arial", fontSize: 18, color: "000000" });
+}
+
+function buildWrapUp(pres) {
+  const slide = pres.addSlide();
+  slide.background = { color: COLORS.RED };
+  slide.addText("Wrap up", { ...box(0, 2450592, 12161520, 1947672), fontFace: "Arial", fontSize: 66, bold: true, color: "FFFFFF", align: "center", valign: "middle" });
+}
+
+function loadLetterVideoId(letter) {
+  try {
+    const raw = fs.readFileSync(path.join(ROOT, "scripts", "letter-videos.json"), "utf-8");
+    const map = JSON.parse(raw);
+    return map[letter.toUpperCase()] || "";
+  } catch {
+    return "";
+  }
+}
+
+function buildWhatIsThis(pres, assetsDir) {
+  const slide = pres.addSlide();
+  addSquares(slide, STYLE_A);
+  addContentTitle(slide, "What's this?");
+  const imgPath = path.join(assetsDir, "real_object.png");
+  if (fs.existsSync(imgPath)) {
+    slide.addImage({ path: imgPath, ...containFit(imgPath, inch(2000000), inch(1200000), inch(8161520), inch(4900000)) });
+  }
+}
+
+function slugify(topic) { return topic.toLowerCase().trim().replace(/\s+/g, "_"); }
+
+async function buildPresentationFile(contentPath) {
+  if (!fs.existsSync(contentPath)) throw new Error(`content.json not found at ${contentPath}`);
+  const content = JSON.parse(fs.readFileSync(contentPath, "utf-8"));
+  const slug = slugify(content.topic);
+  const assetsDir = path.join(DATA_DIR, "assets", "generated", slug);
+
+  const pres = new pptxgen();
+  pres.defineLayout({ name: "LEGO_LAYOUT", width: 13.33, height: 7.5 });
+  pres.layout = "LEGO_LAYOUT";
+
+  buildCover(pres, content);
+  buildVideoSlide(pres, "Let's Get Moving!", content.intro_video_youtube_id, content.intro_video_caption);
+  buildStory(pres, content, assetsDir);
+  buildStoryProps(pres, content, assetsDir);
+  buildMarker(pres, "Model Building");
+  buildRealObjectSlide(pres, assetsDir);
+  buildOurGoal(pres, content, path.join(DATA_DIR, "assets", "our_goal", slug));
+  buildStepPlaceholder(pres);
+  buildPresentation(pres, content);
+  buildGame1(pres, content);
+  buildVideoSlide(pres, "Alphabet Song", "ezmsrB59mj8", "Sing along with the alphabet!");
+  buildAlphabetSlide(pres, content);
+  buildVideoSlide(pres, `Letter ${content.letter} Song`, loadLetterVideoId(content.letter), `Letter ${content.letter}`);
+  buildWhatLetter(pres, content.letter, false);
+  buildPatternSheet(pres, content.letter);
+  buildGame2(pres, content, assetsDir);
+  buildGame3(pres, content);
+  buildChallenge(pres, content, assetsDir);
+  buildMarker(pres, "Clean Up");
+  buildCleanUp(pres);
+  buildWrapUp(pres);
+  buildWhatLetter(pres, content.letter, true);
+  buildWhatIsThis(pres, assetsDir);
+  buildVideoSlide(pres, "How Many Fingers?", "h2AndZKYZBQ", "Fingers and toes");
+
+  const outDir = path.join(DATA_DIR, "output");
+  fs.mkdirSync(outDir, { recursive: true });
+  const outPath = path.join(outDir, `${slug}.pptx`);
+  await pres.writeFile({ fileName: outPath });
+  console.log(`PPTX written to ${outPath}`);
+  return outPath;
+}
+
+module.exports = { buildPresentationFile, slugify };
+
+if (require.main === module) {
+  const contentPath = process.argv[2];
+  if (!contentPath) {
+    console.error("Usage: node scripts/build-pptx.js <path to content.json>");
+    process.exit(1);
+  }
+  buildPresentationFile(contentPath).catch((err) => {
+    console.error("Failed to build PPTX:", err.message);
+    process.exit(1);
+  });
+}

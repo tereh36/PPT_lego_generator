@@ -61,11 +61,6 @@ def contain_fit_box(img_path, box_x, box_y, box_w, box_h):
 
 def draw_image_contain(c, img_path, box_x, box_y, box_w, box_h):
     if not os.path.exists(img_path):
-        c.setStrokeColorRGB(0.6, 0.6, 0.6)
-        c.rect(box_x, box_y, box_w, box_h, stroke=1, fill=0)
-        c.setFont("Helvetica", 9)
-        c.setFillColorRGB(0.6, 0.6, 0.6)
-        c.drawCentredString(box_x + box_w / 2, box_y + box_h / 2, f"MISSING: {os.path.basename(img_path)}")
         return
     x, y, w, h = contain_fit_box(img_path, box_x, box_y, box_w, box_h)
     c.drawImage(ImageReader(img_path), x, y, width=w, height=h, preserveAspectRatio=True, mask="auto")
@@ -85,7 +80,7 @@ def page1_story_props(c, content, props_dir):
         x = margin + col * cell_w
         y = PAGE_H - 100 - (row + 1) * cell_h
         slug = prop["name"].lower().replace(" ", "_")
-        img_path = os.path.join(props_dir, f"prop_{slug}.png")
+        img_path = os.path.join(props_dir, f"{slug}.png")
         draw_image_contain(c, img_path, x + 10, y + 30, cell_w - 20, cell_h - 40)
         c.setFont("Helvetica", 11)
         c.setFillColorRGB(0, 0, 0)
@@ -226,9 +221,10 @@ def main():
         sys.exit(1)
     content = json.load(open(sys.argv[1], encoding="utf-8"))
     slug = content["topic"].lower().replace(" ", "_")
-    gen_dir = os.path.join(ROOT, "assets", "generated", slug)
-    props_dir = os.path.join(ROOT, "assets", "story_props", slug)
-    out_dir = os.path.join(ROOT, "output")
+    data_dir = os.environ.get("BRICK_DATA_DIR", ROOT)
+    gen_dir = os.path.join(data_dir, "assets", "generated", slug)
+    props_dir = gen_dir
+    out_dir = os.path.join(data_dir, "output")
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, f"{slug}_printables.pdf")
 

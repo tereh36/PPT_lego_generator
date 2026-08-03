@@ -1,25 +1,24 @@
 #!/usr/bin/env node
 /**
- * generate-images-remote.js content/<topic>.json
+ * generate-images-remote.js <absolute path to content.json>
  *
- * Calls the Brick4Kidz backend for images. Images are covered by the same
- * flat per-lesson charge already deducted during content generation.
+ * Calls the Brick4Kidz backend for images. Writes into BRICK_DATA_DIR
+ * (writable), never into the app's own install folder.
  */
 const fs = require("fs");
 const path = require("path");
 
-const ROOT = path.resolve(__dirname, "..");
-
 async function main() {
   const contentPath = process.argv[2];
   if (!contentPath) {
-    console.error("Usage: node scripts/generate-images-remote.js content/<topic>.json");
+    console.error("Usage: node scripts/generate-images-remote.js <path to content.json>");
     process.exit(1);
   }
-  const { BRICK_USERNAME, BRICK_PASSWORD, BRICK_BACKEND_URL } = process.env;
+  const { BRICK_USERNAME, BRICK_PASSWORD, BRICK_BACKEND_URL, BRICK_DATA_DIR } = process.env;
   if (!BRICK_USERNAME || !BRICK_PASSWORD || !BRICK_BACKEND_URL) {
     throw new Error("Missing account username/password or backend URL. Set them in Settings.");
   }
+  const dataDir = BRICK_DATA_DIR || path.resolve(__dirname, "..");
 
   const content = JSON.parse(fs.readFileSync(contentPath, "utf8"));
   const slug = content.topic.toLowerCase().replace(/\s+/g, "_");
@@ -35,7 +34,7 @@ async function main() {
     throw new Error(data.error || "Unknown backend error");
   }
 
-  const outDir = path.join(ROOT, "assets", "generated", slug);
+  const outDir = path.join(dataDir, "assets", "generated", slug);
   fs.mkdirSync(outDir, { recursive: true });
 
   Object.entries(data.images).forEach(([key, b64]) => {

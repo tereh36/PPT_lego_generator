@@ -3,13 +3,15 @@
  * generate-content-remote.js "Topic Word"
  *
  * Calls the Brick4Kidz backend (Google Apps Script) instead of using a local
- * API key. Needs BRICK_USERNAME, BRICK_PASSWORD, BRICK_BACKEND_URL in the
- * environment (the Electron app sets these from Settings).
+ * API key. Needs BRICK_USERNAME, BRICK_PASSWORD, BRICK_BACKEND_URL, and
+ * BRICK_DATA_DIR in the environment (the Electron app sets these).
+ *
+ * BRICK_DATA_DIR must be a WRITABLE folder (e.g. inside the OS's per-user
+ * app-data directory) — never write generated files into the app's own
+ * install folder, Windows blocks that without admin rights.
  */
 const fs = require("fs");
 const path = require("path");
-
-const ROOT = path.resolve(__dirname, "..");
 
 async function main() {
   const topic = process.argv[2];
@@ -17,10 +19,11 @@ async function main() {
     console.error('Usage: node scripts/generate-content-remote.js "Topic Word"');
     process.exit(1);
   }
-  const { BRICK_USERNAME, BRICK_PASSWORD, BRICK_BACKEND_URL } = process.env;
+  const { BRICK_USERNAME, BRICK_PASSWORD, BRICK_BACKEND_URL, BRICK_DATA_DIR } = process.env;
   if (!BRICK_USERNAME || !BRICK_PASSWORD || !BRICK_BACKEND_URL) {
     throw new Error("Missing account username/password or backend URL. Set them in Settings.");
   }
+  const dataDir = BRICK_DATA_DIR || path.resolve(__dirname, "..");
 
   console.log(`Generating content.json for "${topic}" via the Brick4Kidz backend...`);
   const res = await fetch(BRICK_BACKEND_URL, {
@@ -34,7 +37,7 @@ async function main() {
   }
 
   const slug = topic.toLowerCase().replace(/\s+/g, "_");
-  const outPath = path.join(ROOT, "content", `${slug}.json`);
+  const outPath = path.join(dataDir, "content", `${slug}.json`);
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(data.content, null, 2), "utf8");
   console.log(`Saved: ${outPath}`);
