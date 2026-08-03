@@ -2,23 +2,23 @@
 """
 build-print-pdf.py content/<topic>.json
 
-Собирает сопроводительный PDF для печати строго по структуре из
-DESIGN_SYSTEM.md (5 страниц, Letter-формат, portrait):
-  1. Story Props (с подписями, единственная страница с текстом на картинках)
-  2. Story Background (full-bleed, без подписей, авто-поворот если горизонтальная)
-  3. Full Story Script (for the Teacher) — Short Summary / Materials / Full Story / Observation
-  4. Game printout (без текста)
-  5. Pattern Sheet (~90% размера, по букве темы)
+Builds the printable companion PDF following the exact structure from
+DESIGN_SYSTEM.md (5 pages, Letter format, portrait):
+  1. Story Props (with captions, the only page with text on the images)
+  2. Story Background (full-bleed, no captions, auto-rotated if landscape)
+  3. Full Story Script (for the Teacher) - Short Summary / Materials / Full Story / Observation
+  4. Game printout (no text)
+  5. Pattern Sheet (~90% size, matching the topic's letter)
 
-Правило: картинки — те же файлы, что в презентации, contain-fit, без
-собственной обрезки. Высота Frame под заголовки — с большим запасом
-(силент-дроп в reportlab иначе теряет текст без ошибки).
+Rule: images are the same files used in the presentation, contain-fit, no
+custom cropping. Frame height for headers has generous padding (otherwise
+reportlab silently drops text with no error).
 """
 import sys
 import os
 import json
 
-# защита от падения на Windows-консолях с не-UTF8 кодировкой (cp1252 и т.п.)
+# guard against crashing on Windows consoles with non-UTF8 encodings (cp1252 etc.)
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
@@ -49,7 +49,7 @@ def page_header(c, title):
 
 
 def contain_fit_box(img_path, box_x, box_y, box_w, box_h):
-    """Возвращает (x, y, w, h) для вставки картинки с сохранением пропорций внутри box."""
+    """Returns (x, y, w, h) to place an image while preserving aspect ratio inside the box."""
     with Image.open(img_path) as im:
         iw, ih = im.size
     scale = min(box_w / iw, box_h / ih)
@@ -99,7 +99,7 @@ def page2_story_background(c, gen_dir):
         return
     with Image.open(img_path) as im:
         iw, ih = im.size
-    # если горизонтальная - поворачиваем саму картинку на 90 (не страницу)
+    # if landscape - rotate the image itself by 90 degrees (not the page)
     if iw > ih:
         rotated_path = img_path.replace(".png", "_rot90.png")
         with Image.open(img_path) as im:
@@ -107,7 +107,7 @@ def page2_story_background(c, gen_dir):
         img_path = rotated_path
     with Image.open(img_path) as im:
         iw, ih = im.size
-    # full-bleed: заполняем всю страницу, обрезка по краям допустима, без искажений
+    # full-bleed: fill the entire page, edge cropping is fine, no distortion
     scale = max(PAGE_W / iw, PAGE_H / ih)
     w, h = iw * scale, ih * scale
     x, y = (PAGE_W - w) / 2, (PAGE_H - h) / 2
@@ -116,7 +116,7 @@ def page2_story_background(c, gen_dir):
 
 
 def draw_wrapped_paragraph(c, text, x, y, max_width, font="Helvetica", size=11, leading=14):
-    """Простой построчный перенос текста; возвращает новый y."""
+    """Simple line-wrapping for text; returns the new y position."""
     c.setFont(font, size)
     words = text.split()
     line = ""
@@ -204,7 +204,7 @@ def page5_pattern_sheet(c, content):
     c.setFillColorRGB(*DARKGRAY)
     c.drawCentredString(PAGE_W / 2, PAGE_H - 60, f"Build the Letter {letter} - Brick Pattern")
     img_path = os.path.join(ROOT, "assets", "letters", f"{letter}_pattern.png")
-    # ~90% максимального размера, центрирована
+    # ~90% of max size, centered
     box_w, box_h = (PAGE_W - 100) * 0.9, (PAGE_H - 160) * 0.9
     box_x = (PAGE_W - box_w) / 2
     box_y = (PAGE_H - 160 - box_h) / 2 + 40
@@ -225,8 +225,8 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, f"{slug}_printables.pdf")
 
-    # "текстовый режим": нет API-ключа -> нет AI-картинок -> есть смысл собрать
-    # только страницу с полной историей (остальные 4 страницы без картинок бесполезны)
+    # "text mode": no API key -> no AI images -> only worth assembling
+    # the full-story page (the other 4 pages are useless without images)
     has_images = os.path.exists(os.path.join(gen_dir, "story_background.png"))
 
     c = canvas.Canvas(out_path, pagesize=letter)

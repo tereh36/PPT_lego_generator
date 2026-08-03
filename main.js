@@ -26,7 +26,7 @@ function ensureDataDirs() {
   fs.mkdirSync(path.join(DATA_DIR, "output"), { recursive: true });
 }
 
-// ---------- настройки (логин, пароль, режим картинок) ----------
+// ---------- settings (login, password, image mode) ----------
 function loadConfig() {
   try {
     return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
@@ -70,7 +70,7 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
-// ---------- автообновление ----------
+// ---------- auto-update ----------
 let manualUpdateCheck = false;
 
 function sendUpdateStatus(text) {
@@ -112,7 +112,7 @@ ipcMain.handle("update:checkNow", () => {
 
 ipcMain.handle("app:getVersion", () => app.getVersion());
 
-// ---------- IPC: настройки (логин/пароль/картинки) ----------
+// ---------- IPC: settings (login/password/images) ----------
 ipcMain.handle("config:get", () => loadConfig());
 
 ipcMain.handle("config:setAccount", (e, { username, password }) => {
@@ -138,7 +138,7 @@ ipcMain.handle("config:setImageMode", (e, withImages) => {
   return true;
 });
 
-// ---------- IPC: проверка баланса ----------
+// ---------- IPC: balance check ----------
 ipcMain.handle("account:checkBalance", async () => {
   const cfg = loadConfig();
   if (!cfg.username || !cfg.password) return { ok: false, error: "No account set" };
@@ -169,13 +169,13 @@ ipcMain.handle("account:getPrices", async () => {
   }
 });
 
-// ---------- IPC: открыть папку с готовыми файлами ----------
+// ---------- IPC: open the folder with finished files ----------
 ipcMain.handle("files:openOutputFolder", () => {
   fs.mkdirSync(OUTPUT_ROOT, { recursive: true });
   shell.openPath(OUTPUT_ROOT);
 });
 
-// ---------- запуск шагов пайплайна как дочерних процессов ----------
+// ---------- run pipeline steps as child processes ----------
 function runStep(cmd, args, extraEnv) {
   return new Promise((resolve) => {
     let output = "";

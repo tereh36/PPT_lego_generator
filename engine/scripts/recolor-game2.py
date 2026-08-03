@@ -2,14 +2,15 @@
 """
 recolor-game2.py <content.json>
 
-Правило из DESIGN_SYSTEM.md: для цветных вариантов одной и той же картинки
-(matching-игра) НЕ рисовать заново, а взять реальную картинку (например
-story prop) и перекрасить через HSV hue-shift, сохранив форму и светотень.
+Rule from DESIGN_SYSTEM.md: for color variants of the same picture (a
+matching game) don't draw them from scratch - take a real picture (e.g. a
+story prop) and recolor it via an HSV hue-shift, preserving shape and
+shading.
 
-Берёт content.game2.base_prop_image (имя файла без папки, ищет в
-assets/story_props/<topic>/), сдвигает оттенок под каждый цвет из
-content.game2.colors и сохраняет в assets/generated/<topic>/game2_<color>.png
-— именно там, где их ждёт build-pptx.js.
+Takes content.game2.base_prop_image (a filename with no folder, looked up in
+assets/story_props/<topic>/), shifts the hue for each color in
+content.game2.colors and saves to assets/generated/<topic>/game2_<color>.png
+- exactly where build-pptx.js expects to find them.
 """
 import sys
 import os
@@ -18,7 +19,7 @@ import numpy as np
 from PIL import Image
 from collections import Counter
 
-TARGET_HUE = {  # 0-360 градусов, приблизительно под палитру DESIGN_SYSTEM.md
+TARGET_HUE = {  # 0-360 degrees, roughly matching the DESIGN_SYSTEM.md palette
     "RED": 5, "BLUE": 205, "GREEN": 100, "PURPLE": 290,
     "YELLOW": 50, "TEAL": 190, "ORANGE": 30,
 }
@@ -27,7 +28,7 @@ def dominant_hue(img_rgb):
     hsv = img_rgb.convert("HSV")
     arr = np.array(hsv)
     h, s, v = arr[..., 0], arr[..., 1], arr[..., 2]
-    mask = (s > 60) & (v > 40) & (v < 250)  # насыщенные не-белые не-чёрные пиксели
+    mask = (s > 60) & (v > 40) & (v < 250)  # saturated, non-white, non-black pixels
     if mask.sum() == 0:
         return 0
     hues = h[mask]

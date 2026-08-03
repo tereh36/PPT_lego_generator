@@ -25,7 +25,7 @@ const els = {
   updateCheckStatus: document.getElementById("updateCheckStatus"),
 };
 
-// ---------- баланс ----------
+// ---------- balance ----------
 async function refreshBalance() {
   const result = await window.api.checkBalance();
   if (result.ok) {
@@ -44,7 +44,7 @@ async function refreshPrices() {
   }
 }
 
-// ---------- настройки / логин ----------
+// ---------- settings / login ----------
 async function refreshSettingsUI() {
   const cfg = await window.api.getConfig();
   els.imageModeToggle.checked = cfg.withImages !== false;
@@ -57,7 +57,7 @@ async function refreshSettingsUI() {
   } else {
     els.usernameInput.value = "";
     els.passwordInput.value = "";
-    els.keyStatus.textContent = "Not logged in — generation is unavailable until you log in.";
+    els.keyStatus.textContent = "Not logged in - generation is unavailable until you log in.";
     els.balancePill.classList.add("hidden");
   }
 }
@@ -107,13 +107,13 @@ els.imageModeToggle.addEventListener("change", async () => {
   await window.api.setImageMode(els.imageModeToggle.checked);
 });
 
-// ---------- проверка обновлений (кнопка) ----------
+// ---------- check for updates (button) ----------
 els.checkUpdateBtn.addEventListener("click", async () => {
   els.updateCheckStatus.textContent = "Checking...";
   await window.api.checkForUpdatesNow();
 });
 
-// ---------- вкладки Preschool / Brickmoto ----------
+// ---------- Preschool / Brickmoto tabs ----------
 els.tabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     els.tabs.forEach((t) => t.classList.remove("active"));
@@ -124,7 +124,7 @@ els.tabs.forEach((tab) => {
   });
 });
 
-// ---------- создание презентации ----------
+// ---------- creating the presentation ----------
 window.api.onLessonLog((msg) => {
   els.log.classList.remove("hidden");
   const span = document.createElement("span");
@@ -167,12 +167,12 @@ els.topicInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") els.createBtn.click();
 });
 
-// ---------- открыть папку с файлами ----------
+// ---------- open the output folder ----------
 els.openFolderBtn.addEventListener("click", () => {
   window.api.openOutputFolder();
 });
 
-// ---------- автообновление ----------
+// ---------- auto-update ----------
 window.api.onUpdateStatus((msg) => {
   if (!msg) {
     els.updateBanner.classList.add("hidden");
@@ -198,7 +198,7 @@ window.api.onUpdateStatus((msg) => {
   }
 });
 
-// первичная загрузка (логин + баланс, если уже сохранены)
+// initial load (login + balance, if already saved)
 refreshSettingsUI();
 
 window.api.getVersion().then((v) => {

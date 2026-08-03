@@ -2,17 +2,17 @@
 """
 qa-validate.py <file.pptx>
 
-Обязательный последний шаг перед сдачей презентации (см. DESIGN_SYSTEM.md /
-Preschool_Rulebook.md, раздел QA-валидатор):
-1. schema-валидация (свои проверки на python-pptx, ничего внешнего не требует)
-2. если на компьютере есть LibreOffice — рендер в PDF + pdfplumber: реальные
-   bounding box слов и картинок не должны выходить за пределы страницы
-   (переполнение textbox не ловится schema-валидацией, только рендером).
-   Если LibreOffice не найден — этот шаг пропускается с пояснением (не ошибка).
-3. простая проверка на длинные тире и распространённые опечатки-плейсхолдеры
-   (через библиотеку markitdown, без вызова во внешней командной строке).
+Mandatory final step before shipping the presentation (see DESIGN_SYSTEM.md /
+Preschool_Rulebook.md, QA validator section):
+1. schema validation (its own checks via python-pptx, needs nothing external)
+2. if LibreOffice is installed - render to PDF + pdfplumber: the real
+   bounding boxes of words and images must not go past the page edges
+   (textbox overflow isn't caught by schema validation, only by rendering).
+   If LibreOffice isn't found, this step is skipped with an explanation (not an error).
+3. a simple check for em dashes and common typo/placeholder text
+   (via the markitdown library, no external command-line calls).
 
-Выход ненулевой, если найдены проблемы.
+Exits non-zero if problems are found.
 """
 import sys
 import subprocess
@@ -21,7 +21,7 @@ import os
 import re
 import json
 
-# защита от падения на Windows-консолях с не-UTF8 кодировкой (cp1252 и т.п.)
+# guard against crashing on Windows consoles with non-UTF8 encodings (cp1252 etc.)
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
@@ -30,7 +30,7 @@ except Exception:
 
 
 def lint_content(content_path, problems):
-    """Проверки самого content.json, помимо визуальной вёрстки."""
+    """Checks on content.json itself, besides the visual layout."""
     with open(content_path, encoding="utf-8") as f:
         content = json.load(f)
 
@@ -60,10 +60,10 @@ def lint_content(content_path, problems):
 
 def check_video_availability(content_path, problems, warnings):
     """
-    Проверяет, что все youtube id, используемые в уроке, реально доступны
-    через публичный oEmbed endpoint — без API-ключа. Требует интернет.
-    404/401 -> жёсткая ошибка, остальное -> предупреждение (может быть
-    сетевым ограничением/rate limiting, не проблемой самого видео).
+    Checks that every youtube id used in the lesson is actually reachable
+    via the public oEmbed endpoint - no API key needed. Requires internet.
+    404/401 -> hard error, anything else -> warning (could be a network
+    restriction/rate limiting rather than a real problem with the video).
     """
     try:
         import urllib.request
@@ -108,11 +108,11 @@ def check_video_availability(content_path, problems, warnings):
 
 
 def schema_validate(pptx_path, problems):
-    """Самодостаточная проверка границ слайда через python-pptx — не требует
-    никаких внешних скриптов/путей, работает на любом компьютере.
-    Строго проверяем только текст и картинки — декоративные фоновые фигуры
-    без текста (например угловые квадраты) могут намеренно чуть выходить
-    за край слайда, это осознанный приём в дизайне, не баг."""
+    """Self-contained slide-bounds check via python-pptx - needs no
+    external scripts/paths, works on any machine. Only text and images are
+    checked strictly - decorative background shapes with no text (e.g. the
+    corner squares) may intentionally poke slightly past the slide edge,
+    that's a deliberate design choice, not a bug."""
     try:
         from pptx import Presentation
         from pptx.enum.shapes import MSO_SHAPE_TYPE
@@ -123,7 +123,7 @@ def schema_validate(pptx_path, problems):
 
     prs = Presentation(pptx_path)
     sw, sh = prs.slide_width, prs.slide_height
-    tolerance = 9525 * 2  # ~2pt запас на округления
+    tolerance = 9525 * 2  # ~2pt margin for rounding
 
     for i, slide in enumerate(prs.slides, start=1):
         for shape in slide.shapes:
@@ -138,7 +138,7 @@ def schema_validate(pptx_path, problems):
             has_text = bool(getattr(shape, "has_text_frame", False) and shape.text_frame.text.strip())
             is_picture = shape.shape_type == MSO_SHAPE_TYPE.PICTURE
             if not has_text and not is_picture:
-                continue  # чисто декоративная фигура - бleed за край допустим
+                continue  # purely decorative shape - bleeding past the edge is fine
 
             if left < -tolerance or top < -tolerance:
                 problems.append(f"Slide {i}: shape starts outside left/top bounds.")
@@ -149,12 +149,12 @@ def schema_validate(pptx_path, problems):
 
 
 def find_soffice():
-    """Ищет LibreOffice на компьютере под разными именами/путями. None, если не найден."""
+    """Looks for LibreOffice on the machine under various names/paths. None if not found."""
     for name in ("soffice", "libreoffice", "soffice.exe"):
         path = shutil.which(name)
         if path:
             return path
-    # частые пути установки на Windows
+    # common install paths on Windows
     common_win_paths = [
         r"C:\Program Files\LibreOffice\program\soffice.exe",
         r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
@@ -166,9 +166,9 @@ def find_soffice():
 
 
 def bounding_box_check(pptx_path, problems):
-    """Если на компьютере есть LibreOffice — рендерит в PDF и проверяет
-    реальные bounding box текста/картинок. Если LibreOffice не найден —
-    пропускает шаг с пояснением, это НЕ ошибка (просто менее полная проверка)."""
+    """If LibreOffice is installed, renders to PDF and checks the real
+    bounding boxes of text/images. If LibreOffice isn't found, skips this
+    step with an explanation - this is NOT an error (just a less thorough check)."""
     soffice = find_soffice()
     if not soffice:
         print("LibreOffice not found on this computer - skipping the text/image overflow check.")
@@ -209,9 +209,9 @@ def bounding_box_check(pptx_path, problems):
 
 
 def text_hygiene_check(pptx_path, problems):
-    """Через библиотеку markitdown напрямую (без вызова во внешней командной
-    строке — так надёжнее работает на Windows, где .exe скриптов может не
-    быть в PATH)."""
+    """Uses the markitdown library directly (no external command-line call -
+    this is more reliable on Windows, where a script's .exe might not be
+    on PATH)."""
     try:
         from markitdown import MarkItDown
     except ImportError:

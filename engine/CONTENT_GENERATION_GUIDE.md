@@ -1,427 +1,453 @@
-# Как Claude генерирует content.json под любое слово-тему
+# How Claude generates content.json for any topic word
 
-Это чек-лист, а не творческий процесс "с нуля" — цель в том, чтобы при
-запросе новой темы (любое слово: Fish, Umbrella, Cactus, Airplane...)
-результат собирался по одному и тому же алгоритму, а не придумывался заново.
+This is a checklist, not a "from scratch" creative process — the goal is that
+when a new topic is requested (any word: Fish, Umbrella, Cactus, Airplane...)
+the result is assembled by the same consistent algorithm every time, not
+reinvented from nothing.
 
-## КРИТИЧНО — правила, нарушенные в первой версии, больше не повторять
-1. **История ведёт к постройке модели ТЕМЫ**, не производного объекта. Тема
-   "Fish" → строим рыбку, а не домик/аквариум для неё. Домик/аквариум — это
-   материал для `challenge`, не для основной модели. Перед сдачей себя проверять:
-   "то, что дети строят по Model Building — это буквально тема урока?"
-2. **Обложка без фото.** Никогда не добавлять `cover_model_note` или похожие поля.
-3. **Presentation — минимум 4 вопроса.**
-4. **Игры — единый `script`-формат** (см. content.schema.md), не сплошной текст.
-   Реплики выделяются ТОЛЬКО цветом (BLUE=дети, RED=учитель), БЕЗ bold/underline.
-5. **Story Props — максимум 3-4.**
-6. **Каждый ребёнок строит СВОЮ модель с нуля** — дети никогда не достраивают
-   и не "чинят" модель учителя/персонажа. Если в истории есть проблема
-   персонажа (например "змея слишком короткая"), решение — НЕ "давайте
-   удлиним Sammy", а "давайте каждый построит свою собственную длинную
-   змею". Мотивация в истории должна вести к постройке отдельной, полной,
-   собственной модели каждым ребёнком, а не к модификации существующего
-   объекта персонажа.
-7. **Youtube id НИКОГДА не берутся по памяти.** Каждый id (intro-видео,
-   letter-specific видео под новую букву) — искать через `web_search`, брать
-   ТОЛЬКО из реального результата поиска (URL вида `youtube.com/watch?v=ID`).
-   После сборки — обязательно прогнать `qa-validate.py` с content.json,
-   он проверяет доступность каждого id через YouTube oEmbed.
-8. **Challenge — разные архетипы, не повторять один и тот же каждый раз**
-   (см. отдельный раздел "Архетипы Challenge" ниже).
-9. **Game 3 — явная причина смены скорости.** Не просто "беги к дереву".
-   Нужны ДВЕ явно различающиеся команды учителя (медленно/быстро), каждая
-   с понятной причиной, связанной с темой (погода, опасность, время суток
-   и т.п.), чтобы дети понимали, когда и почему двигаться иначе.
-10. **Preschool-модели строятся ТОЛЬКО из простых кубиков (2×4, 2×2) —
-    НИКАКИХ движущихся/функциональных частей.** Архетип Challenge
-    "функция/механизм" (машущие крылья, катящиеся колёса и т.п.) — это
-    Brickmoto (6-9 лет), а не Preschool. Для Preschool этот архетип
-    ИСКЛЮЧЁН из ротации. Ошибка на реальном примере: "Make your butterfly's
-    wings actually flap" — невозможно физически на этом наборе LEGO, было
-    исправлено на модификацию+измерение размера крыльев.
-11. **Не изобретать лишних персонажей.** Персонаж-ведущий уже есть —
-    LEGO-минифигурка учителя (см. раздел про Story). Если истории по сюжету
-    нужна человеческая роль (пилот, исследователь, капитан) — это ВСЕГДА та
-    же минифигурка учителя, а не новый придуманный именной персонаж.
-    Именные персонажи допустимы только когда они ОЛИЦЕТВОРЯЮТ саму тему
-    урока (Sammy the Snake, Bubbles the Fish, Freddy the Frog) — то есть без
-    них не обойтись, а не потому что "так интереснее". Ошибка на реальном
-    примере: тема "Airplane" — придуман лишний "Captain Ace" рядом с уже
-    существующей минифигуркой учителя, исправлено на "учитель = пилот".
-12. **Конфликт истории должен быть конкретным и разыгрываемым на столе с
-    2-3 бумажными пропсами**, а не абстрактным/эмоциональным. Тест перед
-    сдачей: "смог бы учитель физически разыграть это парой вырезанных
-    картинок на столе перед детьми 3-5 лет?" Абстрактные формулировки типа
-    "не может найти сухое место", "расстраивается" — плохо разыгрываются.
-    Конкретное взаимодействие с другим простым, всем известным объектом/
-    существом (лягушка и комар, а не "лягушка и абстрактное неудобство") —
-    хорошо разыгрывается. Ошибка на реальном примере: тема "Frog" — "Freddy
-    can't find a dry place to rest" (абстрактно, нечего вырезать и играть),
-    исправлено на "Freddy wants to catch a buzzing mosquito but it's too
-    quick" (комар — конкретный, узнаваемый, легко рисуется как пропс).
-13. **Challenge не может быть "просто побольше".** Одиночная модификация
-    без измеримого/сравнительного элемента — слишком плоская. Модификация
-    почти всегда должна сочетаться с измерением/сравнением ("самые широкие
-    крылья — у кого шире?"), а не быть голым "добавь ещё".
-14. **Challenge — ВСЕГДА про постройку, НИКОГДА про физический тест уже
-    готовой модели** (бросить, толкнуть, покатить, устроить гонку). LEGO-
-    модели хрупкие и рассыпаются — а сама суть Challenge в том, чтобы
-    строить, а не играть с готовым. Любое измерение/сравнение должно
-    измеряться НА САМОЙ КОНСТРУКЦИИ по мере постройки (сколько кирпичиков,
-    какая высота/ширина/длина), а не через движение модели. Ошибка на
-    реальных примерах: "race to see whose airplane flies farthest with a
-    push", "how far can your turtle walk in five pushes" — оба про тест
-    движением, а не про стройку, исправлены на "build the tallest hangar"
-    и "build the biggest shell, count the bricks" соответственно.
+## CRITICAL — rules that were broken in the first version, never repeat them
+1. **The story leads to building a model of the TOPIC**, not a derived object.
+   Topic "Fish" → build a fish, not a house/aquarium for it. A house/aquarium
+   is material for `challenge`, not the main model. Before submitting, check
+   yourself: "is what the kids build in Model Building literally the topic
+   of the lesson?"
+2. **No photo on the cover.** Never add `cover_model_note` or similar fields.
+3. **Presentation — minimum 4 questions.**
+4. **Games use the unified `script` format** (see content.schema.md), not a
+   wall of text. Lines are highlighted ONLY by color (BLUE=children,
+   RED=teacher), NO bold/underline.
+5. **Story Props — max 3-4.**
+6. **Every child builds THEIR OWN model from scratch** — children never
+   finish or "fix" the teacher's/character's model. If the story has a
+   character problem (e.g. "the snake is too short"), the solution is NOT
+   "let's make Sammy longer" but "let's each build our own long snake". The
+   story's motivation must lead to each child building a separate, complete,
+   own model, not modifying the existing character's object.
+7. **Youtube ids are NEVER pulled from memory.** Every id (intro video,
+   letter-specific video for a new letter) must be found via `web_search`,
+   taken ONLY from a real search result (a URL like `youtube.com/watch?v=ID`).
+   After assembly, always run `qa-validate.py` on the content.json — it
+   checks every id's availability via the YouTube oEmbed API.
+8. **Challenge — different archetypes, never the same one twice in a row**
+   (see the separate "Challenge Archetypes" section below).
+9. **Game 3 — an explicit reason for the speed change.** Not just "run to the
+   tree". You need TWO clearly different teacher commands (slow/fast), each
+   with a clear reason tied to the topic (weather, danger, time of day, etc.)
+   so children understand when and why to move differently.
+10. **Preschool models are built ONLY from simple bricks (2x4, 2x2) — NO
+    moving/functional parts.** The "function/mechanism" Challenge archetype
+    (flapping wings, rolling wheels, etc.) is Brickmoto (ages 6-9), not
+    Preschool. For Preschool this archetype is EXCLUDED from rotation. Real
+    example of the mistake: "Make your butterfly's wings actually flap" —
+    physically impossible with this LEGO set, was fixed to a modification +
+    measurement of wing size instead.
+11. **Don't invent extra characters.** There's already a lead character — the
+    teacher's LEGO minifigure (see the Story section). If the story needs a
+    human role (pilot, explorer, captain), it's ALWAYS the same teacher
+    minifigure, not a new invented named character. Named characters are only
+    allowed when they PERSONIFY the lesson topic itself (Sammy the Snake,
+    Bubbles the Fish, Freddy the Frog) — i.e. when the story can't work
+    without them, not "because it's more interesting". Real example of the
+    mistake: topic "Airplane" — an extra "Captain Ace" was invented next to
+    the already-existing teacher minifigure; fixed to "teacher = pilot".
+12. **The story's conflict must be concrete and playable on the table with
+    2-3 paper props**, not abstract/emotional. Test before submitting: "could
+    the teacher physically act this out with a couple of cutout pictures on
+    the table in front of 3-5 year olds?" Abstract phrasing like "can't find
+    a dry place", "gets upset" plays out poorly. A concrete interaction with
+    another simple, universally known object/creature (a frog and a
+    mosquito, not "a frog and an abstract inconvenience") plays out well.
+    Real example of the mistake: topic "Frog" — "Freddy can't find a dry
+    place to rest" (abstract, nothing to cut out and act with), fixed to
+    "Freddy wants to catch a buzzing mosquito but it's too quick" (a
+    mosquito is concrete, recognizable, easy to draw as a prop).
+13. **A Challenge can't be "just bigger".** A single modification with no
+    measurable/comparative element feels too flat. Modification should
+    almost always be paired with measurement/comparison ("the widest wings —
+    whose are wider?"), not a bare "add more".
+14. **Challenge is ALWAYS about building, NEVER about a physical test of the
+    already-finished model** (throwing, pushing, rolling, racing). LEGO
+    models are fragile and fall apart — and the whole point of a Challenge is
+    to build, not to play with something already finished. Any measurement/
+    comparison must be measured ON THE CONSTRUCTION ITSELF as it's being
+    built (how many bricks, what height/width/length), not through moving
+    the model. Real examples of the mistake: "race to see whose airplane
+    flies farthest with a push", "how far can your turtle walk in five
+    pushes" — both are movement tests, not building; fixed to "build the
+    tallest hangar" and "build the biggest shell, count the bricks"
+    respectively.
 
-## Архетипы Challenge (ротировать, не повторять подряд; ВСЕ — про постройку, см. правило 14)
-1. **Модификация + измерение** — улучшить конкретную деталь СВОЕЙ уже
-   построенной модели, ОБЯЗАТЕЛЬНО с измеримым/сравнительным элементом,
-   измеряемым на самой конструкции (например зонтик → пляжный зонтик с
-   самым большим козырьком: "чей больше?"). Голая формулировка "просто
-   пошире/побольше" ощущается слабо — если возможно, усиливать через счёт
-   деталей или комбинировать с архетипом "семья/группа".
-2. **Измерение/сравнение (высота/длина/дотянуться до цели)** — довести
-   модель до измеримого рекорда, связанного с определяющим свойством темы
-   (самый длинный/высокий/широкий — считать по кирпичикам, НЕ через
-   движение/бросок/толчок), особенно хорошо работает как callback к
-   конфликту из истории (змея была короткой → "чей самый длинный, посчитай
-   кирпичики"; фрукт высоко на ветке → "построй достаточно высоко, чтобы
-   дотянуться"). "Дотянуться до цели" — считать дотягивание НА САМОЙ
-   конструкции по мере постройки (кто уже дотянулся кирпичиками), не через
-   бросок/движение готовой модели.
-3. **Контейнер/укрытие/защита** — построить дом/аквариум/гараж/гнездо/укрытие
-   для модели ИЛИ для маленького предмета внутри неё (защитить яйцо,
-   спрятать/удержать что-то маленькое внутри). Использовать не по умолчанию,
-   а только когда органично подходит теме, не два урока подряд.
-4. **Устойчивость/баланс** — построить так, чтобы модель стояла сама, не
-   падала (например на одной "ноге"/узкой опоре) — измеримо через "стоит
-   без поддержки да/нет" или "сколько кирпичиков высоты выдерживает без
-   падения".
-5. **Прочность/вес** — построить достаточно прочную конструкцию, чтобы
-   выдержать небольшой реальный предмет сверху, не рассыпавшись (например
-   мостик выдерживает игрушечную машинку, полка выдерживает книгу) —
-   измеримо через "выдержала да/нет", проверяется аккуратно, не бросая.
-6. **Мост/переход/соединение двух точек** — построить конструкцию, через
-   которую что-то может пройти НАД/ПОД/СКВОЗЬ (мост, туннель, арка), или
-   которая соединяет две точки (два берега, два кубика-ориентира).
-7. **Узор/паттерн** — выложить кубиками повторяющийся узор (по цвету, форме,
-   размеру) — измеримо через "сколько повторов узора получилось".
-8. **Стыковка/соединение деталей** — построить так, чтобы две отдельные
-   части модели точно соединялись/подходили друг к другу (паззл-принцип).
-9. **Семья/группа** — построить рядом маленькую/большую версию (например
-   детёныша рядом с взрослой моделью, или целую семью из нескольких
-   маленьких моделей) — часто самый содержательный архетип, хорошо решает
-   проблему "слишком плоского" challenge.
-10. **Функция/механизм** — [ТОЛЬКО BRICKMOTO, недоступно в Preschool] —
-    добавить простую движущуюся часть (колёса, крылья) и проверить, как она
-    работает. На Preschool наборе (только 2×4/2×2 кубики) физически
-    невозможно — не предлагать для Preschool ни при каких условиях.
+## Challenge Archetypes (rotate, don't repeat back to back; ALL are about
+building, see rule 14)
+1. **Modification + measurement** — improve a specific detail of the child's
+   OWN already-built model, ALWAYS with a measurable/comparative element,
+   measured on the construction itself (e.g. umbrella → beach umbrella with
+   the biggest canopy: "whose is biggest?"). A bare "just wider/bigger" feels
+   weak — where possible, reinforce it by counting pieces or combining with
+   the "family/group" archetype.
+2. **Measurement/comparison (height/length/reach a target)** — bring the
+   model to a measurable record tied to the topic's defining trait (longest/
+   tallest/widest — count in bricks, NOT through movement/throwing/pushing);
+   works especially well as a callback to the story's conflict (the snake
+   was short → "whose is the longest, count the bricks"; the fruit was high
+   on a branch → "build tall enough to reach it"). "Reach a target" means
+   counting the reach ON THE CONSTRUCTION ITSELF as it's built (who has
+   already reached with their bricks), not through throwing/moving the
+   finished model.
+3. **Container/shelter/protection** — build a house/aquarium/garage/nest/
+   shelter for the model OR for a small object inside it (protect an egg,
+   hide/hold something small inside). Don't use by default — only when it
+   fits the topic organically, and not two lessons in a row.
+4. **Stability/balance** — build so the model stands on its own without
+   falling (e.g. on one "leg"/a narrow support) — measurable through
+   "stands without support yes/no" or "how many bricks of height it can
+   hold before falling".
+5. **Strength/weight** — build a construction sturdy enough to hold a small
+   real object on top without collapsing (e.g. a bridge holds a toy car, a
+   shelf holds a book) — measurable through "held it yes/no", checked
+   gently, not by throwing.
+6. **Bridge/crossing/connecting two points** — build a structure that
+   something can go OVER/UNDER/THROUGH (a bridge, tunnel, arch), or that
+   connects two points (two "shores", two marker bricks).
+7. **Pattern** — lay out a repeating brick pattern (by color, shape, size) —
+   measurable through "how many repeats of the pattern were made".
+8. **Fitting pieces together** — build so that two separate parts of the
+   model precisely connect/fit together (puzzle-piece principle).
+9. **Family/group** — build a small/large version next to it (e.g. a baby
+   next to the adult model, or a whole family of several small models) —
+   often the most substantial archetype, solves the "too flat" challenge
+   problem well.
+10. **Function/mechanism** — [BRICKMOTO ONLY, not available for Preschool] —
+    add a simple moving part (wheels, wings) and test how it works. Not
+    physically possible on the Preschool set (only 2x4/2x2 bricks) — never
+    offer this for Preschool under any circumstances.
 
-⚠️ НЕ использовать архетип "плавность движения"/"скорость" в любом виде —
-любой челлендж, где успех проверяется через движение/бросок/толчок/гонку
-готовой модели, запрещён (см. правило 14). Измерение — ВСЕГДА на самой
-конструкции по мере постройки, не через физическое движение результата.
+Do NOT use a "smoothness of movement"/"speed" archetype in any form — any
+challenge where success is checked by moving/throwing/pushing/racing the
+finished model is forbidden (see rule 14). Measurement is ALWAYS on the
+construction itself as it's being built, never through physically moving
+the result.
 
-## Вход
-Одно слово-тема (например "Cactus"), опционально: имя учителя, список
-последних тем блока (для сквозного сюжета), пол персонажа-ведущего если уже задан.
+## Input
+One topic word (e.g. "Cactus"), optionally: teacher's name, list of the
+block's recent topics (for a continuing storyline), lead character's gender
+if already set.
 
-## Шаг 1 — базовые поля
-- `topic` = слово с большой буквы.
-- `letter` = первая буква темы, заглавная.
-- Проверить в `scripts/letter-videos.json`, есть ли id видео для этой буквы;
-  если нет — оставить пустым и предупредить пользователя, что нужно один раз добавить.
+## Step 1 — basic fields
+- `topic` = the word, capitalized.
+- `letter` = the topic's first letter, uppercase.
+- Check `scripts/letter-videos.json` for a video id for that letter; if
+  missing, leave it blank and warn the user it needs to be added once.
 
-## Шаг 2 — Story (по разделу 5-6 Preschool_Rulebook.md)
-Драматургия фиксированная, меняется только начинка:
-1. Разминка (уже видео, слайд 2, не Story)
-2. Завязка → интерактив с репликами → появление объекта темы → мост к постройке
-3. `key_phrase` — 2-5 слов, произносится хором
-4. `characters[0]` всегда персонаж-учитель минифигурка
-5. `full_story_speaker_notes` — 6+ предложений с репликами и жестами-ремарками, СУПЕР короткие фразы (3-6 слов на реплику) — целевая аудитория часто не знает ни слова по-английски (например вьетнамские дети 3-5 лет), смысл через интонацию/жесты/пропсы, а не понимание фраз
-6. `observation_questions` — только про то, что реально введено в истории (сенсорный опыт: цвет, форма, количество частей — то, что дети трогали/видели)
+## Step 2 — Story (per section 5-6 of Preschool_Rulebook.md)
+The dramaturgy is fixed, only the content changes:
+1. Warm-up (already the video on slide 2, not part of Story)
+2. Setup → interactive back-and-forth → the topic's object appears → bridge
+   to building
+3. `key_phrase` — 2-5 words, said in chorus
+4. `characters[0]` is always the teacher-minifigure character
+5. `full_story_speaker_notes` — 6+ sentences with lines and gesture stage
+   directions, SUPER short phrases (3-6 words per line) — the target
+   audience often knows zero English (e.g. Vietnamese children age 3-5),
+   meaning travels through tone/gestures/props, not through understanding
+   the phrases
+6. `observation_questions` — only about what was actually introduced in the
+   story (sensory experience: color, shape, number of parts — what the kids
+   touched/saw)
 
-### Пул форматов истории — НЕ дефолтить на "антагонист крадёт пропс"
-Разнообразить от темы к теме (тест: сможет ли учитель физически показать это
-1-3 вырезанными пропсами на столе, без абстракций?):
-1. **Антагонист хочет украсть пропс** — сначала сценка антагониста ДО раздачи
-   (объясняет причину), потом раздача пропса "на хранение", потом антагонист
-   живо и с юмором пытается забрать пропс у каждого ребёнка по классу, уходит.
-2. **Кто-то потерялся/играет в прятки** — персонаж прячется в классе, дети
-   находят; затем каждый ребёнок получает свою мини-версию и прячет сам, а
-   учитель ищет. Мост к постройке — НЕ повтор того же персонажа, а логичное
-   продолжение (например много спрятанных медвежат → "им нужны мамы").
-3. **Персонаж голодный/угощает** — поощряется комедийный контраст (персонаж
-   с восторгом ест что-то, дети морщатся/смеются). Перед жестом дети сначала
-   повторяют глагол-фразу хором ("Sniff the bone!"), потом делают жест.
-4. **Персонаж грустный/одинокий** — дети утешают хором репликами и жестами,
-   без антагониста.
-5. **Чистая радость находки/сюрприз** — прятки за спиной учителя/в руках
-   детей, БЕЗ выдуманных пропсов-декораций, которые физически не из чего
-   сделать (например кораллы).
-6. **Персонаж дарит что-то без конфликта** — обыграть ФИЗИЧЕСКОЕ СВОЙСТВО
-   пропса как часть сюжета (пример: шарик поднимает слонёнка высоко в воздух
-   на день рождения — дети поднимают свои шарики, потом хором поздравляют).
+### Story format pool — don't default to "antagonist steals the prop"
+Vary it from topic to topic (test: could the teacher physically show this
+with 1-3 cutout props on the table, no abstractions?):
+1. **An antagonist wants to steal the prop** — first play the antagonist
+   scene BEFORE handing out props (explains why), then hand out the prop
+   "for safekeeping", then the antagonist livens things up trying to grab
+   the prop from each child around the class, then leaves.
+2. **Someone is lost/playing hide-and-seek** — the character hides in the
+   classroom, kids find it; then each child gets their own mini-version to
+   hide themselves while the teacher searches. The bridge to building is NOT
+   a repeat of the same character but a logical continuation (e.g. lots of
+   hidden baby bears → "they need mamas").
+3. **The character is hungry/offering food** — comedic contrast is
+   encouraged (the character delightedly eats something, kids scrunch up
+   their faces/laugh). Before the gesture, kids first repeat a verb-phrase in
+   chorus ("Sniff the bone!"), then do the gesture.
+4. **The character is sad/lonely** — kids comfort it with chorus lines and
+   gestures, no antagonist.
+5. **Pure joy of finding/surprise** — hiding behind the teacher's back/in
+   kids' hands, WITHOUT invented decorative props that can't physically be
+   made (e.g. coral).
+6. **The character gives something with no conflict** — play up a PHYSICAL
+   PROPERTY of the prop as part of the plot (example: a balloon lifts a
+   baby elephant high into the air for its birthday — kids raise their own
+   balloons, then cheer together).
 
-### Тест на понятность (ОБЯЗАТЕЛЬНО перед сдачей)
-Представь ребёнка 4 лет, который только выучил "hello" по-английски, сидит
-в кругу и смотрит на историю БЕЗ перевода — только жесты, пропсы, интонация.
-Задай себе: **поймёт ли он, ЗАЧЕМ происходит каждое действие?** У каждого
-действия должна быть понятная физическая причина/ставка (голод, страх,
-потеря, радость находки, подарок) — не абстрактная "проверка" без стейков.
-ОШИБКА (реальный пример, тема Airplane): "давайте проверим крылья самолёта" —
-неясно, ЗАЧЕМ проверять, что будет если не проверить, что вообще происходит
-физически. Это не архетип, а размытое действие ни о чём. ИСПРАВЛЕНИЕ: либо
-явный архетип 3 (самолётик голодный/хочет топлива, забавно "заправляется"
-облаком), либо архетип 1 (озорной ветер норовит сдуть самолётик, дети держат
-его крепко), либо архетип 6 (самолётик летит высоко благодаря помощи детей,
-которые машут своими бумажными крыльями вместе с ним, потом хором "ура,
-летим!"). Всегда выбирай ОДИН чёткий архетип из пула, не изобретай гибрид.
+### Clarity test (MANDATORY before submitting)
+Picture a 4-year-old who just learned "hello" in English, sitting in a
+circle, watching the story WITHOUT translation — only gestures, props,
+intonation. Ask yourself: **will they understand WHY each action is
+happening?** Every action needs a clear physical reason/stake (hunger, fear,
+loss, joy of finding, a gift) — not an abstract "check" with no stakes.
+MISTAKE (real example, topic Airplane): "let's check the airplane's wings" —
+unclear WHY to check, what happens if you don't, what's physically going on
+at all. That's not an archetype, it's a vague action about nothing. FIX:
+either archetype 3 (the little airplane is hungry/wants fuel, funnily
+"refuels" on a cloud), or archetype 1 (a mischievous wind keeps trying to
+blow the airplane off course, kids hold it steady), or archetype 6 (the
+airplane flies high with the kids' help, who flap their own paper wings
+along with it, then cheer "we're flying!" together). Always pick ONE clear
+archetype from the pool, don't invent a hybrid.
 
-### Педагогическая основа (из практики circle time для дошкольников)
-Реальные техники, которые реально работают с детьми 3-5 лет (в том числе не
-носителями английского) и должны присутствовать в истории:
-- **Повтор — это половина метода.** Ключевая фраза/жест повторяется минимум
-  2-3 раза за историю, всегда одинаково — дети быстро подхватывают паттерн.
-- **Call-and-response, а не монолог.** Учитель говорит/делает — дети хором
-  отвечают репликой или жестом. Не длинные объяснения.
-- **Один простой конфликт с понятной ставкой**, не несколько тем сразу.
-- **Физическое вовлечение с первых секунд** — не просто слушать, а сразу
-  что-то делать руками/телом (трогать пропс, махать руками, качать головой).
-- **Разрешение конфликта = мост к постройке**, не отдельная, слабо связанная
-  мысль в конце.
+### Pedagogical basis (from real preschool circle-time practice)
+Real techniques that actually work with 3-5 year olds (including non-native
+English speakers) and should be present in the story:
+- **Repetition is half the method.** A key phrase/gesture repeats at least
+  2-3 times in the story, always the same way — kids pick up the pattern
+  fast.
+- **Call-and-response, not a monologue.** The teacher says/does something —
+  kids respond in chorus with a line or gesture. Not long explanations.
+- **One simple conflict with a clear stake**, not several topics at once.
+- **Physical engagement from the first seconds** — not just listening, but
+  immediately doing something with hands/body (touching a prop, waving
+  arms, shaking their head).
+- **Resolving the conflict = the bridge to building**, not a separate,
+  loosely connected thought tacked on at the end.
 
-### Тест на реализуемость (ОБЯЗАТЕЛЬНО перед КАЖДЫМ действием в истории)
-Перед тем как написать любое действие, задай себе: **как ИМЕННО учитель
-покажет это двумя руками и бумажными пропсами прямо сейчас, за столиком с
-листом A4 позади?** Если не можешь честно ответить пошагово — действие не
-проходит, переписывай. Конкретные вещи, которые НИКОГДА не реализуемы и
-были реальными ошибками в прошлых версиях:
-- Жидкости/грязь/вода в любом виде (плескаться, обрызгать, вода капает) —
-  на столе нет ни капли настоящей воды.
-- Физический контакт персонажа с ребёнком (обнять, дать пять, задеть) —
-  распечатка не может коснуться живого ребёнка осмысленно.
-- "Превращение"/материализация из ничего (яйцо треснуло и ИЗ НЕГО появился
-  цыплёнок, растаяло, выросло на глазах) — плоская картинка не может
-  меняться сама по себе.
-- Разрывание/порча печатного пропса (разломить яблоко пополам) — пропсы
-  многоразовые, их не портят по сюжету.
-- Прятки ЗА плоским фоном (за нарисованным деревом на фоне) — фон это
-  плоский лист A4, за него физически нельзя что-то спрятать. Прятки — ТОЛЬКО
-  за спиной учителя или между двумя настоящими пропсами (один загораживает
-  другой в руках учителя).
-- Описание "как выглядит" эмоция персонажа на самой картинке ("грустно
-  смотрит", "удивлённо смотрит") — распечатка не меняет выражение. ВСЯ
-  эмоция передаётся ТОЛЬКО голосом/интонацией учителя и словами в репликах
-  ("Oh no!" сказано расстроенным голосом), а не как визуальное свойство
-  пропса. Формулировать в сценарии как речевую/интонационную ремарку для
-  учителя, не как визуальный факт.
+### Feasibility test (MANDATORY before EVERY action in the story)
+Before writing any action, ask yourself: **exactly HOW will the teacher show
+this with two hands and paper props, right now, at a little table with an
+A4 sheet behind them?** If you can't honestly answer step by step, the
+action doesn't pass — rewrite it. Specific things that are NEVER feasible
+and were real mistakes in past versions:
+- Liquids/mud/water in any form (splashing, spraying, dripping water) — there
+  isn't a drop of real water on the table.
+- Physical contact between the character and a child (hugging, high-fiving,
+  touching) — a printout can't meaningfully touch a live child.
+- "Transformation"/materializing out of nothing (an egg cracked and a chick
+  APPEARED FROM INSIDE IT, melted, grew before your eyes) — a flat picture
+  can't change on its own.
+- Tearing/damaging a printed prop (breaking an apple in half) — props are
+  reusable, they don't get destroyed as part of the plot.
+- Hiding BEHIND a flat background (behind a tree drawn on the background) —
+  the background is a flat A4 sheet, nothing can physically hide behind it.
+  Hiding is ONLY behind the teacher's back or between two real props (one
+  covering another in the teacher's hands).
+- Describing "how" a character's emotion "looks" on the picture itself
+  ("looks sad", "looks surprised") — a printout doesn't change expression.
+  ALL emotion is conveyed ONLY through the teacher's voice/tone and the
+  words in the lines ("Oh no!" said in an upset voice), never as a visual
+  property of the prop. Phrase it in the script as a vocal/tonal direction
+  for the teacher, not as a visual fact.
 
-### Надёжный трюк для "превращений"/"находок" вместо материализации
-Когда по сюжету что-то должно смениться на другое (яйцо → цыплёнок, персонаж
-"исчез" → нашёлся другим) — использовать ТОЛЬКО честную замену пропса:
-спрятать один пропс за спину учителя на секунду и достать оттуда УЖЕ ГОТОВЫЙ
-другой пропс. Никогда не утверждать, что пропс сам "раскололся"/"вырос"/
-"растаял" — так не бывает с бумагой.
+### Reliable trick for "transformations"/"reveals" instead of materializing
+When something needs to change into something else per the plot (egg →
+chick, a character "disappears" → is found as something else) — use ONLY an
+honest prop swap: hide one prop behind the teacher's back for a second and
+pull out an ALREADY-PREPARED different prop. Never claim a prop itself
+"cracked open"/"grew"/"melted" — paper doesn't do that.
 
-### Пул интерактивных техник (комбинировать с архетипами выше, не с нуля)
-1. **Мимикрия/выбор среди объектов фона** — фон сразу содержит 2-3 крупных
-   объекта; персонаж (в 2-3 цветных версиях-копиях, если нужно) поочерёдно
-   оказывается у каждого объекта, дети хором угадывают/реагируют на каждом
-   шаге ДО того как учитель покажет результат.
-2. **Погоня по всем детям** — маленький персонаж-пропс "перебегает" от
-   ребёнка к ребёнку (учитель переносит его по кругу), более крупный
-   персонаж гонится следом, каждый раз чуть не успевая; у последнего ребёнка
-   — настоящий момент "поимки"/встречи с неожиданной, НЕ пугающей и НЕ
-   пищевой (не "съел") развязкой.
-3. **Дети сами создают точки интереса** — каждый ребёнок кладёт свой пропс
-   (цветок, нить и т.п.) сам, куда хочет, персонаж реагирует именно на то,
-   что только что появилось — небольшой элемент выбора и вовлечённости
-   вместо чистого наблюдения.
-4. **Раздать → собрать → покормить/поделиться по кругу** — материал
-   (крошки/нить/еда, напечатанный заранее) раздаётся всем сразу или
-   рассыпается на столе, дети собирают/по очереди передают его персонажу,
-   на каждой передаче — хоровая фраза с реальным словом-действием (eat, hide,
-   fly), НЕ только звукоподражание (не только "ням-ням" без слов).
-5. **Наращивание напряжения счётом/повтором** — обратный отсчёт или
-   нарастающий повтор перед кульминацией (например "Crack... crack...
-   CRACK!" перед сменой пропса, или растущий шёпот "Sneak, sneak, sneak..."
-   перед прыжком).
+### Pool of interactive techniques (combine with the archetypes above, don't
+build from scratch)
+1. **Mimicry/choosing among background objects** — the background already
+   contains 2-3 large objects; the character (in 2-3 color versions/copies,
+   if needed) ends up at each object in turn, kids guess/react in chorus at
+   each step BEFORE the teacher reveals the result.
+2. **Chase through all the children** — a small character-prop "runs" from
+   child to child (the teacher moves it around the circle), a bigger
+   character chases just behind, narrowly missing each time; at the last
+   child — a real moment of "catching"/meeting with an unexpected, NOT
+   scary and NOT food-related (not "ate it") resolution.
+3. **Kids create their own points of interest** — each child places their
+   own prop (a flower, a thread, etc.) wherever they want, the character
+   reacts specifically to what was just placed — a small element of choice
+   and involvement instead of pure observation.
+4. **Hand out → collect → feed/share in turn** — material (crumbs/thread/
+   food, pre-printed) is handed out to everyone at once or scattered on the
+   table, kids collect/pass it to the character one by one, with a chorus
+   phrase containing a real action word (eat, hide, fly) on each pass — NOT
+   just onomatopoeia (not just "yum yum" with no real word).
+5. **Building tension through counting/repetition** — a countdown or a
+   growing repetition before the climax (e.g. "Crack... crack... CRACK!"
+   before a prop swap, or a rising whisper "Sneak, sneak, sneak..." before a
+   pounce).
 
-### История не обязана быть предельно короткой
-Можно писать как небольшое приключение/диалог/взаимодействие, если это
-оправдано интересом, а не растянуто искусственно. Хорошо работает сюжет,
-построенный вокруг РЕАЛЬНОГО ФАКТА о животном/объекте — одна из его
-характерных черт, поданная через историю (сова не спит ночью и отлично
-слышит; слон тяжёлый — топает "BOOM"; осьминог меняет цвет, чтобы прятаться;
-паук плетёт паутину нить за нитью). Реальный факт делает историю логичнее и
-интереснее абстрактного конфликта.
+### The story doesn't have to be extremely short
+It can be written as a small adventure/dialogue/interaction if that's earned
+by genuine interest, not artificially padded. A plot built around a REAL
+FACT about the animal/object works well — one of its defining traits, told
+through the story (owls stay up at night and hear extremely well; elephants
+are heavy — they stomp "BOOM"; octopuses change color to hide; spiders spin
+a web thread by thread). A real fact makes the story more logical and more
+interesting than an abstract conflict.
 
-### Обязательна настоящая ставка/интрига
-История должна иметь понятную интригу (успеет/не успеет, поймает/не поймает,
-хватит/не хватит) — не просто "нашёл предмет и поиграл с ним, конец". Плоская
-сценка без ставок ощущается пустой даже если физически реализуема.
+### A real stake/hook is mandatory
+The story needs a clear hook (will they make it in time/not, catch it/not,
+have enough/not) — not just "found an object and played with it, the end".
+A flat scene with no stakes feels empty even when it's physically feasible.
 
-## Шаг 3 — Story Props
-Минимальный набор (обычно 2, максимум 3-4), только напрямую связанные с темой,
-без второстепенных персонажей для украшения.
+## Step 3 — Story Props
+A minimal set (usually 2, max 3-4), only directly related to the topic, no
+secondary characters for decoration.
 
-## Шаг 4 — Игры (единый `script`-формат для game1/game2/game3)
-Каждая игра описывается массивом `script: [{speaker, text}]`, speaker один из:
-`children` (дети хором инициируют реплику), `teacher` (ответ-команда учителя),
-`action` (что физически происходит), `instruction` (шаг правил, для Game 2).
-Прямая речь (children/teacher) в сборке визуально выделяется ТОЛЬКО цветом
-(BLUE=дети, RED=учитель), БЕЗ bold/underline — писать её короткой и
-разговорной (3-8 слов), не длинными фразами.
+## Step 4 — Games (unified `script` format for game1/game2/game3)
+Each game is described as a `script: [{speaker, text}]` array, speaker is
+one of: `children` (kids initiate a line in chorus), `teacher` (the
+teacher's command response), `action` (what physically happens),
+`instruction` (a rule step, mostly for Game 2). Direct speech (children/
+teacher) is visually highlighted in the build ONLY by color (BLUE=children,
+RED=teacher), NO bold/underline — keep it short and conversational (3-8
+words), not long phrases.
 
-- **Game 1** — устоявшийся шаблон (не свободный выбор между двумя стилями):
-  одна и та же кричалка-вопрос детей (`speaker: children`) повторяется КАЖДЫЙ
-  раз одинаково внутри урока; учитель (`speaker: teacher`) отвечает СЛУЧАЙНО
-  одним из ДВУХ рифмованных вариантов — по схеме "[действие], [действие],
-  [действие], + рифмованная строка со смыслом". Один вариант — настоящая
-  беготня (дети разбегаются, учитель понарошку ловит, отдельная `action`-
-  строка это описывает), второй — активное действие на месте (прыжки и т.п.,
-  по-настоящему высоко и весело). 3-4 раунда, финал на варианте с беготней.
-  СЛОВА кричалки и оба ответа — НОВЫЕ под каждую тему, из словаря темы
-  (глаголы действия конкретного животного/объекта), НЕ повторять фразы
-  предыдущих уроков дословно.
-  ⚠️ КРИТИЧНО про язык: целевая аудитория — дети 3-5 лет, часто не носители
-  (например вьетнамские, только выучили "hello"). Кричалка и ответы должны
-  состоять ТОЛЬКО из самых простых, коротких, высокочастотных слов (1 слог
-  предпочтительно, максимум 2) — глаголы вроде "go, fly, run, jump, hide,
-  swim" и название темы, НЕ сложные конструкции. НЕ дефолтить каждый раз на
-  одну и ту же структуру "[Тема], [Тема], what do we do?" — это тоже нужно
-  разнообразить (варианты структуры вопроса, не только "what do we do").
-  Примеры РАЗНЫХ структур вопроса (не копировать дословно, но не использовать
-  одну и ту же структуру два урока подряд): "[Topic], [Topic], where do we
-  go?", "[Topic] time, what now?", "Hey [Topic], what's the plan?", "[Topic],
-  [Topic], up or down?". Грамматику рифм всегда проверять. НЕ привязывать
-  команды к самой LEGO-модели буквально (см. правило про зонтик).
-- **Game 2** — СМЕШАННЫЙ ПУЛ форматов, как у истории — выбирать под тему, не
-  дефолтить всегда на одно и то же. Общий принцип: Game 2 ЗАМЕТНО спокойнее
-  Game 1 (та уже "владеет" беготнёй/энергией) и БЛИЖЕ к реальному миру —
-  никакого бега, только печатные материалы/реальный объект/кубики.
-  Все вопросы/шаги — МАКСИМАЛЬНО простые (да/нет, одно слово), никаких
-  открытых вопросов типа "какого цвета". Script здесь чаще всего из
-  `instruction`-строк (шаги правил) + одной `action`.
+- **Game 1** — an established template (not a free choice between two
+  styles): the same children's chant-question (`speaker: children`) repeats
+  EVERY round the same way within the lesson; the teacher (`speaker:
+  teacher`) answers RANDOMLY with one of TWO rhymed options — following the
+  pattern "[action], [action], [action], + a rhymed line with real meaning".
+  One option is real running (kids scatter, the teacher play-chases them,
+  a separate `action` line describes this), the other is a big action in
+  place (jumping, etc., genuinely high and energetic). 3-4 rounds, ending on
+  the running/chase option. The chant's WORDS and both responses are NEW for
+  every topic, drawn from the topic's own vocabulary (action verbs for that
+  specific animal/object), never reuse previous lessons' phrasing verbatim.
+  CRITICAL about language: the target audience is 3-5 year olds, often
+  non-native speakers (e.g. Vietnamese, who just learned "hello"). The chant
+  and responses must consist ONLY of the simplest, shortest, highest-
+  frequency words (1 syllable preferred, 2 max) — verbs like "go, fly, run,
+  jump, hide, swim" and the topic name, NOT complex constructions. Don't
+  default every time to the same "[Topic], [Topic], what do we do?"
+  structure — this also needs variety (different question structures, not
+  only "what do we do"). Examples of DIFFERENT structures (don't copy
+  verbatim, but don't use the same structure two lessons in a row):
+  "[Topic], [Topic], where do we go?", "[Topic] time, what now?", "Hey
+  [Topic], what's the plan?", "[Topic], [Topic], up or down?". Always check
+  rhyme grammar. Don't tie the commands literally to the LEGO model itself
+  (see the umbrella-rule example).
+- **Game 2** — a MIXED POOL of formats, like the story — pick based on the
+  topic, don't default to the same one every time. General principle: Game 2
+  is noticeably calmer than Game 1 (which already "owns" running/energy) and
+  CLOSER to the real world — no running, only printed materials/a real
+  object/bricks. All questions/steps are AS SIMPLE AS POSSIBLE (yes/no, one
+  word), no open questions like "what color". The script here is mostly
+  `instruction` lines (rule steps) + one `action`.
 
-  1. **`type: "sensory"`** (ПРИОРИТЕТ, если у темы есть доступный реальный
-     объект): потрогать/понюхать/попробовать настоящий предмет темы
-     ("нравится?", "вкусно/невкусно?", "тронь листья... зелёные листья...").
-  2. **`type: "search"`**: учитель прячет несколько вырезанных карточек темы
-     по комнате (под стулом, за шторой и т.п. — спокойно, не бегом), дети по
-     очереди ищут и радостно показывают найденное; хоровая реплика при
-     находке ("Found it!"). Хорошо подходит, если у темы нет доступного
-     реального объекта и сортировка скучна для неё.
-  3. **`type: "matching"`**: сопоставить пары простых печатных карточек по
-     ОДНОМУ понятному признаку — размер (большой/маленький), форма, узнать
-     "такой же/не такой же" — НЕ обязательно цвет, это лишь один из
-     вариантов признака.
-  4. **`type: "sorting"`** (резервный, когда остальное не подходит органично):
-     сортировка/счёт печатных карточек или РЕАЛЬНЫХ предметов темы по
-     простому признаку (размер, количество) — НЕ кубиков LEGO: их и так
-     много в Model Building/Game 1, не нужно повторять здесь.
+  1. **`type: "sensory"`** (PRIORITY if the topic has an accessible real
+     object): touch/smell/taste the real object of the topic ("do you like
+     it?", "tasty/not tasty?", "touch the leaves... green leaves!").
+  2. **`type: "search"`**: the teacher hides several cutout topic cards
+     around the room (under a chair, behind a curtain, etc. — calm, not
+     running), kids take turns searching and happily show what they found;
+     a chorus line on finding it ("Found it!"). Works well if the topic has
+     no accessible real object and sorting feels boring for it.
+  3. **`type: "matching"`**: pair up simple printed cards by ONE clear trait
+     — size (big/small), shape, "same/not the same" — NOT necessarily
+     color, that's just one possible trait.
+  4. **`type: "sorting"`** (fallback, when nothing else fits organically):
+     sorting/counting printed cards or REAL objects of the topic by a
+     simple trait (size, count) — NOT LEGO bricks: those are already used
+     plenty in Model Building/Game 1, no need to repeat that here.
 
-  Тест выбора: если у темы есть реальный доступный предмет — почти всегда
-  `sensory`. Если нет, но тему легко разыграть в "найди спрятанное" — `search`.
-  Иначе `matching` или `sorting` по ситуации.
+  Selection test: if the topic has an accessible real object — almost
+  always `sensory`. If not, but the topic is easy to turn into "find the
+  hidden thing" — `search`. Otherwise `matching` or `sorting` depending on
+  the situation.
 
-  ⚠️ Для `search` и `matching` НЕ придумывать отдельные новые картинки —
-  отдельных изображений для Game 2 не генерируется. Использовать УЖЕ
-  напечатанные пропсы истории (страница 1 печатного набора, `story_props`) —
-  например для search: "спрячь напечатанные карточки пропсов из истории по
-  комнате". Это упрощает подготовку учителю (не нужно печатать что-то ещё) и
-  логически связывает Game 2 с уже рассказанной историей.
-- **Game 3**: обязательно использует построенную модель физически, той же
-  структурой кричалки, что и Game 1 (одна и та же реплика детей + учитель
-  случайно выбирает 1 из 2 ответов), СЛОВА новые под тему, максимально
-  простые (см. правило про язык в Game 1). Нужны ДВЕ явно различающиеся
-  команды учителя с понятной причиной, связанной с погодой/настроением темы
-  (например "sunny day, fly high!" / "storm is coming, fly low!") — просто
-  разная высота/скорость движения модели, БЕЗ конкретного места назначения.
-  ⚠️ КРИТИЧНО: НИКОГДА не упоминать объект/структуру, которую дети ещё не
-  построили (например "летим к ангару", "бежим в домик") — на этом этапе
-  урока построена только сама модель темы, Challenge-объект появится только
-  ПОЗЖЕ. Финальная `action`/`teacher` строка — простой мостик в Challenge
-  (например "Sky flew so high! Now let's build something to help Sky land
-  safely."), без конкретики решения (сама демонстрация решения Challenge
-  сюда не входит, она только в `challenge.text`/примечаниях).
+  For `search` and `matching`, do NOT invent separate new images —
+  no dedicated images are generated for Game 2. Reuse the ALREADY-printed
+  story props (page 1 of the printable set, `story_props`) — e.g. for
+  search: "hide the printed story-prop cards around the room". This makes
+  prep simpler for the teacher (nothing extra to print) and logically ties
+  Game 2 back to the story that was just told.
+- **Game 3**: must physically use the built model, with the same chant
+  structure as Game 1 (the same children's line + the teacher randomly picks
+  1 of 2 responses), NEW words for the topic, as simple as possible (see the
+  language rule under Game 1). You need TWO clearly different teacher
+  commands with a clear reason tied to the topic's weather/mood (e.g. "sunny
+  day, fly high!" / "storm is coming, fly low!") — simply a different
+  height/speed of movement for the model, WITHOUT a specific destination.
+  CRITICAL: NEVER mention an object/structure the kids haven't built yet
+  (e.g. "fly to the hangar", "run to the house") — at this point in the
+  lesson only the topic's own model has been built, the Challenge object
+  only appears LATER. The final `action`/`teacher` line is a simple bridge
+  into the Challenge (e.g. "Sky flew so high! Now let's build something to
+  help Sky land safely."), without specifics of the solution (the actual
+  demo-solving of the Challenge doesn't belong here, only in
+  `challenge.text`/notes).
 
-## Шаг 5 — Challenge
-Выбрать архетип из списка "Архетипы Challenge" (см. критичные правила выше),
-НЕ повторяя архетип, использованный в предыдущем уроке блока. Формулировка —
-конкретная, измеримая, понятная ребёнку 3-5 лет.
+## Step 5 — Challenge
+Pick an archetype from the "Challenge Archetypes" list (see the critical
+rules above), NOT repeating the archetype used in the previous lesson of the
+block. The wording should be concrete, measurable, understandable to a 3-5
+year old.
 
-`challenge.text` должен читаться как сценарий "учитель решает сам на глазах
-у детей, потом явно приглашает их повторить": учитель строит, спрашивает
-"хорошо/безопасно/достаточно большое?", дети хором "нет" пока не достроит,
-затем "да" — и заканчивается явным призывом "Now YOU build your own...".
-Не растягивать текст сверх бюджета слайда, но дух демо+приглашения должен
-считываться.
+`challenge.text` should read like a script where "the teacher solves it
+themselves in front of the kids, then explicitly invites them to try":
+the teacher builds, asks "good/safe/big enough?", kids say "no" in chorus
+until it's done, then "yes" — ending with an explicit invitation "Now YOU
+build your own...". Don't stretch the text beyond the slide's text budget,
+but the spirit of demo+invitation should come through.
 
-## Шаг 6 — image_prompt поля
-`background_image_prompt` (фон истории): ГОРИЗОНТАЛЬНАЯ ориентация,
-ПОЛНЫЙ ФОТОРЕАЛИЗМ (как настоящая фотография сцены, не иллюстрация/картина),
-естественное освещение, без людей, без текста, спокойная и дружелюбная сцена
-(ничего страшного/тёмного). Исключение: солнце и подобные абстрактные
-природные элементы можно оставлять мультяшными, если фотореализм для них
-плохо считывается — по ситуации.
+## Step 6 — image_prompt fields
+`background_image_prompt` (story background): HORIZONTAL orientation, FULL
+PHOTOREALISM (like an actual photograph of a scene, not an illustration/
+painting), natural lighting, no people, no text, a calm and friendly scene
+(nothing scary/dark). Exception: the sun and similar abstract natural
+elements can stay cartoonish if photorealism doesn't read well for them —
+use judgment.
 
-**Пропсы-персонажи, которые ЖИВЫЕ (животные/насекомые/рептилии):** мягкий
-полуреализм — настоящие цвета, текстуры и пропорции тела, БЕЗ гипер-детализации
-крупным планом (никаких фасеточных глаз, волосков, чешуи в упор — это может
-пугать детей 3-5 лет) и БЕЗ мультяшных клише (никаких улыбающихся лиц-смайликов,
-огромных диснеевских глаз, розовых щёчек — выглядит глупо, не то что нужно).
-Спокойный, узнаваемый план целого существа, как в хорошей детской книге —
-не мультфильм и не фото-макро.
+**Character props that are ALIVE (animals/insects/reptiles):** soft
+semi-realism — true-to-life colors, textures, and body proportions, WITHOUT
+extreme close-up detail (no compound eyes, hairs, scales up close — this can
+scare 3-5 year olds) and WITHOUT cartoon cliches (no smiley faces, no giant
+Disney eyes, no rosy cheeks — looks silly, not what's needed). A calm,
+recognizable view of the whole creature, like a good children's book — not
+a cartoon and not a macro photo.
 
-**Пропсы-предметы/техника, ДАЖЕ ЕСЛИ они "главный герой" истории** (самолётик,
-машинка, зонтик, камень, шарик и т.п.): ВСЕГДА полный фотореализм — как
-настоящее фото игрушки/предмета, НЕ нарисованная иллюстрация, НЕ "пушистый"/
-мягкий стиль. Ошибка на реальном примере (тема Airplane): самолётик получился
-"как из ваты" — потому что применили правило для живых существ к технике.
-Самолёт, машина, любой неодушевлённый объект — всегда чёткое реалистичное
-фото, как в каталоге игрушек.
+**Object/vehicle props, EVEN IF they're the story's "main character"**
+(a little airplane, a car, an umbrella, a rock, a balloon, etc.): ALWAYS
+full photorealism — like a real photo of a toy/object, NOT a painted
+illustration, NOT a "fluffy"/soft style. Real example of the mistake (topic
+Airplane): the little airplane came out looking "like it's made of cotton
+wool" — because the living-creature rule was applied to a piece of
+machinery. An airplane, a car, any inanimate object — always a crisp
+realistic photo, like in a toy catalog.
 
-Все пропсы-персонажи и предметы — на чистом БЕЛОМ или прозрачном фоне (для
-вырезания), без сцены/декораций.
+All character and object props are on a plain WHITE or transparent
+background (for cutting out), no scene/decoration.
 
-**Исключение — `real_object_image_prompt`**: это НАСТОЯЩАЯ фотография
-объекта темы (не LEGO, не иллюстрация) — формулировать как "A real
+**Exception — `real_object_image_prompt`**: this is an ACTUAL photograph of
+the topic's object (not LEGO, not an illustration) — phrase it as "A real
 photograph of an actual [object], photorealistic, isolated on a plain white
-background, no text". Это единственное поле, где нужен полный фотореализм
-студийного качества (не сцена, не природный фон).
+background, no text". This is the only field that needs full studio-quality
+photorealism (no scene, no natural background).
 
-**Challenge-картинка**: реальное фото по смыслу задачи, БЕЗ намёков на LEGO/
-кубики/игрушки — просто обычная реалистичная фотография того, о чём
-челлендж, на белом/прозрачном фоне.
+**Challenge image**: a real photo matching the meaning of the challenge,
+WITHOUT any hint of LEGO/bricks/toys — just an ordinary realistic photograph
+of whatever the challenge is about, on a white/transparent background.
 
-## Шаг 7 — самопроверка перед выдачей файла
-- [ ] Story ведёт к постройке модели ТЕМЫ, а не производного объекта (домик/контейнер — в challenge)
-- [ ] Каждый ребёнок строит СВОЮ модель с нуля, история не подразумевает "починку"/"достройку" модели персонажа
-- [ ] Конфликт истории конкретный и разыгрываемый 2-3 бумажными пропсами (тест: смог бы учитель это физически показать?)
-- [ ] Нет лишних придуманных человеческих персонажей — только минифигурка учителя + (если нужно) олицетворение самой темы
-- [ ] Challenge НЕ использует движущиеся/функциональные части (это Brickmoto, не Preschool)
-- [ ] Challenge не "просто побольше" — есть измеримый/сравнительный элемент
-- [ ] Challenge — это ВСЕГДА постройка, не тест уже готовой модели (бросок/толчок/гонка запрещены)
-- [ ] Обложка не содержит фото-полей
-- [ ] presentation_qa содержит минимум 4 пары
-- [ ] game1/game2/game3 используют формат script (не сплошной текст), реплики — только цвет, без bold/underline
-- [ ] Story format НЕ "антагонист крадёт пропс" два урока подряд (см. пул из 6 форматов)
-- [ ] Game 1 — одна и та же кричалка детей + учитель случайно 1 из 2 рифмованных ответов (беготня/действие на месте), слова НОВЫЕ под тему
-- [ ] Game 2 — выбран подходящий формат из пула (sensory/search/matching/sorting), не дефолт на одно и то же каждый раз
-- [ ] Challenge.text заканчивается явным призывом "Now YOU build your own..."
-- [ ] Game 3 — две явные команды медленно/быстро с понятной причиной
-- [ ] Challenge — архетип отличается от предыдущего урока блока
-- [ ] Все youtube id найдены через web_search в этом же чате, не по памяти
-- [ ] Нет длинных тире (—) нигде в тексте
-- [ ] Числа в прозе словом, кроме меток Game N
-- [ ] Presentation-вопросы опираются только на то, что было в Story/Observation
-- [ ] Story Props ≤ 4 штуки, все напрямую по теме
-- [ ] JSON валиден (нет пропущенных полей из content.schema.md)
+## Step 7 — self-check before delivering the file
+- [ ] The story leads to building a model of the TOPIC, not a derived object (house/container — belongs in challenge)
+- [ ] Every child builds THEIR OWN model from scratch, the story doesn't imply "fixing"/"finishing" the character's model
+- [ ] The story's conflict is concrete and playable with 2-3 paper props (test: could the teacher physically show this?)
+- [ ] No extra invented human characters — only the teacher minifigure + (if needed) a personification of the topic itself
+- [ ] Challenge does NOT use moving/functional parts (that's Brickmoto, not Preschool)
+- [ ] Challenge isn't "just bigger" — there's a measurable/comparative element
+- [ ] Challenge is ALWAYS about building, not a test of the finished model (throwing/pushing/racing are forbidden)
+- [ ] The cover has no photo fields
+- [ ] presentation_qa has at least 4 pairs
+- [ ] game1/game2/game3 use the script format (not a wall of text), lines are color-only, no bold/underline
+- [ ] The story format is NOT "antagonist steals the prop" two lessons in a row (see the pool of 6 formats)
+- [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic
+- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting), not defaulting to the same one every time
+- [ ] Challenge.text ends with an explicit "Now YOU build your own..." invitation
+- [ ] Game 3 — two clear slow/fast commands with a clear reason
+- [ ] Challenge — the archetype differs from the previous lesson in the block
+- [ ] All youtube ids were found via web_search in this same chat, not from memory
+- [ ] No em-dashes anywhere in the text
+- [ ] Numbers in prose are spelled out, except Game N labels
+- [ ] Presentation questions rely only on what was covered in Story/Observation
+- [ ] Story Props <= 4 items, all directly on-topic
+- [ ] The JSON is valid (no fields missing from content.schema.md)
 
-## Выход
-Один файл `content/<topic_slug>.json`, полностью самодостаточный — дальше
-им управляет только движок (build-pptx.js / build-print-pdf.py / qa-validate.py),
-без дополнительных инструкций в чате.
+## Output
+One `content/<topic_slug>.json` file, fully self-contained — from there it's
+handled only by the engine (build-pptx.js / build-print-pdf.py /
+qa-validate.py), no further instructions needed in chat.
