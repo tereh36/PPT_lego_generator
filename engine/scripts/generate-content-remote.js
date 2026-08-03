@@ -37,7 +37,16 @@ async function main() {
       track: BRICK_TRACK || "preschool"
     })
   });
-  const data = await res.json();
+  const data = await (async () => {
+    const rawText = await res.text();
+    try {
+      return JSON.parse(rawText);
+    } catch (e) {
+      throw new Error(
+        "The backend took too long or timed out. This is usually temporary - please try again."
+      );
+    }
+  })();
   if (!data.ok) {
     throw new Error(data.error || "Unknown backend error");
   }

@@ -29,7 +29,16 @@ async function main() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ action: "generate_images", username: BRICK_USERNAME, password: BRICK_PASSWORD, content })
   });
-  const data = await res.json();
+  const rawText = await res.text();
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (e) {
+    throw new Error(
+      "The backend took too long or timed out generating images. This is usually temporary - " +
+      "please try creating the presentation again."
+    );
+  }
   if (!data.ok) {
     throw new Error(data.error || "Unknown backend error");
   }
