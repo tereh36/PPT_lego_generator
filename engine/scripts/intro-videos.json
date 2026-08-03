@@ -1,0 +1,11 @@
+{
+  "_comment": "Verified real youtube ids for fun movement/dance intro videos (slide 2). Picked randomly when the AI leaves intro_video_youtube_id empty (it has no internet access to find one itself). Add more here any time - just verify the id is real first.",
+  "videos": [
+    { "id": "3BLgIzdnvo8", "title": "Freeze Dance Song 2 - The Kiboomers" },
+    { "id": "nInqzrC7P0U", "title": "Preschool Freeze Dance Game - The Kiboomers" },
+    { "id": "2UcZWXvgMZE", "title": "Party Freeze Dance Song - The Kiboomers" },
+    { "id": "B3mIG7ECzHQ", "title": "Numbers Freeze Dance - The Kiboomers" },
+    { "id": "cap54yZoiQ8", "title": "Colors Freeze Dance - The Kiboomers" },
+    { "id": "c0gU7pyGrkQ", "title": "Shake My Sillies Out - Jammin With You" }
+  ]
+}

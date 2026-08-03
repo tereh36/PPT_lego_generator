@@ -378,6 +378,18 @@ function loadLetterVideoId(letter) {
   }
 }
 
+function pickIntroVideoId(contentValue) {
+  if (contentValue && contentValue !== "SEARCH_NEEDED") return contentValue;
+  try {
+    const raw = fs.readFileSync(path.join(ROOT, "scripts", "intro-videos.json"), "utf-8");
+    const list = JSON.parse(raw).videos || [];
+    if (!list.length) return "";
+    return list[Math.floor(Math.random() * list.length)].id;
+  } catch {
+    return "";
+  }
+}
+
 function buildWhatIsThis(pres, assetsDir) {
   const slide = pres.addSlide();
   addSquares(slide, STYLE_A);
@@ -401,7 +413,7 @@ async function buildPresentationFile(contentPath) {
   pres.layout = "LEGO_LAYOUT";
 
   buildCover(pres, content);
-  buildVideoSlide(pres, "Let's Get Moving!", content.intro_video_youtube_id, content.intro_video_caption);
+  buildVideoSlide(pres, "Let's Get Moving!", pickIntroVideoId(content.intro_video_youtube_id), content.intro_video_caption || "Let's get moving!");
   buildStory(pres, content, assetsDir);
   buildStoryProps(pres, content, assetsDir);
   buildMarker(pres, "Model Building");

@@ -1,6 +1,6 @@
 {
   "name": "lego-lesson-app",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "LEGO Lesson Generator - desktop app",
   "main": "main.js",
   "author": "you",
