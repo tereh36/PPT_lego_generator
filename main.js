@@ -154,6 +154,21 @@ ipcMain.handle("account:checkBalance", async () => {
   }
 });
 
+ipcMain.handle("account:getPrices", async () => {
+  const cfg = loadConfig();
+  if (!cfg.username || !cfg.password) return { ok: false, error: "No account set" };
+  try {
+    const res = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "get_prices", username: cfg.username, password: cfg.password }),
+    });
+    return await res.json();
+  } catch (err) {
+    return { ok: false, error: String(err.message || err) };
+  }
+});
+
 // ---------- IPC: открыть папку с готовыми файлами ----------
 ipcMain.handle("files:openOutputFolder", () => {
   fs.mkdirSync(OUTPUT_ROOT, { recursive: true });
@@ -205,6 +220,7 @@ ipcMain.handle("lesson:create", async (event, { topic, track }) => {
     BRICK_PASSWORD: cfg.password,
     BRICK_BACKEND_URL: BACKEND_URL,
     BRICK_DATA_DIR: DATA_DIR,
+    BRICK_TRACK: track,
   };
 
   function reportFailure(label, output) {
@@ -222,7 +238,10 @@ ipcMain.handle("lesson:create", async (event, { topic, track }) => {
       return { ok: false };
     }
     const balanceMatch = r.output.match(/Balance remaining: \$(-?\d+(\.\d+)?)/);
-    if (balanceMatch) send(`💰 Balance remaining: $${balanceMatch[1]}`);
+    if (balanceMatch) {
+      send(`💰 Balance remaining: $${balanceMatch[1]}`);
+      event.sender.send("account:balanceUpdated", Number(balanceMatch[1]));
+    }
   } else {
     send(`📄 Reusing existing content for "${topic}".`);
   }

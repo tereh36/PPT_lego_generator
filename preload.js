@@ -6,10 +6,14 @@ contextBridge.exposeInMainWorld("api", {
   deleteAccount: () => ipcRenderer.invoke("config:deleteAccount"),
   setImageMode: (withImages) => ipcRenderer.invoke("config:setImageMode", withImages),
   checkBalance: () => ipcRenderer.invoke("account:checkBalance"),
+  getPrices: () => ipcRenderer.invoke("account:getPrices"),
 
   createLesson: (topic, track) => ipcRenderer.invoke("lesson:create", { topic, track }),
   onLessonLog: (callback) => {
     ipcRenderer.on("lesson:log", (event, msg) => callback(msg));
+  },
+  onBalanceUpdated: (callback) => {
+    ipcRenderer.on("account:balanceUpdated", (event, balance) => callback(balance));
   },
 
   openOutputFolder: () => ipcRenderer.invoke("files:openOutputFolder"),

@@ -36,6 +36,14 @@ async function refreshBalance() {
   }
 }
 
+async function refreshPrices() {
+  const result = await window.api.getPrices();
+  if (result.ok) {
+    document.getElementById("priceTagPreschool").textContent = `$${result.prices.preschool} per presentation`;
+    document.getElementById("priceTagBrickmoto").textContent = `$${result.prices.brickmoto} per presentation`;
+  }
+}
+
 // ---------- настройки / логин ----------
 async function refreshSettingsUI() {
   const cfg = await window.api.getConfig();
@@ -45,6 +53,7 @@ async function refreshSettingsUI() {
     els.passwordInput.value = cfg.password || "";
     els.keyStatus.textContent = "Logged in.";
     refreshBalance();
+    refreshPrices();
   } else {
     els.usernameInput.value = "";
     els.passwordInput.value = "";
@@ -123,6 +132,11 @@ window.api.onLessonLog((msg) => {
   span.textContent = msg;
   els.log.appendChild(span);
   els.log.scrollTop = els.log.scrollHeight;
+});
+
+window.api.onBalanceUpdated((balance) => {
+  els.balancePill.textContent = `Balance: $${balance}`;
+  els.balancePill.classList.remove("hidden");
 });
 
 els.createBtn.addEventListener("click", async () => {
