@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Brick4Kidz</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="deco tl1"></div>
+<div class="deco tl2"></div>
+<div class="deco tr1"></div>
+<div class="deco tr2"></div>
+<div class="deco bl1"></div>
+<div class="deco bl2"></div>
+<div class="deco br1"></div>
+<div class="deco br2"></div>
+
+<header>
+  <div class="brand">
+    <div class="brand-name" id="brandName"></div>
+    <div class="brand-tagline">Andrei Terekhov's AI Academic Team — trained to be perfect.</div>
+  </div>
+  <div class="header-right">
+    <span id="balancePill" class="balance-pill hidden">Balance: $--</span>
+    <button id="settingsBtn" title="Account" class="icon-btn">⚙️</button>
+  </div>
+</header>
+
+<div id="updateBanner" class="update-banner hidden"></div>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" data-track="preschool">Preschool</button>
+    <button class="tab" data-track="brickmoto">Brickmoto</button>
+  </div>
+
+  <div id="preschoolPanel" class="panel">
+    <label for="topicInput">Lesson topic</label>
+    <input type="text" id="topicInput" placeholder="e.g. Cactus" autocomplete="off" />
+
+    <div class="create-row">
+      <button id="createBtn" class="primary-btn big">Create Presentation</button>
+      <span class="price-tag">$30 per presentation</span>
+    </div>
+
+    <p class="hint center">The app will write the story, games, and challenge following our
+      rules, then build the presentation and printable PDF.</p>
+  </div>
+
+  <div id="brickmotoPanel" class="panel brickmoto-panel hidden">
+    <p class="in-dev">🚧 Brickmoto is still in development.</p>
+  </div>
+
+  <div id="log" class="log hidden"></div>
+
+  <button id="openFolderBtn" class="secondary-btn folder-btn">📂 Open output folder</button>
+</main>
+
+<!-- Account / login modal -->
+<div id="settingsModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>Account</h2>
+
+    <label for="usernameInput">Username</label>
+    <input type="text" id="usernameInput" placeholder="e.g. boss" autocomplete="off" />
+
+    <label for="passwordInput" style="margin-top: 14px;">Password</label>
+    <div class="key-row">
+      <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="off" />
+      <button id="toggleKeyVisibility" class="icon-btn" title="Show/hide">👁</button>
+    </div>
+    <div class="key-actions">
+      <button id="saveKeyBtn" class="primary-btn">Log in</button>
+      <button id="deleteKeyBtn" class="danger-btn">Log out</button>
+    </div>
+    <p id="keyStatus" class="hint"></p>
+
+    <hr />
+
+    <label class="switch-row">
+      <span>Generate with images</span>
+      <input type="checkbox" id="imageModeToggle" checked />
+    </label>
+    <p class="hint">Without images it's faster - image slots in the presentation
+      will show the prompt text instead, which you can copy and generate yourself.</p>
+
+    <hr />
+
+    <button id="checkUpdateBtn" class="secondary-btn" style="width: 100%;">Check for updates</button>
+    <p id="updateCheckStatus" class="hint"></p>
+
+    <button id="closeSettingsBtn" class="secondary-btn" style="margin-top: 10px;">Close</button>
+  </div>
+</div>
+
+<script>
+  const brandText = "Brick4Kidz";
+  const brandEl = document.getElementById("brandName");
+  brandEl.innerHTML = brandText
+    .split("")
+    .map((ch) => `<span class="brand-letter">${ch}</span>`)
+    .join("");
+</script>
+<script src="renderer.js"></script>
+</body>
+</html>

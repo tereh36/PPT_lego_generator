@@ -1,0 +1,153 @@
+{
+  "topic": "Airplane",
+  "letter": "A",
+  "teacher_name": "[TEACHER NAME]",
+  "intro_video_youtube_id": "",
+  "intro_video_caption": "Let's Fly an Airplane Song",
+  "alphabet_caption": "Point to each letter until students guess: A is for Airplane!",
+  "story": {
+    "short_summary": "The teacher takes students on an imaginary airplane trip. They learn about airplanes and how they fly.",
+    "characters": [
+      "[TEACHER NAME] (LEGO minifigure representing the teacher)",
+      "Aero the Airplane"
+    ],
+    "key_phrase": "Fly high, Aero!",
+    "call_and_response_note": "Children repeat the key phrase chorally when Aero appears.",
+    "full_story_speaker_notes": "[TEACHER NAME] gathers the children and says, 'Today, we are going on an imaginary adventure in the sky.' They pretend to board an airplane. 'Look! It’s Aero the Airplane,' says [TEACHER NAME] as they show a paper cutout of an airplane prop. 'Aero wants to fly high in the sky. Can you all say, Fly high, Aero?' Children respond in unison, 'Fly high, Aero!' [TEACHER NAME] continues, 'Let's build our own airplanes so we can all join Aero in the sky!'",
+    "observation_questions": [
+      "What color is Aero the Airplane?",
+      "How many wings does the airplane have?",
+      "What shape is the airplane's propeller?"
+    ],
+    "background_image_prompt": "A friendly teacher and a cartoon airplane flying high in the sky with a clear blue horizon and fluffy clouds, no text"
+  },
+  "story_props": [
+    {
+      "name": "Airplane Prop",
+      "image_prompt": "A simple illustration of an airplane, brightly colored, seen from the side, no text"
+    },
+    {
+      "name": "Aero the Airplane",
+      "image_prompt": "A cute cartoon airplane with a smiling face, colorful body, no text"
+    }
+  ],
+  "real_object_image_prompt": "A real photograph of an actual airplane, photorealistic, natural lighting, simple clean background, no text",
+  "our_goal": {
+    "split": true,
+    "easy_note": "INSERT: photo of simple version of airplane model",
+    "hard_note": "INSERT: photo of detailed version of airplane model"
+  },
+  "step_by_step_placeholder": true,
+  "presentation_qa": [
+    {
+      "q": "What is your name?",
+      "a": "My name is ___."
+    },
+    {
+      "q": "What color is your airplane?",
+      "a": "It is red."
+    },
+    {
+      "q": "How many wings does your airplane have?",
+      "a": "It has two wings."
+    },
+    {
+      "q": "What shape are the windows of your airplane?",
+      "a": "They are oval."
+    }
+  ],
+  "game1": {
+    "title": "Game 1: Takeoff and Land",
+    "script": [
+      {
+        "speaker": "children",
+        "text": "Teacher, teacher, how does the airplane fly?"
+      },
+      {
+        "speaker": "teacher",
+        "text": "It takes off with a roar, soar soar soar!"
+      },
+      {
+        "speaker": "action",
+        "text": "Children spread their arms and pretend to fly around the room."
+      },
+      {
+        "speaker": "children",
+        "text": "Teacher, teacher, how does it land?"
+      },
+      {
+        "speaker": "teacher",
+        "text": "Gently on the ground, kneel down, kneel down!"
+      },
+      {
+        "speaker": "action",
+        "text": "Children slowly lower themselves to the ground."
+      }
+    ]
+  },
+  "game2": {
+    "title": "Game 2: Sort the Flying Objects",
+    "type": "sorting",
+    "script": [
+      {
+        "speaker": "instruction",
+        "text": "Look at each card together."
+      },
+      {
+        "speaker": "instruction",
+        "text": "Sort objects that can fly from those that can't."
+      },
+      {
+        "speaker": "action",
+        "text": "Children place each card into the matching pile."
+      }
+    ],
+    "colors": [
+      "RED",
+      "BLUE",
+      "GREEN",
+      "PURPLE",
+      "YELLOW",
+      "TEAL",
+      "ORANGE"
+    ],
+    "base_prop_image": "prop_airplane",
+    "shape_reference_prompt": "A reference sheet showing various flying objects, including airplanes, helicopters, balloons, and kites",
+    "shape_pieces_prompt": "Pieces of shapes resembling airplane parts like wings and tails, colorful and separated",
+    "printout_prompt": "A printable sheet with various transportation and flying objects for sorting"
+  },
+  "game3": {
+    "title": "Game 3: Airplane Adventure",
+    "script": [
+      {
+        "speaker": "teacher",
+        "text": "It's a sunny day, fly your airplane slow!"
+      },
+      {
+        "speaker": "action",
+        "text": "Children use their built airplane models and walk slowly around the room."
+      },
+      {
+        "speaker": "teacher",
+        "text": "A storm is coming, fly your airplane fast!"
+      },
+      {
+        "speaker": "action",
+        "text": "Children quickly move with their airplane models to a 'safe' area marked out in the room."
+      }
+    ]
+  },
+  "challenge": {
+    "text": "Build an airport hangar for your airplane! Make it tall and count how many bricks it takes.",
+    "challenge_image_prompt": "A detailed illustration of a LEGO airport hangar with a runway and airplanes, colorful and inspirational, no text"
+  },
+  "letter_slide_script_notes": [
+    "Show the letter card A",
+    "Say the sound /a/",
+    "Connect to topic: A is for Airplane",
+    "Children repeat chorally",
+    "Children repeat individually",
+    "Hand out pattern worksheet",
+    "Build the letter with bricks"
+  ]
+}

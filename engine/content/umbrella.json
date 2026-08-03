@@ -1,0 +1,141 @@
+{
+  "topic": "Umbrella",
+  "letter": "U",
+  "teacher_name": "[TEACHER NAME]",
+  "intro_video_youtube_id": "o1FcwQklg7k",
+  "intro_video_caption": "Rain Rain Go Away - Animal Song (The Kiboomers)",
+  "story": {
+    "short_summary": "A little raincloud visits the class and it starts to rain indoors. [TEACHER NAME] shows the children a LEGO umbrella and teaches them how it keeps everyone dry.",
+    "characters": [
+      "[TEACHER NAME] (LEGO minifigure representing the teacher)",
+      "Rainy the Cloud (playful antagonist)"
+    ],
+    "key_phrase": "Rain, rain, go away!",
+    "call_and_response_note": "Children repeat the key phrase chorally whenever Rainy the Cloud appears.",
+    "full_story_speaker_notes": "Teacher gathers the children close. Suddenly, soft raindrop sounds are heard. Teacher: 'Oh no, do you hear that? I think Rainy the Cloud is visiting us today!' Teacher brings out a small cloud puppet or picture and floats it above the children's heads. Teacher: 'Rainy loves to make it rain, but we do not want to get wet! What can protect us from the rain?' Teacher waits for guesses, then reveals a LEGO umbrella. Teacher: 'An umbrella! Let's say it together: Rain, rain, go away!' Children repeat chorally, and Teacher pretends to chase Rainy the Cloud away with the umbrella. Teacher: 'Now that Rainy is gone, let's look closely at our umbrella. What color is it? How many parts does it have?' Teacher points out the canopy, the handle, and the ribs, inviting children to touch and observe each part. Teacher: 'Today, we are going to build our very own umbrella out of LEGO bricks!'",
+    "observation_questions": [
+      "What color is the umbrella?",
+      "How many parts does the umbrella have?",
+      "What shape is the top of the umbrella?"
+    ],
+    "background_image_prompt": "Horizontal illustration, friendly semi-realistic style, a cozy indoor classroom scene with a small rain cloud floating near the ceiling and soft raindrops, warm colors, no text, A4 landscape composition"
+  },
+  "story_props": [
+    {
+      "name": "Umbrella",
+      "image_prompt": "A single colorful umbrella prop, realistic semi-soft style, isolated on white background, no text"
+    },
+    {
+      "name": "Raindrops",
+      "image_prompt": "A small cluster of blue raindrops, realistic semi-soft style, isolated on white background, no text"
+    }
+  ],
+  "our_goal": {
+    "split": true,
+    "easy_note": "REPLACE: photo of the simple umbrella model",
+    "hard_note": "REPLACE: photo of the advanced umbrella model"
+  },
+  "step_by_step_placeholder": true,
+  "presentation_qa": [
+    {
+      "q": "What is your name?",
+      "a": "My name is ___."
+    },
+    {
+      "q": "What color is your umbrella?",
+      "a": "It is red."
+    },
+    {
+      "q": "How many parts does your umbrella have?",
+      "a": "It has three parts."
+    },
+    {
+      "q": "What shape is the top of your umbrella?",
+      "a": "It is round."
+    }
+  ],
+  "game1": {
+    "title": "Game 1: Is It Raining?",
+    "script": [
+      {
+        "speaker": "children",
+        "text": "Teacher, teacher, is it raining?"
+      },
+      {
+        "speaker": "teacher",
+        "text": "No! Sunshine!"
+      },
+      {
+        "speaker": "action",
+        "text": "Children walk freely around the room."
+      },
+      {
+        "speaker": "children",
+        "text": "Teacher, teacher, is it raining?"
+      },
+      {
+        "speaker": "teacher",
+        "text": "Yes, it's raining!"
+      },
+      {
+        "speaker": "action",
+        "text": "Children run and hide under tables while the teacher tries to catch them."
+      }
+    ]
+  },
+  "game2": {
+    "title": "Game 2: Match the Color",
+    "type": "color_matching",
+    "script": [
+      {
+        "speaker": "instruction",
+        "text": "Look at each colorful raindrop card."
+      },
+      {
+        "speaker": "instruction",
+        "text": "Match each raindrop to the umbrella of the same color."
+      },
+      {
+        "speaker": "action",
+        "text": "Children place each raindrop card next to the matching umbrella."
+      }
+    ],
+    "colors": [
+      "RED",
+      "BLUE",
+      "GREEN",
+      "PURPLE",
+      "YELLOW",
+      "TEAL",
+      "ORANGE"
+    ],
+    "base_prop_image": "prop_umbrella"
+  },
+  "game3": {
+    "title": "Game 3: Rain Run",
+    "script": [
+      {
+        "speaker": "children",
+        "text": "Run, run, hide from the rain!"
+      },
+      {
+        "speaker": "action",
+        "text": "Children run in a circle. As they pass the teacher, the teacher sprinkles paper 'raindrops.' Children must hide under their built umbrella model so the raindrops do not touch them."
+      }
+    ]
+  },
+  "challenge": {
+    "text": "Turn your umbrella into a beach umbrella! Make it stand on its own and build the biggest canopy you can!",
+    "challenge_image_prompt": "A real beach umbrella standing on sand, bright and cheerful, semi-realistic style, no text"
+  },
+  "letter_slide_script_notes": [
+    "Show the letter card U",
+    "Say the sound /u/",
+    "Connect to topic: U is for Umbrella",
+    "Children repeat chorally",
+    "Children repeat individually",
+    "Hand out pattern worksheet",
+    "Build the letter with bricks"
+  ],
+  "real_object_image_prompt": "A real photograph of an actual umbrella, photorealistic, natural lighting, simple clean background, no text"
+}
