@@ -186,3 +186,8 @@ window.api.onUpdateStatus((msg) => {
 
 // первичная загрузка (логин + баланс, если уже сохранены)
 refreshSettingsUI();
+
+window.api.getVersion().then((v) => {
+  const el = document.getElementById("versionTag");
+  if (el) el.textContent = `(v${v})`;
+});

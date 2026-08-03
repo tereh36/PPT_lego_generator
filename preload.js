@@ -19,4 +19,5 @@ contextBridge.exposeInMainWorld("api", {
   },
   installUpdateNow: () => ipcRenderer.invoke("update:installNow"),
   checkForUpdatesNow: () => ipcRenderer.invoke("update:checkNow"),
+  getVersion: () => ipcRenderer.invoke("app:getVersion"),
 });

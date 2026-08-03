@@ -110,6 +110,8 @@ ipcMain.handle("update:checkNow", () => {
   });
 });
 
+ipcMain.handle("app:getVersion", () => app.getVersion());
+
 // ---------- IPC: настройки (логин/пароль/картинки) ----------
 ipcMain.handle("config:get", () => loadConfig());
 

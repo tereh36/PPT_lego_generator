@@ -59,6 +59,7 @@ header {
 .brand-letter:nth-child(6n+5) { color: var(--green); }
 .brand-letter:nth-child(6n+6) { color: var(--yellow); }
 .brand-tagline { font-size: 12px; color: #EAF4FC; margin-top: 2px; font-style: italic; }
+.version-tag { font-style: normal; opacity: 0.7; }
 
 .header-right { display: flex; align-items: center; gap: 12px; }
 .balance-pill {
