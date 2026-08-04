@@ -8,7 +8,7 @@ DESIGN_SYSTEM.md (5 pages, Letter format, portrait):
   2. Story Background (full-bleed, no captions, auto-rotated if landscape)
   3. Full Story Script (for the Teacher) - Short Summary / Materials / Full Story / Observation
   4. Game printout (no text)
-  5. Pattern Sheet (~90% size, matching the topic's letter)
+  5. Pattern Sheet (as large as possible, matching the topic's letter)
 
 Rule: images are the same files used in the presentation, contain-fit, no
 custom cropping. Frame height for headers has generous padding (otherwise
@@ -246,10 +246,14 @@ def page5_pattern_sheet(c, content):
     c.setFillColorRGB(*DARKGRAY)
     c.drawCentredString(PAGE_W / 2, PAGE_H - 60, f"Build the Letter {letter} - Brick Pattern")
     img_path = os.path.join(ROOT, "assets", "letters", f"{letter}_pattern.png")
-    # ~90% of max size, centered
-    box_w, box_h = (PAGE_W - 100) * 0.9, (PAGE_H - 160) * 0.9
-    box_x = (PAGE_W - box_w) / 2
-    box_y = (PAGE_H - 160 - box_h) / 2 + 40
+    # As large as possible: minimal print-safe margins, no artificial downscale.
+    # Small top clearance keeps the letter clear of the title; small bottom/side
+    # margins keep it within typical printer-safe area.
+    top_clearance, bottom_margin, side_margin = 90, 30, 30
+    box_w = PAGE_W - 2 * side_margin
+    box_h = PAGE_H - top_clearance - bottom_margin
+    box_x = side_margin
+    box_y = bottom_margin
     draw_image_contain(c, img_path, box_x, box_y, box_w, box_h)
     c.showPage()
 

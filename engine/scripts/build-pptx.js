@@ -492,12 +492,12 @@ async function buildPresentationFile(contentPath) {
   buildStepPlaceholder(pres);
   buildPresentation(pres, content);
   buildGame1(pres, content);
+  buildGame2(pres, content, assetsDir);
   buildVideoSlide(pres, "Alphabet Song", "ezmsrB59mj8", "Sing along with the alphabet!");
   buildAlphabetSlide(pres, content);
   buildVideoSlide(pres, `Letter ${content.letter} Song`, loadLetterVideoId(content.letter), `Letter ${content.letter}`);
   buildWhatLetter(pres, content.letter, false);
   buildPatternSheet(pres, content.letter);
-  buildGame2(pres, content, assetsDir);
   buildGame3(pres, content);
   buildChallenge(pres, content, assetsDir);
   buildMarker(pres, "Clean Up");
