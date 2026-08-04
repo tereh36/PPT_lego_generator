@@ -2,82 +2,155 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Brick4Kidz</title>
+<title>Star Team</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="deco tl1"></div>
-<div class="deco tl2"></div>
-<div class="deco tr1"></div>
-<div class="deco tr2"></div>
-<div class="deco bl1"></div>
-<div class="deco bl2"></div>
-<div class="deco br1"></div>
-<div class="deco br2"></div>
+<canvas id="starfield"></canvas>
+<div id="shootingStars"></div>
 
-<header>
-  <div class="brand">
+<!-- ============ LOGIN: username ============ -->
+<div id="screen-login-username" class="screen screen-center">
+  <div class="brand-hero">
     <div class="brand-name" id="brandName"></div>
-    <div class="brand-tagline">Andrei Terekhov's AI Academic Team — trained to be perfect. <span id="versionTag" class="version-tag"></span></div>
+    <div class="brand-tagline">Andrei Terekhov's AI Academic Team</div>
   </div>
-  <div class="header-right">
-    <span id="balancePill" class="balance-pill hidden">Balance: $--</span>
-    <button id="settingsBtn" title="Account" class="icon-btn">⚙️</button>
+  <div class="login-card">
+    <label for="usernameInput">Captain, please identify yourself</label>
+    <input type="text" id="usernameInput" placeholder="Username" autocomplete="off" autofocus />
+    <button id="usernameNextBtn" class="primary-btn big">Next</button>
+    <p id="usernameStatus" class="hint center"></p>
   </div>
-</header>
+</div>
 
-<div id="updateBanner" class="update-banner hidden"></div>
-
-<main>
-  <div class="tabs">
-    <button class="tab active" data-track="preschool">Preschool</button>
-    <button class="tab" data-track="brickmoto">Brickmoto</button>
+<!-- ============ LOGIN: password ============ -->
+<div id="screen-login-password" class="screen screen-center hidden">
+  <div class="brand-hero">
+    <div class="brand-name" id="brandName2"></div>
   </div>
-
-  <div id="preschoolPanel" class="panel">
-    <label for="topicInput">Lesson topic</label>
-    <input type="text" id="topicInput" placeholder="e.g. Cactus" autocomplete="off" />
-
-    <div class="create-row">
-      <button id="createBtn" class="primary-btn big">Create Presentation</button>
-      <span id="priceTagPreschool" class="price-tag">$30 per presentation</span>
-    </div>
-
-    <p class="hint center">The app will write the story, games, and challenge following our
-      rules, then build the presentation and printable PDF.</p>
-  </div>
-
-  <div id="brickmotoPanel" class="panel brickmoto-panel hidden">
-    <p class="in-dev">🚧 Brickmoto is still in development.</p>
-    <span id="priceTagBrickmoto" class="price-tag">$30 per presentation</span>
-  </div>
-
-  <div id="log" class="log hidden"></div>
-
-  <button id="openFolderBtn" class="secondary-btn folder-btn">📂 Open output folder</button>
-</main>
-
-<!-- Account / login modal -->
-<div id="settingsModal" class="modal-overlay hidden">
-  <div class="modal">
-    <h2>Account</h2>
-
-    <label for="usernameInput">Username</label>
-    <input type="text" id="usernameInput" placeholder="e.g. boss" autocomplete="off" />
-
-    <label for="passwordInput" style="margin-top: 14px;">Password</label>
+  <div class="login-card">
+    <label for="passwordInput">Access code</label>
     <div class="key-row">
-      <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="off" />
+      <input type="password" id="passwordInput" placeholder="Password" autocomplete="off" />
       <button id="toggleKeyVisibility" class="icon-btn" title="Show/hide">👁</button>
     </div>
-    <div class="key-actions">
-      <button id="saveKeyBtn" class="primary-btn">Log in</button>
-      <button id="deleteKeyBtn" class="danger-btn">Log out</button>
-    </div>
-    <p id="keyStatus" class="hint"></p>
+    <button id="loginBtn" class="primary-btn big">Log In</button>
+    <button id="backToUsernameBtn" class="link-btn">← back</button>
+    <p id="passwordStatus" class="hint center"></p>
+  </div>
+</div>
 
-    <hr />
+<!-- ============ BRIDGE (main menu) ============ -->
+<div id="screen-bridge" class="screen hidden">
+  <header>
+    <div class="brand">
+      <div class="brand-name" id="brandName3"></div>
+      <div class="brand-tagline">Andrei Terekhov's AI Academic Team <span id="versionTag" class="version-tag"></span></div>
+    </div>
+    <div class="header-right">
+      <span id="balancePill" class="balance-pill hidden">Balance: $--</span>
+      <button id="settingsBtn" title="Settings" class="icon-btn">⚙️</button>
+    </div>
+  </header>
+  <div id="updateBanner" class="update-banner hidden"></div>
+
+  <div class="bridge-viewport">
+    <div class="cockpit-frame">
+      <div id="constellationMini" class="constellation-mini"></div>
+      <div class="captain-line">Welcome back, Captain.</div>
+    </div>
+  </div>
+
+  <div class="bridge-nav">
+    <button class="nav-card" id="navCreate">
+      <span class="nav-icon">🚀</span>
+      <span class="nav-label">Create Presentation</span>
+    </button>
+    <button class="nav-card" id="navTeam">
+      <span class="nav-icon">⭐</span>
+      <span class="nav-label">Star Team</span>
+    </button>
+    <button class="nav-card" id="navSystem">
+      <span class="nav-icon">🌌</span>
+      <span class="nav-label">System</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============ CREATE PRESENTATION ============ -->
+<div id="screen-create" class="screen hidden">
+  <header class="sub-header">
+    <button class="back-btn" id="backFromCreate">← Bridge</button>
+    <div class="sub-title">Create Presentation</div>
+    <span id="balancePillCreate" class="balance-pill hidden">Balance: $--</span>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button class="tab active" data-track="preschool">Preschool</button>
+      <button class="tab" data-track="brickmoto">Brickmoto</button>
+    </div>
+
+    <div id="preschoolPanel" class="panel">
+      <label for="topicInput">Lesson topic</label>
+      <input type="text" id="topicInput" placeholder="e.g. Cactus" autocomplete="off" />
+
+      <label for="notesInput" style="margin-top: 16px;">Notes for this lesson (optional)</label>
+      <textarea id="notesInput" placeholder="Any ideas, requests, or things you want the writer to focus on..." rows="3"></textarea>
+
+      <div class="create-row">
+        <button id="createBtn" class="primary-btn big">Create Presentation</button>
+        <span id="priceTagPreschool" class="price-tag">$50 per presentation</span>
+      </div>
+
+      <p class="hint center">The star team will write the story, games, and challenge following our
+        rules, then build the presentation and printable PDF.</p>
+    </div>
+
+    <div id="brickmotoPanel" class="panel brickmoto-panel hidden">
+      <p class="in-dev">🚧 Brickmoto is still in development.</p>
+      <span id="priceTagBrickmoto" class="price-tag">$50 per presentation</span>
+    </div>
+
+    <div id="log" class="log hidden"></div>
+
+    <button id="openFolderBtn" class="secondary-btn folder-btn">📂 Open output folder</button>
+  </main>
+</div>
+
+<!-- ============ TEAM (scrolling star cards) ============ -->
+<div id="screen-team" class="screen hidden">
+  <header class="sub-header">
+    <button class="back-btn" id="backFromTeam">← Bridge</button>
+    <div class="sub-title">Star Team</div>
+    <span></span>
+  </header>
+  <div class="carousel-wrap">
+    <button class="carousel-arrow left" id="teamPrevBtn">‹</button>
+    <div id="teamCarousel" class="carousel"></div>
+    <button class="carousel-arrow right" id="teamNextBtn">›</button>
+  </div>
+</div>
+
+<!-- ============ SYSTEM (constellation diagram) ============ -->
+<div id="screen-system" class="screen hidden">
+  <header class="sub-header">
+    <button class="back-btn" id="backFromSystem">← Bridge</button>
+    <div class="sub-title">System</div>
+    <span></span>
+  </header>
+  <div class="system-wrap">
+    <div id="constellationFull" class="constellation-full"></div>
+    <p class="hint center system-caption">Andrei trains, teaches, and programs every star personally - that's why he's
+      connected to all of them.</p>
+  </div>
+</div>
+
+<!-- ============ SETTINGS MODAL ============ -->
+<div id="settingsModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>Settings</h2>
 
     <label class="switch-row">
       <span>Generate with images</span>
@@ -91,18 +164,16 @@
     <button id="checkUpdateBtn" class="secondary-btn" style="width: 100%;">Check for updates</button>
     <p id="updateCheckStatus" class="hint"></p>
 
-    <button id="closeSettingsBtn" class="secondary-btn" style="margin-top: 10px;">Close</button>
+    <hr />
+
+    <button id="logoutBtn" class="danger-btn" style="width: 100%;">Log out</button>
+
+    <button id="closeSettingsBtn" class="secondary-btn" style="margin-top: 14px; width: 100%;">Close</button>
   </div>
 </div>
 
-<script>
-  const brandText = "Brick4Kidz";
-  const brandEl = document.getElementById("brandName");
-  brandEl.innerHTML = brandText
-    .split("")
-    .map((ch) => `<span class="brand-letter">${ch}</span>`)
-    .join("");
-</script>
+<script src="starfield.js"></script>
+<script src="team-data.js"></script>
 <script src="renderer.js"></script>
 </body>
 </html>

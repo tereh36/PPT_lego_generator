@@ -110,9 +110,7 @@ def page1_story_props(c, content, props_dir):
 def page2_story_background(c, gen_dir):
     img_path = os.path.join(gen_dir, "story_background.png")
     if not os.path.exists(img_path):
-        draw_image_contain(c, img_path, 0, 0, PAGE_W, PAGE_H)
-        c.showPage()
-        return
+        return  # nothing to print - skip this page entirely rather than leaving it blank
     with Image.open(img_path) as im:
         iw, ih = im.size
     # if landscape - rotate the image itself by 90 degrees (not the page)
@@ -223,6 +221,8 @@ def page_search_item_bulk(c, gen_dir, content, copies=8):
     search_item = content.get("game2", {}).get("search_item", {})
     name = search_item.get("name", "")
     img_path = os.path.join(gen_dir, "game2_search_item.png")
+    if not os.path.exists(img_path):
+        return  # image was never generated (bad/missing prompt) - skip rather than print a blank page
     page_header(c, f"Find the {name} - Cut Out {copies} Copies")
     cols = 3
     rows = (copies + cols - 1) // cols

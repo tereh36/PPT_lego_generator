@@ -22,10 +22,10 @@ const COLORS = {
 };
 const ALPHABET_CYCLE = [COLORS.RED, COLORS.BLUE, COLORS.GREEN, COLORS.PURPLE, COLORS.YELLOW, COLORS.TEAL];
 const SPEAKER_STYLE = {
-  children: { color: "2E6DA4", italic: false },
-  teacher: { color: "A94442", italic: false },
-  action: { color: "666666", italic: true },
-  instruction: { color: "333333", italic: false }
+  children: { color: "2E6DA4", italic: false, bold: true },
+  teacher: { color: "333333", italic: false, bold: false },
+  action: { color: "666666", italic: true, bold: false },
+  instruction: { color: "333333", italic: false, bold: false }
 };
 
 const EMU_PER_INCH = 914400;
@@ -110,7 +110,8 @@ function buildCover(pres, content) {
   const slide = pres.addSlide();
   slide.background = { color: COLORS.BLUE };
   addSquares(slide, STYLE_A);
-  slide.addText(content.topic.toUpperCase(), {
+  const titleText = content.topic.charAt(0).toUpperCase() + content.topic.slice(1).toLowerCase();
+  slide.addText(titleText, {
     ...box(0, 0, 12161520, 6858000),
     fontFace: "Arial", fontSize: 60, bold: true, color: "FFFFFF", align: "center", valign: "middle"
   });
@@ -146,6 +147,15 @@ function buildVideoSlide(pres, title, youtubeId, caption) {
   });
 }
 
+function estimateTextHeightEMU(text, fontSize, widthEMU, extraLines) {
+  // Rough estimate: Arial averages about 0.5*fontSize points per character.
+  const widthPt = widthEMU / 12700;
+  const charsPerLine = Math.max(10, Math.floor(widthPt / (fontSize * 0.5)));
+  const lineCount = Math.max(1, Math.ceil((text || "").length / charsPerLine)) + (extraLines || 0);
+  const lineHeightPt = fontSize * 1.25;
+  return Math.round(lineCount * lineHeightPt * 12700);
+}
+
 function buildStory(pres, content, assetsDir) {
   const slide = pres.addSlide();
   addSquares(slide, STYLE_A);
@@ -162,18 +172,23 @@ function buildStory(pres, content, assetsDir) {
   const textX = 5650000;
   const textW = 5950000;
   let y = 1150000;
-  const blockH = 900000;
+  const summaryText = "Short summary: " + content.story.short_summary;
   slide.addText([{ text: "Short summary: ", options: { bold: true, fontSize: 15 } }, { text: content.story.short_summary, options: { fontSize: 15 } }],
-    { ...box(textX, y, textW, blockH + 200000), fontFace: "Arial", color: "333333", valign: "top" });
-  y += blockH + 350000;
+    { ...box(textX, y, textW, estimateTextHeightEMU(summaryText, 15, textW, 0)), fontFace: "Arial", color: "333333", valign: "top" });
+  y += estimateTextHeightEMU(summaryText, 15, textW, 0) + 220000;
+
   slide.addText([{ text: "Characters: ", options: { bold: true, fontSize: 15 } }],
     { ...box(textX, y, textW, 320000), fontFace: "Arial", color: "333333" });
   y += 340000;
-  slide.addText(content.story.characters.join("\n"), { ...box(textX, y, textW, 600000), fontFace: "Arial", fontSize: 13, color: "333333" });
-  y += 720000;
+  const charactersText = content.story.characters.join("\n");
+  slide.addText(charactersText, { ...box(textX, y, textW, estimateTextHeightEMU(charactersText, 13, textW, content.story.characters.length - 1)), fontFace: "Arial", fontSize: 13, color: "333333" });
+  y += estimateTextHeightEMU(charactersText, 13, textW, content.story.characters.length - 1) + 220000;
+
+  const phraseText = "Key phrase: " + content.story.key_phrase;
   slide.addText([{ text: "Key phrase: ", options: { bold: true, fontSize: 15 } }, { text: content.story.key_phrase, options: { fontSize: 15 } }],
-    { ...box(textX, y, textW, 500000), fontFace: "Arial", color: "333333" });
-  y += 600000;
+    { ...box(textX, y, textW, estimateTextHeightEMU(phraseText, 15, textW, 0)), fontFace: "Arial", color: "333333" });
+  y += estimateTextHeightEMU(phraseText, 15, textW, 0) + 220000;
+
   slide.addText(content.story.call_and_response_note || "", { ...box(textX, y, textW, 700000), fontFace: "Arial", fontSize: 13, color: "666666", italic: true });
 
   slide.addNotes(`FULL STORY:\n${content.story.full_story_speaker_notes}\n\nOBSERVATION:\n${(content.story.observation_questions || []).join("\n")}`);
@@ -268,19 +283,64 @@ function buildPatternSheet(pres, letter) {
   }
 }
 
+function estimateWrappedLineCount(text, fontSize, widthEMU) {
+  const widthPt = widthEMU / 12700;
+  const charsPerLine = Math.max(10, Math.floor(widthPt / (fontSize * 0.5)));
+  return Math.max(1, Math.ceil((text || "").length / charsPerLine));
+}
+
+function addChantHeader(slide, script, boxSpec) {
+  // Pulls out the children's repeated chant and displays it BIG and centered -
+  // this is the phrase kids are learning to read/say themselves, so it needs
+  // to stand out clearly from everything else on the slide (which is for the
+  // teacher). Returns the y (in inches) where the rest of the script should
+  // start, so it never overlaps this header.
+  const chantLine = (script || []).find((l) => l.speaker === "children");
+  if (!chantLine) return boxSpec.y;
+
+  const chantFontSize = chantLine.text.length > 40 ? 28 : 36;
+  slide.addText(chantLine.text, {
+    x: boxSpec.x, y: boxSpec.y, w: boxSpec.w, h: 1.05,
+    fontFace: "Arial", fontSize: chantFontSize, bold: true, color: SPEAKER_STYLE.children.color,
+    align: "center", valign: "middle", autoFit: true
+  });
+  slide.addText("Learn the phrase above together first - children repeat it during the game below!", {
+    x: boxSpec.x, y: boxSpec.y + 1.05, w: boxSpec.w, h: 0.3,
+    fontFace: "Arial", fontSize: 11, italic: true, color: "888888", align: "center", valign: "top"
+  });
+  return boxSpec.y + 1.05 + 0.35;
+}
+
 function addScript(slide, script, boxSpec) {
   const lines = script || [];
-  // Auto-shrink font size for longer scripts so text never overflows the box.
-  let fontSize = 20;
-  if (lines.length > 4) fontSize = 18;
-  if (lines.length > 6) fontSize = 16;
-  if (lines.length > 8) fontSize = 14;
-  const spacerSize = Math.max(4, Math.round(fontSize * 0.3));
+  const boxHeightPt = boxSpec.h * 72;
+  const boxWidthEMU = boxSpec.w * 914400;
 
+  // Find the largest font size (from a shrinking ladder) whose estimated
+  // total wrapped height actually fits the box - guarantees no overflow
+  // into the decorative squares below, instead of guessing from line count alone.
+  const sizesToTry = [20, 18, 16, 14, 13, 12, 11];
+  let fontSize = sizesToTry[sizesToTry.length - 1];
+  for (const size of sizesToTry) {
+    const spacerPt = Math.max(4, Math.round(size * 0.3));
+    let totalPt = 0;
+    lines.forEach((line, i) => {
+      const wrapped = estimateWrappedLineCount(line.text, size, boxWidthEMU);
+      totalPt += wrapped * size * 1.25;
+      if (i < lines.length - 1) totalPt += spacerPt;
+    });
+    if (totalPt <= boxHeightPt) {
+      fontSize = size;
+      break;
+    }
+    fontSize = size; // if nothing fits, fall through to the smallest size tried
+  }
+
+  const spacerSize = Math.max(4, Math.round(fontSize * 0.3));
   const runs = [];
   lines.forEach((line, i) => {
     const style = SPEAKER_STYLE[line.speaker] || SPEAKER_STYLE.instruction;
-    runs.push({ text: line.text, options: { color: style.color, italic: style.italic, fontSize, breakLine: true } });
+    runs.push({ text: line.text, options: { color: style.color, italic: style.italic, bold: !!style.bold, fontSize, breakLine: true } });
     if (i < lines.length - 1) {
       runs.push({ text: "", options: { breakLine: true, fontSize: spacerSize } });
     }
@@ -292,7 +352,8 @@ function buildGame1(pres, content) {
   const slide = pres.addSlide();
   addSquares(slide, STYLE_B);
   addContentTitle(slide, content.game1.title);
-  addScript(slide, content.game1.script, boxIn(1.3, 1.85, 10.7, 4.9));
+  const scriptY = addChantHeader(slide, content.game1.script, boxIn(1.3, 1.5, 10.7, 1.4));
+  addScript(slide, content.game1.script, boxIn(1.3, scriptY, 10.7, 6.55 - scriptY));
 }
 
 function buildGame2(pres, content, assetsDir) {
@@ -303,7 +364,8 @@ function buildGame2(pres, content, assetsDir) {
   const hasVisual = colors.length > 0 || fs.existsSync(path.join(assetsDir, "game2_printout.png"));
 
   if (hasVisual) {
-    addScript(slide, content.game2.script, boxIn(0.8, 1.85, 5.6, 4.9));
+    const scriptY = addChantHeader(slide, content.game2.script, boxIn(0.8, 1.5, 5.6, 1.4));
+    addScript(slide, content.game2.script, boxIn(0.8, scriptY, 5.6, 6.55 - scriptY));
     if (colors.length) {
       const cols = 3;
       colors.forEach((color, i) => {
@@ -318,7 +380,8 @@ function buildGame2(pres, content, assetsDir) {
     }
   } else {
     // Sensory / no-visual games: let the text use the full slide width, like Game 1 and 3.
-    addScript(slide, content.game2.script, boxIn(1.3, 1.85, 10.7, 4.9));
+    const scriptY = addChantHeader(slide, content.game2.script, boxIn(1.3, 1.5, 10.7, 1.4));
+    addScript(slide, content.game2.script, boxIn(1.3, scriptY, 10.7, 6.55 - scriptY));
   }
 }
 
@@ -326,7 +389,8 @@ function buildGame3(pres, content) {
   const slide = pres.addSlide();
   addSquares(slide, STYLE_B);
   addContentTitle(slide, content.game3.title);
-  addScript(slide, content.game3.script, boxIn(1.3, 1.85, 10.7, 4.9));
+  const scriptY = addChantHeader(slide, content.game3.script, boxIn(1.3, 1.5, 10.7, 1.4));
+  addScript(slide, content.game3.script, boxIn(1.3, scriptY, 10.7, 6.55 - scriptY));
 }
 
 function buildChallenge(pres, content, assetsDir) {

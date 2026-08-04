@@ -1,9 +1,9 @@
 {
-  "name": "lego-lesson-app",
-  "version": "1.2.4",
-  "description": "LEGO Lesson Generator - desktop app",
+  "name": "star-team",
+  "version": "1.4.0",
+  "description": "Star Team - AI lesson generator desktop app",
   "main": "main.js",
-  "author": "you",
+  "author": "Andrei Terekhov",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win"
@@ -18,8 +18,8 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.andreiterekhov.brick4kidz",
-    "productName": "Brick4Kidz",
+    "appId": "com.andreiterekhov.starteam",
+    "productName": "Star Team",
     "asar": false,
     "files": [
       "main.js",
@@ -36,7 +36,9 @@
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerSidebar": "build/installerSidebar.bmp",
+      "include": "build/installer.nsh"
     },
     "publish": {
       "provider": "github",

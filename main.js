@@ -4,11 +4,11 @@ const fs = require("fs");
 const { spawn } = require("child_process");
 const { autoUpdater } = require("electron-updater");
 
-app.setName("Brick4Kidz");
+app.setName("Star Team");
 
 const ENGINE_DIR = path.join(__dirname, "engine");
 const CONFIG_PATH = path.join(app.getPath("userData"), "config.json");
-const OUTPUT_ROOT = path.join(app.getPath("documents"), "Brick4Kidz");
+const OUTPUT_ROOT = path.join(app.getPath("documents"), "Star Team");
 
 // Everything the engine GENERATES (content.json, downloaded images, built
 // pptx/pdf) must live in a WRITABLE folder outside the app's own install
@@ -194,7 +194,7 @@ function runStep(cmd, args, extraEnv) {
   });
 }
 
-ipcMain.handle("lesson:create", async (event, { topic, track }) => {
+ipcMain.handle("lesson:create", async (event, { topic, track, notes }) => {
   const send = (msg) => event.sender.send("lesson:log", msg + "\n");
   const cfg = loadConfig();
 
@@ -221,6 +221,7 @@ ipcMain.handle("lesson:create", async (event, { topic, track }) => {
     BRICK_BACKEND_URL: BACKEND_URL,
     BRICK_DATA_DIR: DATA_DIR,
     BRICK_TRACK: track,
+    BRICK_NOTES: notes || "",
   };
 
   function reportFailure(label, output) {
@@ -229,7 +230,8 @@ ipcMain.handle("lesson:create", async (event, { topic, track }) => {
     send(tail || "(no output)");
   }
 
-  if (!fs.existsSync(contentPath)) {
+  const forceRegenerate = !!(notes && notes.trim());
+  if (!fs.existsSync(contentPath) || forceRegenerate) {
     send("✍️  Writer is crafting the story, games, and challenge...");
     const r = await runStep("node", ["scripts/generate-content-remote.js", topic], extraEnv);
     if (!r.ok || !fs.existsSync(contentPath)) {
@@ -285,9 +287,13 @@ ipcMain.handle("lesson:create", async (event, { topic, track }) => {
   }
 
   if (copiedAny) {
-    send(`✅ Done! Files saved to:\n${finalDir}`);
+    if (!qa.ok) {
+      send(`⚠️  DELIVERED WITH QA ISSUES - please review before using with children!\nFiles saved to:\n${finalDir}`);
+    } else {
+      send(`✅ Done! QA passed. Files saved to:\n${finalDir}`);
+    }
     shell.openPath(finalDir);
-    return { ok: true, outputDir: finalDir };
+    return { ok: true, outputDir: finalDir, qaPassed: qa.ok };
   }
   send("⚠️  Something went wrong, no output files were found.");
   return { ok: false };

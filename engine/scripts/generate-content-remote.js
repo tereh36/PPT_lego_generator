@@ -19,7 +19,7 @@ async function main() {
     console.error('Usage: node scripts/generate-content-remote.js "Topic Word"');
     process.exit(1);
   }
-  const { BRICK_USERNAME, BRICK_PASSWORD, BRICK_BACKEND_URL, BRICK_DATA_DIR, BRICK_TRACK } = process.env;
+  const { BRICK_USERNAME, BRICK_PASSWORD, BRICK_BACKEND_URL, BRICK_DATA_DIR, BRICK_TRACK, BRICK_NOTES } = process.env;
   if (!BRICK_USERNAME || !BRICK_PASSWORD || !BRICK_BACKEND_URL) {
     throw new Error("Missing account username/password or backend URL. Set them in Settings.");
   }
@@ -34,7 +34,8 @@ async function main() {
       username: BRICK_USERNAME,
       password: BRICK_PASSWORD,
       topic,
-      track: BRICK_TRACK || "preschool"
+      track: BRICK_TRACK || "preschool",
+      notes: BRICK_NOTES || ""
     })
   });
   const data = await (async () => {

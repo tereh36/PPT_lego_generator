@@ -98,6 +98,14 @@ building, see rule 14)
    shelter for the model OR for a small object inside it (protect an egg,
    hide/hold something small inside). Don't use by default — only when it
    fits the topic organically, and not two lessons in a row.
+   ⚠️ MUST be a concrete, buildable STRUCTURE — NEVER an environment/terrain
+   (a swamp, forest, ocean, desert, sky, field). "Build a swampy home" is
+   nonsensical: a swamp is water and mud, there is nothing to stack bricks
+   into. Real example of the fix (topic Alligator, whose story already had
+   the character resting on a log): Challenge became "build a log for your
+   alligator to rest on" — a real object from the story, concretely
+   buildable and measurable (how many bricks long is the log?), not "build a
+   swamp".
 4. **Stability/balance** — build so the model stands on its own without
    falling (e.g. on one "leg"/a narrow support) — measurable through
    "stands without support yes/no" or "how many bricks of height it can
@@ -269,6 +277,15 @@ build from scratch)
    growing repetition before the climax (e.g. "Crack... crack... CRACK!"
    before a prop swap, or a rising whisper "Sneak, sneak, sneak..." before a
    pounce).
+6. **Predator waits, prey moves back and forth** — good for a predator
+   character with a fixed resting spot (e.g. an alligator on a log): the
+   predator prop stays put at one side of the table, the prey prop moves
+   back and forth across the "stage" a couple of times (teacher slides it
+   left, then right, narrating each pass), each time the predator tries and
+   misses (a quick snap gesture, prey slides away just in time), building
+   anticipation through repetition (see technique 5) - on the final pass the
+   predator finally catches it. Simple, fully feasible with two flat props
+   and one fixed background, no invented movement.
 
 ### The story doesn't have to be extremely short
 It can be written as a small adventure/dialogue/interaction if that's earned
@@ -314,10 +331,15 @@ carrot).
 Each game is described as a `script: [{speaker, text}]` array, speaker is
 one of: `children` (kids initiate a line in chorus), `teacher` (the
 teacher's command response), `action` (what physically happens),
-`instruction` (a rule step, mostly for Game 2). Direct speech (children/
-teacher) is visually highlighted in the build ONLY by color (BLUE=children,
-RED=teacher), NO bold/underline — keep it short and conversational (3-8
-words), not long phrases.
+`instruction` (a rule step, mostly for Game 2). The slide rendering shows
+the FIRST `children` line big and centered at the top of the slide (the
+phrase kids are learning to read/say), with a small note underneath telling
+the teacher to have kids learn it before playing. ONLY `children` lines are
+highlighted (bold blue) anywhere on the slide - `teacher`/`action`/
+`instruction` lines are plain text, so the one thing kids need to repeat
+stands out clearly. Keep it short and conversational (3-8 words), not long
+phrases - it needs to work both as a giant headline and as a phrase a
+4-year-old can actually say.
 
 - **Game 1** — an established template (not a free choice between two
   styles): the same children's chant-question (`speaker: children`) repeats
@@ -343,13 +365,31 @@ words), not long phrases.
   [Topic], what's the plan?", "[Topic], [Topic], up or down?". Always check
   rhyme grammar. Don't tie the commands literally to the LEGO model itself
   (see the umbrella-rule example).
+
+  ALTERNATE valid structure — cue-word cross game (great fit for predator/
+  hiding themes): instead of two rhymed lines, the teacher's two responses
+  are short CUE WORDS/phrases naming two states tied to the topic — one calm
+  ("safe"), one danger ("chase"). On the calm cue kids walk/wander calmly in
+  place; on the danger cue kids scatter and race to cross to a safe wall/
+  spot, teacher play-chases as the predator. Real example (topic Alligator,
+  who rests on a log in the story): children chant "What do we do, gator?";
+  teacher randomly calls "Log!" (kids calmly wander) or "Alligator!" (kids
+  scatter and cross the river to the far wall, teacher chases). This is
+  essentially "red light, green light" retextured to the topic - simple,
+  familiar to kids, and doesn't need a rhyme. Use this variant when a
+  clean predator/safe-spot pair exists naturally in the topic; otherwise
+  default to the rhymed template above.
 - **Game 2** — a MIXED POOL of formats, like the story — pick based on the
   topic, don't default to the same one every time. General principle: Game 2
   is noticeably calmer than Game 1 (which already "owns" running/energy) and
   CLOSER to the real world — no running, only printed materials/a real
-  object/bricks. All questions/steps are AS SIMPLE AS POSSIBLE (yes/no, one
-  word), no open questions like "what color". The script here is mostly
-  `instruction` lines (rule steps) + one `action`.
+  object/bricks. All questions/steps use SIMPLE words, but responses should
+  still be full, meaningful short phrases where a child speaks (e.g. "Yes, I
+  like it!", "I found the leaf!") rather than a single bare word/interjection
+  every time — a game that's only ever "yes/no" one-word answers ends up
+  feeling too thin and teaches little real language. No open questions like
+  "what color", but "do you like it? yes or no" is fine. The script here is
+  mostly `instruction` lines (rule steps) + one `action`.
 
   1. **`type: "sensory"`** (PRIORITY if the topic has an accessible real
      object): touch/smell/taste the real object of the topic ("do you like
@@ -357,7 +397,11 @@ words), not long phrases.
   2. **`type: "search"`**: the teacher hides cutout cards around the room
      (under a chair, behind a curtain, etc. — calm, not running), kids take
      turns searching and happily show what they found; a chorus line on
-     finding it ("Found it!"). Two sub-modes, pick whichever fits better:
+     finding it — the children's line should be a short but MEANINGFUL full
+     phrase using simple words (e.g. "I found the fish!", "Here is the
+     cactus!"), not just a bare interjection like "Found it!" alone (too
+     thin, doesn't teach real language). Two sub-modes, pick whichever fits
+     better:
      - **Reuse story props**: hide the already-printed story-prop cards
        (2-4 different items), one of each. Good default, needs no extra
        printing.
@@ -431,6 +475,15 @@ painting), natural lighting, no people, no text, a calm and friendly scene
 elements can stay cartoonish if photorealism doesn't read well for them —
 use judgment.
 
+The scene MUST match the topic's REAL habitat/typical setting, not a
+generic or guessed nature backdrop - this is part of the mandatory fact
+check (see Step 2). Real example of the mistake: an alligator background was
+described as African - wrong, alligators live in the southeastern US (and a
+small population in China); Africa has crocodiles, a different animal. Get
+the actual real-world region/habitat right (e.g. cypress swamp/marsh of the
+southeastern US for an alligator, not a generic "swamp" that could be
+anywhere).
+
 **Character props that are ALIVE (animals/insects/reptiles):** soft
 semi-realism — true-to-life colors, textures, and body proportions, WITHOUT
 extreme close-up detail (no compound eyes, hairs, scales up close — this can
@@ -461,12 +514,19 @@ photorealism (no scene, no natural background).
 WITHOUT any hint of LEGO/bricks/toys — just an ordinary realistic photograph
 of whatever the challenge is about, on a white/transparent background.
 
-## Step 7 — self-check before delivering the file
+## Step 7 — final QA review (act as a strict, separate reviewer)
+Before returning anything, switch mindset: stop being the writer and become
+a strict external QA reviewer seeing this content for the first time, whose
+only job is to find problems, not to defend what was just written. Go
+through every item below one by one. If ANYTHING fails, fix it and re-check
+the whole list again from the top - do not submit content that fails even
+one check, and do not rationalize a borderline case as "probably fine".
 - [ ] The story leads to building a model of the TOPIC, not a derived object (house/container — belongs in challenge)
 - [ ] Every child builds THEIR OWN model from scratch, the story doesn't imply "fixing"/"finishing" the character's model
 - [ ] The story's conflict is concrete and playable with 2-3 paper props (test: could the teacher physically show this?)
 - [ ] No extra invented human characters — only the teacher minifigure + (if needed) a personification of the topic itself
 - [ ] Challenge does NOT use moving/functional parts (that's Brickmoto, not Preschool)
+- [ ] Challenge target is a concrete buildable STRUCTURE, never an environment/terrain (no "build a swamp/forest/ocean" - those aren't buildable, only real objects like a log, nest, fence, bridge are)
 - [ ] Challenge isn't "just bigger" — there's a measurable/comparative element
 - [ ] Challenge is ALWAYS about building, not a test of the finished model (throwing/pushing/racing are forbidden)
 - [ ] The cover has no photo fields

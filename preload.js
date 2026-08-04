@@ -8,7 +8,7 @@ contextBridge.exposeInMainWorld("api", {
   checkBalance: () => ipcRenderer.invoke("account:checkBalance"),
   getPrices: () => ipcRenderer.invoke("account:getPrices"),
 
-  createLesson: (topic, track) => ipcRenderer.invoke("lesson:create", { topic, track }),
+  createLesson: (topic, track, notes) => ipcRenderer.invoke("lesson:create", { topic, track, notes }),
   onLessonLog: (callback) => {
     ipcRenderer.on("lesson:log", (event, msg) => callback(msg));
   },
