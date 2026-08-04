@@ -362,10 +362,12 @@ phrases - it needs to work both as a giant headline and as a phrase a
   pattern "[action], [action], [action], + a rhymed line with real meaning".
   One option is real running (kids scatter, the teacher play-chases them,
   a separate `action` line describes this), the other is a big action in
-  place (jumping, etc., genuinely high and energetic). 3-4 rounds, ending on
-  the running/chase option. The chant's WORDS and both responses are NEW for
-  every topic, drawn from the topic's own vocabulary (action verbs for that
-  specific animal/object), never reuse previous lessons' phrasing verbatim.
+  place (jumping, etc., genuinely high and energetic). EXACTLY 3 rounds (not
+  4) - 4 rounds crams too much text onto the slide and forces the font
+  smaller than it should be. End on the running/chase option. The chant's
+  WORDS and both responses are NEW for every topic, drawn from the topic's
+  own vocabulary (action verbs for that specific animal/object), never reuse
+  previous lessons' phrasing verbatim.
   CRITICAL about language: the target audience is 3-5 year olds, often
   non-native speakers (e.g. Vietnamese, who just learned "hello"). The chant
   and responses must consist ONLY of the simplest, shortest, highest-

@@ -32,6 +32,13 @@ function buildConstellation(container, opts) {
   const h = container.clientHeight || 400;
   const hub = STAR_TEAM.find((s) => s.isHub);
   const others = STAR_TEAM.filter((s) => !s.isHub);
+  // Gradient ids must be unique PER DOCUMENT, not just per container - if two
+  // constellations exist in the DOM at once (e.g. the loading screen and the
+  // bridge screen), identical ids like "grad-captain" collide and url(#...)
+  // references resolve to whichever one appears first, which breaks if that
+  // one lives in a display:none screen. Prefix with the container's id to
+  // guarantee no collisions regardless of how many constellations exist.
+  const idPrefix = (container.id || "c") + "-";
 
   const hubX = w / 2, hubY = h / 2;
   const baseRadiusX = w * 0.38, baseRadiusY = h * 0.38;
@@ -48,7 +55,7 @@ function buildConstellation(container, opts) {
 
   let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%"><defs>`;
   STAR_TEAM.forEach((star) => {
-    svg += `<radialGradient id="grad-${star.id}" cx="50%" cy="50%" r="50%">
+    svg += `<radialGradient id="${idPrefix}grad-${star.id}" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#ffffff" /><stop offset="35%" stop-color="${star.color}" />
       <stop offset="100%" stop-color="${star.color}" stop-opacity="0" /></radialGradient>`;
   });
@@ -64,8 +71,8 @@ function buildConstellation(container, opts) {
     const p = positions[star.id];
     const s = (star.isHub ? 46 : 34) * scale;
     svg += `<g class="star-node" data-star-id="${star.id}" style="cursor:pointer">`;
-    svg += `<circle class="star-glow star-glow-outer" cx="${p.x}" cy="${p.y}" r="${s * 0.68}" fill="url(#grad-${star.id})" opacity="0.35" />`;
-    svg += `<circle class="star-glow" cx="${p.x}" cy="${p.y}" r="${s * 0.42}" fill="url(#grad-${star.id})" opacity="0.7" />`;
+    svg += `<circle class="star-glow star-glow-outer" cx="${p.x}" cy="${p.y}" r="${s * 0.68}" fill="url(#${idPrefix}grad-${star.id})" opacity="0.35" />`;
+    svg += `<circle class="star-glow" cx="${p.x}" cy="${p.y}" r="${s * 0.42}" fill="url(#${idPrefix}grad-${star.id})" opacity="0.7" />`;
     svg += `<g class="star-spikes" style="transform-box: fill-box; transform-origin: center;" stroke="${star.color}" stroke-linecap="round">
       <line x1="${p.x}" y1="${p.y - s * 0.55}" x2="${p.x}" y2="${p.y + s * 0.55}" stroke-width="${Math.max(0.5, s * 0.016)}" opacity="0.8" />
       <line x1="${p.x - s * 0.55}" y1="${p.y}" x2="${p.x + s * 0.55}" y2="${p.y}" stroke-width="${Math.max(0.5, s * 0.016)}" opacity="0.8" />
@@ -312,15 +319,26 @@ async function enterBridge() {
 // instead of flashing the username screen for a split second first
 (async function initialLoad() {
   startLoadingAnimation();
-  const cfg = await window.api.getConfig();
-  if (cfg.username && cfg.password) {
-    pendingUsername = cfg.username;
-    const result = await window.api.checkBalance();
-    if (result.ok) {
-      stopLoadingAnimation();
-      await enterBridge();
-      return;
+
+  // Safety net: if checking the saved login hangs (e.g. a network stall),
+  // don't leave the user staring at the loading animation forever - fall
+  // through to the login screen after 8s so they can at least try manually.
+  const withTimeout = (promise, ms) =>
+    Promise.race([promise, new Promise((resolve) => setTimeout(() => resolve(null), ms))]);
+
+  try {
+    const cfg = await withTimeout(window.api.getConfig(), 8000);
+    if (cfg && cfg.username && cfg.password) {
+      pendingUsername = cfg.username;
+      const result = await withTimeout(window.api.checkBalance(), 8000);
+      if (result && result.ok) {
+        stopLoadingAnimation();
+        await enterBridge();
+        return;
+      }
     }
+  } catch (e) {
+    console.error("[initialLoad] failed:", e);
   }
   stopLoadingAnimation();
   showScreen("loginUsername");
