@@ -308,10 +308,13 @@ function addChantHeader(slide, script, boxSpec) {
     align: "center", valign: "middle", autoFit: true
   });
   slide.addText("Learn the phrase above together first - children repeat it during the game below!", {
-    x: boxSpec.x, y: boxSpec.y + 1.05, w: boxSpec.w, h: 0.3,
+    x: boxSpec.x, y: boxSpec.y + 1.05, w: boxSpec.w, h: 0.32,
     fontFace: "Arial", fontSize: 11, italic: true, color: "888888", align: "center", valign: "top"
   });
-  return boxSpec.y + 1.05 + 0.35;
+  // Extra breathing room (0.2in) below the subtitle box before the script
+  // starts - previously only 0.05in of actual gap, which looked like the
+  // instruction line and the first script line were touching/overlapping.
+  return boxSpec.y + 1.05 + 0.32 + 0.2;
 }
 
 function addScript(slide, script, boxSpec) {

@@ -53,7 +53,12 @@
       <button id="settingsBtn" title="Settings" class="icon-btn">⚙️</button>
     </div>
   </header>
-  <div id="updateBanner" class="update-banner hidden"></div>
+  <div id="updateBanner" class="update-banner hidden">
+    <span id="updateBannerText"></span>
+    <div id="updateBannerProgressWrap" class="update-banner-progress-wrap hidden">
+      <div id="updateBannerProgressFill" class="update-banner-progress-fill"></div>
+    </div>
+  </div>
 
   <div class="bridge-viewport">
     <div id="constellationMain" class="constellation-full"></div>
@@ -126,6 +131,9 @@
 
     <button id="checkUpdateBtn" class="secondary-btn" style="width: 100%;">Check for updates</button>
     <p id="updateCheckStatus" class="hint"></p>
+    <div id="updateProgressWrap" class="update-progress-wrap hidden">
+      <div id="updateProgressFill" class="update-progress-fill"></div>
+    </div>
 
     <hr />
 

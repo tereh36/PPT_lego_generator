@@ -450,31 +450,56 @@ document.getElementById("topicInput").addEventListener("keydown", (e) => {
 document.getElementById("openFolderBtn").addEventListener("click", () => window.api.openOutputFolder());
 
 // ---------- auto-update banner ----------
-window.api.onUpdateStatus((msg) => {
+window.api.onUpdateStatus(({ text: msg, percent } = {}) => {
   const banner = document.getElementById("updateBanner");
+  const bannerText = document.getElementById("updateBannerText");
+  const bannerProgressWrap = document.getElementById("updateBannerProgressWrap");
+  const bannerProgressFill = document.getElementById("updateBannerProgressFill");
   const updateCheckStatus = document.getElementById("updateCheckStatus");
+  const progressWrap = document.getElementById("updateProgressWrap");
+  const progressFill = document.getElementById("updateProgressFill");
+
   if (!msg) {
     banner.classList.add("hidden");
     banner.classList.remove("clickable");
     banner.onclick = null;
+    bannerProgressWrap.classList.add("hidden");
+    progressWrap.classList.add("hidden");
     return;
   }
+
+  // Progress bars: shown only while we have a real 0-100 percent (downloading),
+  // hidden for plain status text (checking / found / ready / error messages).
+  const hasProgress = typeof percent === "number" && percent >= 0 && percent < 100;
+  if (hasProgress) {
+    bannerProgressWrap.classList.remove("hidden");
+    bannerProgressFill.style.width = percent + "%";
+    progressWrap.classList.remove("hidden");
+    progressFill.style.width = percent + "%";
+  } else {
+    bannerProgressWrap.classList.add("hidden");
+    progressWrap.classList.add("hidden");
+  }
+
   if (msg.startsWith("READY:")) {
-    banner.textContent = "🔄 " + msg.slice(6) + " (click here)";
+    bannerText.textContent = "🔄 " + msg.slice(6) + " (click here)";
     banner.classList.add("clickable");
     banner.onclick = () => window.api.installUpdateNow();
     banner.classList.remove("hidden");
+    updateCheckStatus.textContent = msg.slice(6);
     return;
   }
+
   banner.classList.remove("clickable");
   banner.onclick = null;
-  banner.textContent = "🔄 " + msg;
+  bannerText.textContent = "🔄 " + msg;
   banner.classList.remove("hidden");
-  if (msg.toLowerCase().includes("latest version")) {
-    updateCheckStatus.textContent = "You're on the latest version.";
-  } else if (msg.toLowerCase().includes("found")) {
-    updateCheckStatus.textContent = msg;
-  }
+
+  // Settings panel text now always mirrors the live status (checking / found /
+  // downloading NN% / latest version), instead of freezing on the first message.
+  updateCheckStatus.textContent = msg.toLowerCase().includes("latest version")
+    ? "You're on the latest version."
+    : msg;
 });
 
 window.addEventListener("resize", () => {

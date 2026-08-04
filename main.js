@@ -73,13 +73,13 @@ app.on("window-all-closed", () => {
 // ---------- auto-update ----------
 let manualUpdateCheck = false;
 
-function sendUpdateStatus(text) {
-  if (mainWindow) mainWindow.webContents.send("update:status", text);
+function sendUpdateStatus(text, percent) {
+  if (mainWindow) mainWindow.webContents.send("update:status", { text, percent: typeof percent === "number" ? percent : null });
 }
 autoUpdater.on("checking-for-update", () => sendUpdateStatus("Checking for updates..."));
 autoUpdater.on("update-available", (info) => {
   manualUpdateCheck = false;
-  sendUpdateStatus(`Update ${info.version} found, downloading...`);
+  sendUpdateStatus(`Update ${info.version} found, downloading...`, 0);
 });
 autoUpdater.on("update-not-available", () => {
   if (manualUpdateCheck) {
@@ -94,8 +94,8 @@ autoUpdater.on("error", () => {
   manualUpdateCheck = false;
   sendUpdateStatus("");
 });
-autoUpdater.on("download-progress", (p) => sendUpdateStatus(`Downloading update: ${Math.round(p.percent)}%`));
-autoUpdater.on("update-downloaded", () => sendUpdateStatus("READY:Update downloaded! Click here to restart and install."));
+autoUpdater.on("download-progress", (p) => sendUpdateStatus(`Downloading update: ${Math.round(p.percent)}%`, p.percent));
+autoUpdater.on("update-downloaded", () => sendUpdateStatus("READY:Update downloaded! Click here to restart and install.", 100));
 
 ipcMain.handle("update:installNow", () => {
   autoUpdater.quitAndInstall();
