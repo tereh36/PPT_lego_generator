@@ -49,7 +49,7 @@
       <div class="brand-tagline">Andrei Terekhov's AI Academic Team <span id="versionTag" class="version-tag"></span></div>
     </div>
     <div class="header-right">
-      <span id="balancePill" class="balance-pill hidden">Balance: $--</span>
+      <button id="balancePill" class="balance-pill hidden">Balance: $--</button>
       <button id="settingsBtn" title="Settings" class="icon-btn">⚙️</button>
     </div>
   </header>
@@ -83,7 +83,7 @@
   <header class="sub-header">
     <button class="back-btn" id="backFromCreate">← Bridge</button>
     <div class="sub-title">Create Presentation</div>
-    <span id="balancePillCreate" class="balance-pill hidden">Balance: $--</span>
+    <button id="balancePillCreate" class="balance-pill hidden">Balance: $--</button>
   </header>
 
   <main>
@@ -113,6 +113,7 @@
       <span id="priceTagBrickmoto" class="price-tag">$50 per presentation</span>
     </div>
 
+    <div id="waitWarning" class="wait-warning hidden">⏳ This can take a few minutes - please don't close the app, the team is working!</div>
     <div id="log" class="log hidden"></div>
 
     <button id="openFolderBtn" class="secondary-btn folder-btn">📂 Open output folder</button>
@@ -152,15 +153,6 @@
   <div class="modal">
     <h2>Settings</h2>
 
-    <label class="switch-row">
-      <span>Generate with images</span>
-      <input type="checkbox" id="imageModeToggle" checked />
-    </label>
-    <p class="hint">Without images it's faster - image slots in the presentation
-      will show the prompt text instead, which you can copy and generate yourself.</p>
-
-    <hr />
-
     <button id="checkUpdateBtn" class="secondary-btn" style="width: 100%;">Check for updates</button>
     <p id="updateCheckStatus" class="hint"></p>
 
@@ -169,6 +161,27 @@
     <button id="logoutBtn" class="danger-btn" style="width: 100%;">Log out</button>
 
     <button id="closeSettingsBtn" class="secondary-btn" style="margin-top: 14px; width: 100%;">Close</button>
+  </div>
+</div>
+
+<!-- ============ BALANCE / TOP-UP MODAL ============ -->
+<div id="balanceModal" class="modal-overlay hidden">
+  <div class="modal small">
+    <h2>Top up balance</h2>
+    <p class="hint">Need more balance? Message Andrei directly and he'll top you up.</p>
+    <a id="zaloLink" class="primary-btn big" style="display:block; text-decoration:none; text-align:center;" href="#" target="_blank" rel="noopener">Message Andrei on Zalo</a>
+    <button id="closeBalanceModalBtn" class="secondary-btn" style="margin-top: 14px; width: 100%;">Close</button>
+  </div>
+</div>
+
+<!-- ============ CONFIRM REGENERATE MODAL ============ -->
+<div id="regenerateModal" class="modal-overlay hidden">
+  <div class="modal small">
+    <h2>Already created</h2>
+    <p class="hint" id="regenerateText">This topic already has materials saved.</p>
+    <button id="rebuildExistingBtn" class="secondary-btn" style="width: 100%; margin-bottom: 10px;">Rebuild from existing materials (free)</button>
+    <button id="regenerateFreshBtn" class="primary-btn big" style="width: 100%;">Delete and create fresh</button>
+    <button id="cancelRegenerateBtn" class="link-btn" style="display:block; margin: 10px auto 0;">Cancel</button>
   </div>
 </div>
 

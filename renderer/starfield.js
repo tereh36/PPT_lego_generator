@@ -47,10 +47,15 @@
     stars.forEach((s) => {
       s.phase += s.speed;
       const twinkle = 0.5 + 0.5 * Math.sin(s.phase);
+      const alpha = 0.35 + twinkle * 0.65;
+      ctx.save();
+      ctx.shadowColor = `rgba(180,210,255,${alpha})`;
+      ctx.shadowBlur = s.r * 4 + twinkle * 2;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,255,255,${0.3 + twinkle * 0.7})`;
+      ctx.fillStyle = `rgba(255,255,255,${alpha})`;
       ctx.fill();
+      ctx.restore();
     });
 
     maybeSpawnShootingStar();

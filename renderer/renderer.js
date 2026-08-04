@@ -20,43 +20,55 @@ function showScreen(name) {
 }
 
 // ---------- constellation rendering (used on Bridge + System screen) ----------
+function seededRandom(seedStr) {
+  let h = 0;
+  for (let i = 0; i < seedStr.length; i++) h = (h * 31 + seedStr.charCodeAt(i)) >>> 0;
+  return (h % 1000) / 1000; // 0..1
+}
+
 function buildConstellation(container, opts) {
   const showLabels = !!opts.showLabels;
+  const scale = opts.scale || 1; // smaller/dimmer on the Bridge, full-size on System
   const w = container.clientWidth || 700;
   const h = container.clientHeight || 400;
   const hub = STAR_TEAM.find((s) => s.isHub);
   const others = STAR_TEAM.filter((s) => !s.isHub);
 
   const hubX = w / 2, hubY = h / 2;
-  const radiusX = w * 0.38, radiusY = h * 0.38;
+  const baseRadiusX = w * 0.38, baseRadiusY = h * 0.38;
   const positions = { [hub.id]: { x: hubX, y: hubY } };
   others.forEach((star, i) => {
-    const angle = (i / others.length) * Math.PI * 2 - Math.PI / 2;
-    positions[star.id] = { x: hubX + Math.cos(angle) * radiusX, y: hubY + Math.sin(angle) * radiusY };
+    const angleJitter = (seededRandom(star.id + "a") - 0.5) * 0.6; // +-0.3 rad
+    const radiusJitter = 0.7 + seededRandom(star.id + "r") * 0.55; // 0.7x - 1.25x, irregular like a real sky
+    const angle = (i / others.length) * Math.PI * 2 - Math.PI / 2 + angleJitter;
+    positions[star.id] = {
+      x: hubX + Math.cos(angle) * baseRadiusX * radiusJitter,
+      y: hubY + Math.sin(angle) * baseRadiusY * radiusJitter
+    };
   });
 
   let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%"><defs>`;
   STAR_TEAM.forEach((star) => {
-    svg += `<radialGradient id="grad-${star.id}" cx="50%" cy="50%" r="50%">
+    svg += `<radialGradient id="grad-${star.id}-${scale}" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#ffffff" /><stop offset="35%" stop-color="${star.color}" />
       <stop offset="100%" stop-color="${star.color}" stop-opacity="0" /></radialGradient>`;
   });
   svg += `</defs>`;
-  // lines from hub to every other star
+  // thin horoscope-style lines from hub to every other star
   others.forEach((star) => {
     const p = positions[star.id];
-    svg += `<line x1="${hubX}" y1="${hubY}" x2="${p.x}" y2="${p.y}" stroke="${star.color}" stroke-opacity="0.55" stroke-width="1.5" />`;
+    svg += `<line x1="${hubX}" y1="${hubY}" x2="${p.x}" y2="${p.y}" stroke="${star.color}" stroke-opacity="0.4" stroke-width="${0.7 * scale}" />`;
   });
-  // star-flare nodes
+  // star-flare nodes - a touch brighter than the plain background stars, smaller on the Bridge
   STAR_TEAM.forEach((star) => {
     const p = positions[star.id];
-    const s = star.isHub ? 46 : 34;
-    svg += `<circle cx="${p.x}" cy="${p.y}" r="${s * 0.5}" fill="url(#grad-${star.id})" opacity="0.6" />`;
+    const s = (star.isHub ? 46 : 34) * scale;
+    svg += `<circle cx="${p.x}" cy="${p.y}" r="${s * 0.5}" fill="url(#grad-${star.id}-${scale})" opacity="0.65" />`;
     svg += `<g stroke="${star.color}" stroke-linecap="round">
-      <line x1="${p.x}" y1="${p.y - s * 0.48}" x2="${p.x}" y2="${p.y + s * 0.48}" stroke-width="${s * 0.02}" opacity="0.85" />
-      <line x1="${p.x - s * 0.48}" y1="${p.y}" x2="${p.x + s * 0.48}" y2="${p.y}" stroke-width="${s * 0.02}" opacity="0.85" />
+      <line x1="${p.x}" y1="${p.y - s * 0.48}" x2="${p.x}" y2="${p.y + s * 0.48}" stroke-width="${Math.max(0.6, s * 0.02)}" opacity="0.85" />
+      <line x1="${p.x - s * 0.48}" y1="${p.y}" x2="${p.x + s * 0.48}" y2="${p.y}" stroke-width="${Math.max(0.6, s * 0.02)}" opacity="0.85" />
     </g>`;
-    svg += `<circle cx="${p.x}" cy="${p.y}" r="${s * 0.09}" fill="#ffffff" />`;
+    svg += `<circle cx="${p.x}" cy="${p.y}" r="${Math.max(1.2, s * 0.09)}" fill="#ffffff" />`;
     if (showLabels) {
       svg += `<text x="${p.x}" y="${p.y + s * 0.5 + 16}" text-anchor="middle" font-size="12" fill="#EAF2FF" font-family="Segoe UI, Arial">${star.name}</text>`;
     }
@@ -68,8 +80,8 @@ function buildConstellation(container, opts) {
 function renderConstellations() {
   const mini = document.getElementById("constellationMini");
   const full = document.getElementById("constellationFull");
-  if (mini && !mini.classList.contains("hidden") === false) buildConstellation(mini, { showLabels: false });
-  if (full) buildConstellation(full, { showLabels: true });
+  if (mini) buildConstellation(mini, { showLabels: false, scale: 0.5 });
+  if (full) buildConstellation(full, { showLabels: true, scale: 1 });
 }
 
 // ---------- realistic glowing star icon (SVG, no emoji) ----------
@@ -235,13 +247,10 @@ window.api.onBalanceUpdated((balance) => {
 // ---------- settings modal ----------
 const settingsModal = document.getElementById("settingsModal");
 document.getElementById("settingsBtn").addEventListener("click", async () => {
-  const cfg = await window.api.getConfig();
-  document.getElementById("imageModeToggle").checked = cfg.withImages !== false;
   document.getElementById("updateCheckStatus").textContent = "";
   settingsModal.classList.remove("hidden");
 });
 document.getElementById("closeSettingsBtn").addEventListener("click", () => settingsModal.classList.add("hidden"));
-document.getElementById("imageModeToggle").addEventListener("change", (e) => window.api.setImageMode(e.target.checked));
 document.getElementById("checkUpdateBtn").addEventListener("click", async () => {
   document.getElementById("updateCheckStatus").textContent = "Checking...";
   await window.api.checkForUpdatesNow();
@@ -255,6 +264,15 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   document.getElementById("passwordStatus").textContent = "";
   showScreen("loginUsername");
 });
+
+// ---------- balance / top-up popup ----------
+const ZALO_LINK = "https://zaloapp.com/qr/p/1p4vnkds7fno";
+const balanceModal = document.getElementById("balanceModal");
+document.getElementById("zaloLink").href = ZALO_LINK;
+function openBalanceModal() { balanceModal.classList.remove("hidden"); }
+document.getElementById("balancePill").addEventListener("click", openBalanceModal);
+document.getElementById("balancePillCreate").addEventListener("click", openBalanceModal);
+document.getElementById("closeBalanceModalBtn").addEventListener("click", () => balanceModal.classList.add("hidden"));
 
 // ---------- tabs (Preschool / Brickmoto) ----------
 let currentTrack = "preschool";
@@ -279,21 +297,57 @@ window.api.onLessonLog((msg) => {
   logEl.scrollTop = logEl.scrollHeight;
 });
 
+const regenerateModal = document.getElementById("regenerateModal");
+let pendingRegenerateChoice = null;
+
+function askRegenerateChoice(topic) {
+  return new Promise((resolve) => {
+    document.getElementById("regenerateText").textContent =
+      `"${topic}" already has saved materials. Rebuild the presentation from what's already there (free), or delete it and create a fresh version (charges again)?`;
+    regenerateModal.classList.remove("hidden");
+    pendingRegenerateChoice = resolve;
+  });
+}
+document.getElementById("rebuildExistingBtn").addEventListener("click", () => {
+  regenerateModal.classList.add("hidden");
+  if (pendingRegenerateChoice) pendingRegenerateChoice("rebuild");
+});
+document.getElementById("regenerateFreshBtn").addEventListener("click", () => {
+  regenerateModal.classList.add("hidden");
+  if (pendingRegenerateChoice) pendingRegenerateChoice("fresh");
+});
+document.getElementById("cancelRegenerateBtn").addEventListener("click", () => {
+  regenerateModal.classList.add("hidden");
+  if (pendingRegenerateChoice) pendingRegenerateChoice("cancel");
+});
+
 document.getElementById("createBtn").addEventListener("click", async () => {
   const topicInput = document.getElementById("topicInput");
   const topic = topicInput.value.trim();
   if (!topic) { topicInput.focus(); return; }
+
+  let regenerate = false;
+  const exists = await window.api.checkContentExists(topic);
+  if (exists) {
+    const choice = await askRegenerateChoice(topic);
+    if (choice === "cancel") return;
+    regenerate = choice === "fresh";
+  }
+
   logEl.textContent = "";
   logEl.classList.remove("hidden");
+  const waitWarning = document.getElementById("waitWarning");
+  waitWarning.classList.remove("hidden");
   const btn = document.getElementById("createBtn");
   btn.disabled = true;
   btn.textContent = "Generating...";
 
   const notes = document.getElementById("notesInput").value.trim();
-  await window.api.createLesson(topic, currentTrack, notes);
+  await window.api.createLesson(topic, currentTrack, notes, regenerate);
 
   btn.disabled = false;
   btn.textContent = "Create Presentation";
+  waitWarning.classList.add("hidden");
   refreshBalanceCreate();
   refreshBalance();
 });

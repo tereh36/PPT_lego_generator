@@ -8,7 +8,8 @@ contextBridge.exposeInMainWorld("api", {
   checkBalance: () => ipcRenderer.invoke("account:checkBalance"),
   getPrices: () => ipcRenderer.invoke("account:getPrices"),
 
-  createLesson: (topic, track, notes) => ipcRenderer.invoke("lesson:create", { topic, track, notes }),
+  createLesson: (topic, track, notes, regenerate) => ipcRenderer.invoke("lesson:create", { topic, track, notes, regenerate }),
+  checkContentExists: (topic) => ipcRenderer.invoke("lesson:checkExists", { topic }),
   onLessonLog: (callback) => {
     ipcRenderer.on("lesson:log", (event, msg) => callback(msg));
   },

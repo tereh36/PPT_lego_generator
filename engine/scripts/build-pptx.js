@@ -285,7 +285,10 @@ function buildPatternSheet(pres, letter) {
 
 function estimateWrappedLineCount(text, fontSize, widthEMU) {
   const widthPt = widthEMU / 12700;
-  const charsPerLine = Math.max(10, Math.floor(widthPt / (fontSize * 0.5)));
+  // 0.56 instead of 0.5 - bold children lines are noticeably wider per
+  // character than the estimate assumed, which was under-counting wraps
+  // and letting text spill past the box into the decorative squares.
+  const charsPerLine = Math.max(10, Math.floor(widthPt / (fontSize * 0.56)));
   return Math.max(1, Math.ceil((text || "").length / charsPerLine));
 }
 
@@ -321,6 +324,7 @@ function addScript(slide, script, boxSpec) {
   // into the decorative squares below, instead of guessing from line count alone.
   const sizesToTry = [20, 18, 16, 14, 13, 12, 11];
   let fontSize = sizesToTry[sizesToTry.length - 1];
+  const SAFETY_BUFFER = 1.18; // err toward shrinking rather than risking overflow into the decorative squares
   for (const size of sizesToTry) {
     const spacerPt = Math.max(4, Math.round(size * 0.3));
     let totalPt = 0;
@@ -329,6 +333,7 @@ function addScript(slide, script, boxSpec) {
       totalPt += wrapped * size * 1.25;
       if (i < lines.length - 1) totalPt += spacerPt;
     });
+    totalPt *= SAFETY_BUFFER;
     if (totalPt <= boxHeightPt) {
       fontSize = size;
       break;
@@ -353,7 +358,7 @@ function buildGame1(pres, content) {
   addSquares(slide, STYLE_B);
   addContentTitle(slide, content.game1.title);
   const scriptY = addChantHeader(slide, content.game1.script, boxIn(1.3, 1.5, 10.7, 1.4));
-  addScript(slide, content.game1.script, boxIn(1.3, scriptY, 10.7, 6.55 - scriptY));
+  addScript(slide, content.game1.script, boxIn(1.3, scriptY, 10.7, 6.25 - scriptY));
 }
 
 function buildGame2(pres, content, assetsDir) {
@@ -365,7 +370,7 @@ function buildGame2(pres, content, assetsDir) {
 
   if (hasVisual) {
     const scriptY = addChantHeader(slide, content.game2.script, boxIn(0.8, 1.5, 5.6, 1.4));
-    addScript(slide, content.game2.script, boxIn(0.8, scriptY, 5.6, 6.55 - scriptY));
+    addScript(slide, content.game2.script, boxIn(0.8, scriptY, 5.6, 6.25 - scriptY));
     if (colors.length) {
       const cols = 3;
       colors.forEach((color, i) => {
@@ -381,7 +386,7 @@ function buildGame2(pres, content, assetsDir) {
   } else {
     // Sensory / no-visual games: let the text use the full slide width, like Game 1 and 3.
     const scriptY = addChantHeader(slide, content.game2.script, boxIn(1.3, 1.5, 10.7, 1.4));
-    addScript(slide, content.game2.script, boxIn(1.3, scriptY, 10.7, 6.55 - scriptY));
+    addScript(slide, content.game2.script, boxIn(1.3, scriptY, 10.7, 6.25 - scriptY));
   }
 }
 
@@ -390,7 +395,7 @@ function buildGame3(pres, content) {
   addSquares(slide, STYLE_B);
   addContentTitle(slide, content.game3.title);
   const scriptY = addChantHeader(slide, content.game3.script, boxIn(1.3, 1.5, 10.7, 1.4));
-  addScript(slide, content.game3.script, boxIn(1.3, scriptY, 10.7, 6.55 - scriptY));
+  addScript(slide, content.game3.script, boxIn(1.3, scriptY, 10.7, 6.25 - scriptY));
 }
 
 function buildChallenge(pres, content, assetsDir) {
@@ -477,7 +482,8 @@ async function buildPresentationFile(contentPath) {
   pres.layout = "LEGO_LAYOUT";
 
   buildCover(pres, content);
-  buildVideoSlide(pres, "Let's Get Moving!", pickIntroVideoId(content.intro_video_youtube_id), content.intro_video_caption || "Let's get moving!");
+  const introVideoId = pickIntroVideoId(content.intro_video_youtube_id);
+  buildVideoSlide(pres, "Let's Get Moving!", introVideoId, content.intro_video_caption || "Let's get moving!");
   buildStory(pres, content, assetsDir);
   buildStoryProps(pres, content, assetsDir);
   buildMarker(pres, "Model Building");
@@ -499,7 +505,7 @@ async function buildPresentationFile(contentPath) {
   buildWrapUp(pres);
   buildWhatLetter(pres, content.letter, true);
   buildWhatIsThis(pres, assetsDir);
-  buildVideoSlide(pres, "How Many Fingers?", "h2AndZKYZBQ", "Fingers and toes");
+  buildVideoSlide(pres, "Let's Move Again!", introVideoId, "One more time - let's relax and have fun!");
 
   const outDir = path.join(DATA_DIR, "output");
   fs.mkdirSync(outDir, { recursive: true });

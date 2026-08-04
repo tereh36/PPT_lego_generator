@@ -16,7 +16,7 @@ const STAR_TEAM = [
     icon: "🧑‍🚀",
     name: "Andrei Terekhov",
     role: "Star Assistant - Head of the Team",
-    blurb: "Andrei (and his dog, also in star style!) trains, teaches, and writes the rules every star follows. Presenting your Star Team!",
+    blurb: "Andrei trains, teaches, and writes the rules every star follows. Presenting your Star Team!",
     hasDuties: true,
     color: "#3095D4",
     isHub: true

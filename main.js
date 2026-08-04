@@ -179,7 +179,12 @@ ipcMain.handle("files:openOutputFolder", () => {
 function runStep(cmd, args, extraEnv) {
   return new Promise((resolve) => {
     let output = "";
-    const proc = spawn(cmd, args, {
+    // With shell:true on Windows, args are joined into one command line for
+    // cmd.exe - any arg containing a space (like a path under "Star Team")
+    // gets silently split into two args unless quoted. This was the cause
+    // of "no such file" errors after renaming folders that contain a space.
+    const safeArgs = args.map((a) => (typeof a === "string" && a.includes(" ") && !a.startsWith('"') ? `"${a}"` : a));
+    const proc = spawn(cmd, safeArgs, {
       cwd: ENGINE_DIR,
       shell: true,
       env: { ...process.env, ...extraEnv },
@@ -194,7 +199,13 @@ function runStep(cmd, args, extraEnv) {
   });
 }
 
-ipcMain.handle("lesson:create", async (event, { topic, track, notes }) => {
+ipcMain.handle("lesson:checkExists", (event, { topic }) => {
+  const slug = (topic || "").trim().toLowerCase().replace(/\s+/g, "_");
+  const contentPath = path.join(DATA_DIR, "content", `${slug}.json`);
+  return fs.existsSync(contentPath);
+});
+
+ipcMain.handle("lesson:create", async (event, { topic, track, notes, regenerate }) => {
   const send = (msg) => event.sender.send("lesson:log", msg + "\n");
   const cfg = loadConfig();
 
@@ -207,7 +218,7 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes }) => {
     return { ok: false };
   }
   if (!cfg.username || !cfg.password) {
-    send("No account set. Open Settings (gear icon) and log in.");
+    send("No account set. Please log in again.");
     return { ok: false, needsAccount: true };
   }
 
@@ -230,7 +241,7 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes }) => {
     send(tail || "(no output)");
   }
 
-  const forceRegenerate = !!(notes && notes.trim());
+  const forceRegenerate = !!(notes && notes.trim()) || !!regenerate;
   if (!fs.existsSync(contentPath) || forceRegenerate) {
     send("✍️  Writer is crafting the story, games, and challenge...");
     const r = await runStep("node", ["scripts/generate-content-remote.js", topic], extraEnv);
@@ -245,15 +256,13 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes }) => {
       event.sender.send("account:balanceUpdated", Number(balanceMatch[1]));
     }
   } else {
-    send(`📄 Reusing existing content for "${topic}".`);
+    send(`📄 Rebuilding "${topic}" from existing materials.`);
   }
 
-  if (cfg.withImages) {
-    send("🎨 Illustrator is painting the pictures...");
+  send("🎨 Illustrator is painting the pictures...");
+  {
     const r = await runStep("node", ["scripts/generate-images-remote.js", contentPath], extraEnv);
     if (!r.ok) reportFailure("Illustrator", r.output);
-  } else {
-    send("🎨 Skipping images - slides will show prompt text instead.");
   }
 
   send("🧱 Builder is assembling the slides...");
