@@ -148,7 +148,12 @@ ipcMain.handle("account:checkBalance", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "check_balance", username: cfg.username, password: cfg.password }),
     });
-    return await res.json();
+    const rawText = await res.text();
+    try {
+      return JSON.parse(rawText);
+    } catch {
+      return { ok: false, error: "The server took too long to respond. Please try again." };
+    }
   } catch (err) {
     return { ok: false, error: String(err.message || err) };
   }
@@ -163,7 +168,12 @@ ipcMain.handle("account:getPrices", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "get_prices", username: cfg.username, password: cfg.password }),
     });
-    return await res.json();
+    const rawText = await res.text();
+    try {
+      return JSON.parse(rawText);
+    } catch {
+      return { ok: false, error: "The server took too long to respond. Please try again." };
+    }
   } catch (err) {
     return { ok: false, error: String(err.message || err) };
   }

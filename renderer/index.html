@@ -33,7 +33,7 @@
     <label for="passwordInput">Access code</label>
     <div class="key-row">
       <input type="password" id="passwordInput" placeholder="Password" autocomplete="off" />
-      <button id="toggleKeyVisibility" class="icon-btn" title="Show/hide">👁</button>
+      <button id="toggleKeyVisibility" class="eye-toggle" title="Show/hide">👁</button>
     </div>
     <button id="loginBtn" class="primary-btn big">Log In</button>
     <button id="backToUsernameBtn" class="link-btn">← back</button>
@@ -61,7 +61,9 @@
 
   <p id="bridgeCaption" class="hint center system-caption">Hover a star to see who it is, click for the full profile.</p>
   <div id="genStatus" class="gen-status hidden"></div>
-  <div id="genLog" class="log hidden"></div>
+
+  <button id="logToggleBtn" class="log-toggle-btn hidden" title="Show log">📋</button>
+  <div id="genLog" class="log corner-log hidden"></div>
 
   <div class="bridge-nav" id="bridgeNav">
     <button id="navCreate" class="primary-btn big">🚀 Create Presentation</button>

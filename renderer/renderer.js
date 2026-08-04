@@ -58,17 +58,20 @@ function buildConstellation(container, opts) {
     const p = positions[star.id];
     svg += `<line class="star-line" data-star-id="${star.id}" x1="${hubX}" y1="${hubY}" x2="${p.x}" y2="${p.y}" stroke="${star.color}" stroke-opacity="0.4" stroke-width="${1.1 * scale}" />`;
   });
-  // star-flare nodes
+  // star-flare nodes - soft layered glow + thin diffraction spikes, like a real star photo
   STAR_TEAM.forEach((star) => {
     const p = positions[star.id];
     const s = (star.isHub ? 46 : 34) * scale;
     svg += `<g class="star-node" data-star-id="${star.id}" style="cursor:pointer">`;
-    svg += `<circle class="star-glow" cx="${p.x}" cy="${p.y}" r="${s * 0.5}" fill="url(#grad-${star.id})" opacity="0.65" />`;
-    svg += `<g stroke="${star.color}" stroke-linecap="round">
-      <line x1="${p.x}" y1="${p.y - s * 0.48}" x2="${p.x}" y2="${p.y + s * 0.48}" stroke-width="${Math.max(0.6, s * 0.02)}" opacity="0.85" />
-      <line x1="${p.x - s * 0.48}" y1="${p.y}" x2="${p.x + s * 0.48}" y2="${p.y}" stroke-width="${Math.max(0.6, s * 0.02)}" opacity="0.85" />
+    svg += `<circle class="star-glow star-glow-outer" cx="${p.x}" cy="${p.y}" r="${s * 0.68}" fill="url(#grad-${star.id})" opacity="0.35" />`;
+    svg += `<circle class="star-glow" cx="${p.x}" cy="${p.y}" r="${s * 0.42}" fill="url(#grad-${star.id})" opacity="0.7" />`;
+    svg += `<g class="star-spikes" style="transform-box: fill-box; transform-origin: center;" stroke="${star.color}" stroke-linecap="round">
+      <line x1="${p.x}" y1="${p.y - s * 0.55}" x2="${p.x}" y2="${p.y + s * 0.55}" stroke-width="${Math.max(0.5, s * 0.016)}" opacity="0.8" />
+      <line x1="${p.x - s * 0.55}" y1="${p.y}" x2="${p.x + s * 0.55}" y2="${p.y}" stroke-width="${Math.max(0.5, s * 0.016)}" opacity="0.8" />
+      <line x1="${p.x - s * 0.26}" y1="${p.y - s * 0.26}" x2="${p.x + s * 0.26}" y2="${p.y + s * 0.26}" stroke-width="${Math.max(0.4, s * 0.008)}" opacity="0.45" />
+      <line x1="${p.x - s * 0.26}" y1="${p.y + s * 0.26}" x2="${p.x + s * 0.26}" y2="${p.y - s * 0.26}" stroke-width="${Math.max(0.4, s * 0.008)}" opacity="0.45" />
     </g>`;
-    svg += `<circle class="star-core" cx="${p.x}" cy="${p.y}" r="${Math.max(1.2, s * 0.09)}" fill="#ffffff" />`;
+    svg += `<circle class="star-core" cx="${p.x}" cy="${p.y}" r="${Math.max(1.2, s * 0.08)}" fill="#ffffff" style="transform-box: fill-box; transform-origin: center;" />`;
     svg += `<circle cx="${p.x}" cy="${p.y}" r="${s * 0.7}" fill="transparent" />`; // easy hover/click target
     if (showLabels) {
       svg += `<text x="${p.x}" y="${p.y + s * 0.5 + 16}" text-anchor="middle" font-size="12" fill="#EAF2FF" font-family="Segoe UI, Arial">${star.name}</text>`;
@@ -158,15 +161,15 @@ function starFlareSVG(color, size) {
           <stop offset="100%" stop-color="${color}" stop-opacity="0" />
         </radialGradient>
       </defs>
-      <circle cx="${c}" cy="${c}" r="${s * 0.46}" fill="url(#${uid})" opacity="0.55" />
+      <circle cx="${c}" cy="${c}" r="${s * 0.6}" fill="url(#${uid})" opacity="0.3" />
+      <circle cx="${c}" cy="${c}" r="${s * 0.4}" fill="url(#${uid})" opacity="0.6" />
       <g stroke="${color}" stroke-linecap="round">
-        <line x1="${c}" y1="${s * 0.04}" x2="${c}" y2="${s * 0.96}" stroke-width="${s * 0.02}" opacity="0.85" />
-        <line x1="${s * 0.04}" y1="${c}" x2="${s * 0.96}" y2="${c}" stroke-width="${s * 0.02}" opacity="0.85" />
-        <line x1="${s * 0.18}" y1="${s * 0.18}" x2="${s * 0.82}" y2="${s * 0.82}" stroke-width="${s * 0.012}" opacity="0.5" />
-        <line x1="${s * 0.82}" y1="${s * 0.18}" x2="${s * 0.18}" y2="${s * 0.82}" stroke-width="${s * 0.012}" opacity="0.5" />
+        <line x1="${c}" y1="${s * 0.02}" x2="${c}" y2="${s * 0.98}" stroke-width="${s * 0.016}" opacity="0.8" />
+        <line x1="${s * 0.02}" y1="${c}" x2="${s * 0.98}" y2="${c}" stroke-width="${s * 0.016}" opacity="0.8" />
+        <line x1="${s * 0.2}" y1="${s * 0.2}" x2="${s * 0.8}" y2="${s * 0.8}" stroke-width="${s * 0.008}" opacity="0.4" />
+        <line x1="${s * 0.8}" y1="${s * 0.2}" x2="${s * 0.2}" y2="${s * 0.8}" stroke-width="${s * 0.008}" opacity="0.4" />
       </g>
-      <circle cx="${c}" cy="${c}" r="${s * 0.09}" fill="#ffffff" />
-      <circle cx="${c}" cy="${c}" r="${s * 0.16}" fill="${color}" opacity="0.35" />
+      <circle cx="${c}" cy="${c}" r="${s * 0.08}" fill="#ffffff" />
     </svg>`;
 }
 
@@ -326,9 +329,14 @@ document.querySelectorAll(".tab").forEach((tab) => {
 // ---------- create lesson (with animated Star Team progress) ----------
 const genLogEl = document.getElementById("genLog");
 const genStatusEl = document.getElementById("genStatus");
+const logToggleBtn = document.getElementById("logToggleBtn");
+
+logToggleBtn.addEventListener("click", () => {
+  genLogEl.classList.toggle("hidden");
+});
 
 window.api.onLessonLog((msg) => {
-  genLogEl.classList.remove("hidden");
+  logToggleBtn.classList.remove("hidden");
   const span = document.createElement("span");
   const isWarning = msg.includes("⚠️") || msg.includes("⚠");
   if (isWarning) span.className = "log-warning";
@@ -390,6 +398,7 @@ document.getElementById("createBtn").addEventListener("click", async () => {
   // each star lights up in turn as the team works
   genLogEl.textContent = "";
   genLogEl.classList.add("hidden");
+  logToggleBtn.classList.add("hidden");
   showScreen("bridge");
   setGenerationMode(true);
   genStatusEl.textContent = "⏳ Please don't close the app - the Star Team is working, this can take a few minutes.";
