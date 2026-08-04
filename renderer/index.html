@@ -56,10 +56,7 @@
   <div id="updateBanner" class="update-banner hidden"></div>
 
   <div class="bridge-viewport">
-    <div class="cockpit-frame">
-      <div id="constellationMini" class="constellation-mini"></div>
-      <div class="captain-line">Welcome back, Captain.</div>
-    </div>
+    <button id="constellationMini" class="constellation-mini" title="Open Star Team"></button>
   </div>
 
   <div class="bridge-nav">
@@ -70,10 +67,6 @@
     <button class="nav-card" id="navTeam">
       <span class="nav-icon">⭐</span>
       <span class="nav-label">Star Team</span>
-    </button>
-    <button class="nav-card" id="navSystem">
-      <span class="nav-icon">🌌</span>
-      <span class="nav-label">System</span>
     </button>
   </div>
 </div>
@@ -120,31 +113,27 @@
   </main>
 </div>
 
-<!-- ============ TEAM (scrolling star cards) ============ -->
-<div id="screen-team" class="screen hidden">
+<!-- ============ STAR TEAM (constellation, hover cards, click profiles) ============ -->
+<div id="screen-starteam" class="screen hidden">
   <header class="sub-header">
     <button class="back-btn" id="backFromTeam">← Bridge</button>
     <div class="sub-title">Star Team</div>
     <span></span>
   </header>
-  <div class="carousel-wrap">
-    <button class="carousel-arrow left" id="teamPrevBtn">‹</button>
-    <div id="teamCarousel" class="carousel"></div>
-    <button class="carousel-arrow right" id="teamNextBtn">›</button>
-  </div>
-</div>
-
-<!-- ============ SYSTEM (constellation diagram) ============ -->
-<div id="screen-system" class="screen hidden">
-  <header class="sub-header">
-    <button class="back-btn" id="backFromSystem">← Bridge</button>
-    <div class="sub-title">System</div>
-    <span></span>
-  </header>
   <div class="system-wrap">
     <div id="constellationFull" class="constellation-full"></div>
     <p class="hint center system-caption">Andrei trains, teaches, and programs every star personally - that's why he's
-      connected to all of them.</p>
+      connected to all of them. Hover a star to see who it is, click for the full profile.</p>
+  </div>
+  <div id="starTooltip" class="star-tooltip hidden"></div>
+  <div id="starProfileOverlay" class="modal-overlay hidden">
+    <div class="modal star-profile">
+      <div id="starProfileIcon" class="star-icon-wrap"></div>
+      <div id="starProfileName" class="star-name"></div>
+      <div id="starProfileRole" class="star-role"></div>
+      <p id="starProfileDetails" class="star-blurb"></p>
+      <button id="closeStarProfileBtn" class="secondary-btn" style="width: 100%; margin-top: 10px;">Close</button>
+    </div>
   </div>
 </div>
 

@@ -241,6 +241,63 @@ def text_hygiene_check(pptx_path, problems):
         problems.append("Found placeholder text (TODO / [insert / xxx) left in the deck.")
 
 
+def check_image_cropping(content_path, problems):
+    """Heuristic crop detector: for a properly generated cutout (transparent
+    background), the real subject should never touch the image edge - if it
+    does, the photo/illustration was cropped (e.g. ears cut off). Checks the
+    alpha channel at the four borders; a large opaque fraction on any edge
+    means the subject likely runs off the frame."""
+    try:
+        from PIL import Image
+    except ImportError:
+        print("SKIP: Pillow not installed, cannot check for cropped images")
+        return
+
+    with open(content_path, "r", encoding="utf-8") as f:
+        content = json.load(f)
+    slug = content["topic"].lower().replace(" ", "_")
+    data_dir = os.environ.get("BRICK_DATA_DIR", os.path.join(os.path.dirname(__file__), ".."))
+    gen_dir = os.path.join(data_dir, "assets", "generated", slug)
+
+    targets = ["real_object.png"]
+    for prop in content.get("story_props", []):
+        targets.append(prop["name"].lower().replace(" ", "_") + ".png")
+
+    THRESHOLD = 0.12  # 12%+ opaque pixels touching an edge -> likely cropped
+
+    for fname in targets:
+        img_path = os.path.join(gen_dir, fname)
+        if not os.path.exists(img_path):
+            continue
+        try:
+            img = Image.open(img_path).convert("RGBA")
+        except Exception:
+            continue
+        w, h = img.size
+        px = img.load()
+
+        def edge_ratio(coords):
+            if not coords:
+                return 0
+            opaque = sum(1 for (x, y) in coords if px[x, y][3] > 200)
+            return opaque / len(coords)
+
+        step = max(1, w // 200)
+        top = [(x, 0) for x in range(0, w, step)]
+        bottom = [(x, h - 1) for x in range(0, w, step)]
+        step_h = max(1, h // 200)
+        left = [(0, y) for y in range(0, h, step_h)]
+        right = [(w - 1, y) for y in range(0, h, step_h)]
+
+        worst = max(edge_ratio(top), edge_ratio(bottom), edge_ratio(left), edge_ratio(right))
+        if worst > THRESHOLD:
+            problems.append(
+                f"{fname}: subject appears to touch the image edge ({worst*100:.0f}% of an edge is opaque) "
+                f"- likely cropped (e.g. ears/tail cut off). Regenerate with a prompt that leaves clear margin "
+                f"around the full subject."
+            )
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: qa-validate.py <file.pptx> [content.json]")
@@ -262,6 +319,8 @@ def main():
             print("VIDEO WARNING:", p)
         for p in [x for x in problems if x.startswith("Video UNAVAILABLE")]:
             print("VIDEO FAIL:", p)
+        print("== 0c/4 Image crop check ==")
+        check_image_cropping(content_path, problems)
 
     print("== 1/3 Schema validation (bounds check) ==")
     schema_validate(pptx_path, problems)

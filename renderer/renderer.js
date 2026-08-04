@@ -11,8 +11,7 @@ const screens = {
   loginPassword: document.getElementById("screen-login-password"),
   bridge: document.getElementById("screen-bridge"),
   create: document.getElementById("screen-create"),
-  team: document.getElementById("screen-team"),
-  system: document.getElementById("screen-system"),
+  starteam: document.getElementById("screen-starteam"),
 };
 function showScreen(name) {
   Object.values(screens).forEach((el) => el.classList.add("hidden"));
@@ -63,25 +62,60 @@ function buildConstellation(container, opts) {
   STAR_TEAM.forEach((star) => {
     const p = positions[star.id];
     const s = (star.isHub ? 46 : 34) * scale;
+    svg += `<g class="star-node" data-star-id="${star.id}" style="cursor:${opts.interactive ? "pointer" : "default"}">`;
     svg += `<circle cx="${p.x}" cy="${p.y}" r="${s * 0.5}" fill="url(#grad-${star.id}-${scale})" opacity="0.65" />`;
     svg += `<g stroke="${star.color}" stroke-linecap="round">
       <line x1="${p.x}" y1="${p.y - s * 0.48}" x2="${p.x}" y2="${p.y + s * 0.48}" stroke-width="${Math.max(0.6, s * 0.02)}" opacity="0.85" />
       <line x1="${p.x - s * 0.48}" y1="${p.y}" x2="${p.x + s * 0.48}" y2="${p.y}" stroke-width="${Math.max(0.6, s * 0.02)}" opacity="0.85" />
     </g>`;
     svg += `<circle cx="${p.x}" cy="${p.y}" r="${Math.max(1.2, s * 0.09)}" fill="#ffffff" />`;
+    // invisible larger hit-area so hovering/clicking is easy, not just the thin cross
+    svg += `<circle cx="${p.x}" cy="${p.y}" r="${s * 0.7}" fill="transparent" />`;
     if (showLabels) {
       svg += `<text x="${p.x}" y="${p.y + s * 0.5 + 16}" text-anchor="middle" font-size="12" fill="#EAF2FF" font-family="Segoe UI, Arial">${star.name}</text>`;
     }
+    svg += `</g>`;
   });
   svg += `</svg>`;
   container.innerHTML = svg;
+
+  if (opts.interactive) setupStarInteractivity(container);
 }
+
+function setupStarInteractivity(container) {
+  const tooltip = document.getElementById("starTooltip");
+  container.querySelectorAll(".star-node").forEach((node) => {
+    const star = STAR_TEAM.find((s) => s.id === node.dataset.starId);
+    if (!star) return;
+    node.addEventListener("mouseenter", (e) => {
+      tooltip.innerHTML = `<strong>${star.name}</strong><span>${star.role}</span>`;
+      tooltip.classList.remove("hidden");
+    });
+    node.addEventListener("mousemove", (e) => {
+      tooltip.style.left = e.clientX + 16 + "px";
+      tooltip.style.top = e.clientY + 12 + "px";
+    });
+    node.addEventListener("mouseleave", () => tooltip.classList.add("hidden"));
+    node.addEventListener("click", () => openStarProfile(star));
+  });
+}
+
+function openStarProfile(star) {
+  document.getElementById("starProfileIcon").innerHTML = starFlareSVG(star.color, 90);
+  document.getElementById("starProfileName").textContent = star.name;
+  document.getElementById("starProfileRole").textContent = star.role;
+  document.getElementById("starProfileDetails").textContent = star.details || star.blurb;
+  document.getElementById("starProfileOverlay").classList.remove("hidden");
+}
+document.getElementById("closeStarProfileBtn").addEventListener("click", () => {
+  document.getElementById("starProfileOverlay").classList.add("hidden");
+});
 
 function renderConstellations() {
   const mini = document.getElementById("constellationMini");
   const full = document.getElementById("constellationFull");
-  if (mini) buildConstellation(mini, { showLabels: false, scale: 0.5 });
-  if (full) buildConstellation(full, { showLabels: true, scale: 1 });
+  if (mini) buildConstellation(mini, { showLabels: false, scale: 0.5, interactive: false });
+  if (full) buildConstellation(full, { showLabels: true, scale: 1, interactive: true });
 }
 
 // ---------- realistic glowing star icon (SVG, no emoji) ----------
@@ -109,26 +143,6 @@ function starFlareSVG(color, size) {
       <circle cx="${c}" cy="${c}" r="${s * 0.16}" fill="${color}" opacity="0.35" />
     </svg>`;
 }
-
-// ---------- team carousel ----------
-function renderTeamCarousel() {
-  const carousel = document.getElementById("teamCarousel");
-  carousel.innerHTML = STAR_TEAM.map((star) => `
-    <div class="star-card">
-      <div class="star-icon-wrap">${starFlareSVG(star.color, 100)}</div>
-      <div class="star-name">${star.name}</div>
-      <div class="star-role">${star.role}</div>
-      <div class="star-blurb">${star.blurb}</div>
-      ${star.hasDuties ? "" : '<div class="star-duties">No duties listed - you\'re the Captain!</div>'}
-    </div>
-  `).join("");
-}
-document.getElementById("teamPrevBtn").addEventListener("click", () => {
-  document.getElementById("teamCarousel").scrollBy({ left: -280, behavior: "smooth" });
-});
-document.getElementById("teamNextBtn").addEventListener("click", () => {
-  document.getElementById("teamCarousel").scrollBy({ left: 280, behavior: "smooth" });
-});
 
 // ---------- login flow ----------
 let pendingUsername = "";
@@ -203,11 +217,10 @@ async function enterBridge() {
 
 // ---------- bridge navigation ----------
 document.getElementById("navCreate").addEventListener("click", () => { showScreen("create"); refreshBalanceCreate(); refreshPrices(); });
-document.getElementById("navTeam").addEventListener("click", () => { renderTeamCarousel(); showScreen("team"); });
-document.getElementById("navSystem").addEventListener("click", () => { renderConstellations(); showScreen("system"); });
+document.getElementById("navTeam").addEventListener("click", () => { renderConstellations(); showScreen("starteam"); });
+document.getElementById("constellationMini").addEventListener("click", () => { renderConstellations(); showScreen("starteam"); });
 document.getElementById("backFromCreate").addEventListener("click", () => showScreen("bridge"));
 document.getElementById("backFromTeam").addEventListener("click", () => showScreen("bridge"));
-document.getElementById("backFromSystem").addEventListener("click", () => showScreen("bridge"));
 
 // ---------- balance & prices ----------
 async function refreshBalance() {
@@ -385,7 +398,7 @@ window.api.onUpdateStatus((msg) => {
 });
 
 window.addEventListener("resize", () => {
-  if (!screens.bridge.classList.contains("hidden") || !screens.system.classList.contains("hidden")) {
+  if (!screens.bridge.classList.contains("hidden") || !screens.starteam.classList.contains("hidden")) {
     renderConstellations();
   }
 });

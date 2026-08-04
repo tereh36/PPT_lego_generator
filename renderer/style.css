@@ -197,28 +197,18 @@ header {
   justify-content: center;
   padding: 10px 40px;
 }
-.cockpit-frame {
-  position: relative;
+.constellation-mini {
   width: 100%;
   max-width: 780px;
   height: 100%;
-  max-height: 380px;
-  border: 2px solid rgba(120, 170, 255, 0.35);
-  border-radius: 50% / 18%;
-  background: radial-gradient(ellipse at center, rgba(30, 50, 100, 0.25) 0%, rgba(5, 8, 20, 0) 70%);
-  box-shadow: inset 0 0 60px rgba(60, 120, 220, 0.25), 0 0 40px rgba(60, 120, 220, 0.15);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  max-height: 400px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: filter 0.2s;
 }
-.constellation-mini { width: 90%; height: 75%; }
-.captain-line {
-  margin-top: 6px;
-  font-size: 14px;
-  color: var(--text-dim);
-  font-style: italic;
-}
+.constellation-mini:hover { filter: drop-shadow(0 0 18px rgba(120, 170, 255, 0.3)); }
 
 .bridge-nav {
   display: flex;
@@ -346,46 +336,33 @@ input[type="text"], input[type="password"] { width: 100%; text-align: center; }
 }
 .update-banner.clickable { cursor: pointer; background: var(--green); color: white; }
 
-/* ---------- team carousel ---------- */
-.carousel-wrap { flex: 1; display: flex; align-items: center; gap: 16px; padding: 10px 30px 30px; }
-.carousel {
-  flex: 1;
-  display: flex;
-  gap: 22px;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  padding: 20px 10px;
-}
-.carousel::-webkit-scrollbar { height: 6px; }
-.carousel::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
-
-.star-card {
-  flex: 0 0 260px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 20px;
-  padding: 26px 22px;
-  text-align: center;
-  backdrop-filter: blur(6px);
-}
-.star-card .star-icon-wrap {
+/* ---------- star profile (icon/name/role/blurb, reused in the profile modal) ---------- */
+.star-icon-wrap {
   width: 100px; height: 100px;
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 10px;
 }
-.star-card .star-name { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
-.star-card .star-role { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-.star-card .star-blurb { font-size: 13px; color: var(--text-light); line-height: 1.5; }
-.star-card .star-duties { margin-top: 12px; font-size: 11px; color: var(--text-dim); font-style: italic; }
+.star-name { font-size: 18px; font-weight: 700; margin-bottom: 2px; text-align: center; }
+.star-role { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; text-align: center; }
+.star-blurb { font-size: 13px; color: var(--text-light); line-height: 1.6; text-align: center; }
 
-.carousel-arrow {
-  background: rgba(255,255,255,0.08);
+/* ---------- hover tooltip on constellation stars ---------- */
+.star-tooltip {
+  position: fixed;
+  z-index: 200;
+  background: rgba(10, 16, 36, 0.95);
   border: 1px solid var(--panel-border);
-  color: var(--text-light);
-  width: 44px; height: 44px; border-radius: 50%;
-  font-size: 22px; cursor: pointer; flex-shrink: 0;
+  border-radius: 10px;
+  padding: 8px 14px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
 }
-.carousel-arrow:hover { background: rgba(255,255,255,0.18); }
+.star-tooltip strong { color: var(--text-light); font-size: 13px; }
+.star-tooltip span { color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+.star-profile { text-align: center; }
 
 /* ---------- system / constellation ---------- */
 .system-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 40px; }
