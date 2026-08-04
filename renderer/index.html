@@ -41,7 +41,7 @@
   </div>
 </div>
 
-<!-- ============ BRIDGE (main menu) ============ -->
+<!-- ============ BRIDGE (main menu + Star Team, merged) ============ -->
 <div id="screen-bridge" class="screen hidden">
   <header>
     <div class="brand">
@@ -56,18 +56,26 @@
   <div id="updateBanner" class="update-banner hidden"></div>
 
   <div class="bridge-viewport">
-    <button id="constellationMini" class="constellation-mini" title="Open Star Team"></button>
+    <div id="constellationMain" class="constellation-full"></div>
   </div>
 
-  <div class="bridge-nav">
-    <button class="nav-card" id="navCreate">
-      <span class="nav-icon">🚀</span>
-      <span class="nav-label">Create Presentation</span>
-    </button>
-    <button class="nav-card" id="navTeam">
-      <span class="nav-icon">⭐</span>
-      <span class="nav-label">Star Team</span>
-    </button>
+  <p id="bridgeCaption" class="hint center system-caption">Hover a star to see who it is, click for the full profile.</p>
+  <div id="genStatus" class="gen-status hidden"></div>
+  <div id="genLog" class="log hidden"></div>
+
+  <div class="bridge-nav" id="bridgeNav">
+    <button id="navCreate" class="primary-btn big">🚀 Create Presentation</button>
+  </div>
+</div>
+
+<div id="starTooltip" class="star-tooltip hidden"></div>
+<div id="starProfileOverlay" class="modal-overlay hidden">
+  <div class="modal star-profile">
+    <div id="starProfileIcon" class="star-icon-wrap"></div>
+    <div id="starProfileName" class="star-name"></div>
+    <div id="starProfileRole" class="star-role"></div>
+    <p id="starProfileDetails" class="star-blurb"></p>
+    <button id="closeStarProfileBtn" class="secondary-btn" style="width: 100%; margin-top: 10px;">Close</button>
   </div>
 </div>
 
@@ -106,35 +114,8 @@
       <span id="priceTagBrickmoto" class="price-tag">$50 per presentation</span>
     </div>
 
-    <div id="waitWarning" class="wait-warning hidden">⏳ This can take a few minutes - please don't close the app, the team is working!</div>
-    <div id="log" class="log hidden"></div>
-
     <button id="openFolderBtn" class="secondary-btn folder-btn">📂 Open output folder</button>
   </main>
-</div>
-
-<!-- ============ STAR TEAM (constellation, hover cards, click profiles) ============ -->
-<div id="screen-starteam" class="screen hidden">
-  <header class="sub-header">
-    <button class="back-btn" id="backFromTeam">← Bridge</button>
-    <div class="sub-title">Star Team</div>
-    <span></span>
-  </header>
-  <div class="system-wrap">
-    <div id="constellationFull" class="constellation-full"></div>
-    <p class="hint center system-caption">Andrei trains, teaches, and programs every star personally - that's why he's
-      connected to all of them. Hover a star to see who it is, click for the full profile.</p>
-  </div>
-  <div id="starTooltip" class="star-tooltip hidden"></div>
-  <div id="starProfileOverlay" class="modal-overlay hidden">
-    <div class="modal star-profile">
-      <div id="starProfileIcon" class="star-icon-wrap"></div>
-      <div id="starProfileName" class="star-name"></div>
-      <div id="starProfileRole" class="star-role"></div>
-      <p id="starProfileDetails" class="star-blurb"></p>
-      <button id="closeStarProfileBtn" class="secondary-btn" style="width: 100%; margin-top: 10px;">Close</button>
-    </div>
-  </div>
 </div>
 
 <!-- ============ SETTINGS MODAL ============ -->

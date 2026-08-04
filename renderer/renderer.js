@@ -11,14 +11,13 @@ const screens = {
   loginPassword: document.getElementById("screen-login-password"),
   bridge: document.getElementById("screen-bridge"),
   create: document.getElementById("screen-create"),
-  starteam: document.getElementById("screen-starteam"),
 };
 function showScreen(name) {
   Object.values(screens).forEach((el) => el.classList.add("hidden"));
   screens[name].classList.remove("hidden");
 }
 
-// ---------- constellation rendering (used on Bridge + System screen) ----------
+// ---------- constellation rendering (merged into the Bridge) ----------
 function seededRandom(seedStr) {
   let h = 0;
   for (let i = 0; i < seedStr.length; i++) h = (h * 31 + seedStr.charCodeAt(i)) >>> 0;
@@ -27,7 +26,7 @@ function seededRandom(seedStr) {
 
 function buildConstellation(container, opts) {
   const showLabels = !!opts.showLabels;
-  const scale = opts.scale || 1; // smaller/dimmer on the Bridge, full-size on System
+  const scale = opts.scale || 1;
   const w = container.clientWidth || 700;
   const h = container.clientHeight || 400;
   const hub = STAR_TEAM.find((s) => s.isHub);
@@ -38,7 +37,7 @@ function buildConstellation(container, opts) {
   const positions = { [hub.id]: { x: hubX, y: hubY } };
   others.forEach((star, i) => {
     const angleJitter = (seededRandom(star.id + "a") - 0.5) * 0.6; // +-0.3 rad
-    const radiusJitter = 0.7 + seededRandom(star.id + "r") * 0.55; // 0.7x - 1.25x, irregular like a real sky
+    const radiusJitter = 0.7 + seededRandom(star.id + "r") * 0.55; // irregular like a real sky
     const angle = (i / others.length) * Math.PI * 2 - Math.PI / 2 + angleJitter;
     positions[star.id] = {
       x: hubX + Math.cos(angle) * baseRadiusX * radiusJitter,
@@ -48,29 +47,29 @@ function buildConstellation(container, opts) {
 
   let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="100%"><defs>`;
   STAR_TEAM.forEach((star) => {
-    svg += `<radialGradient id="grad-${star.id}-${scale}" cx="50%" cy="50%" r="50%">
+    svg += `<radialGradient id="grad-${star.id}" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#ffffff" /><stop offset="35%" stop-color="${star.color}" />
       <stop offset="100%" stop-color="${star.color}" stop-opacity="0" /></radialGradient>`;
   });
   svg += `</defs>`;
-  // thin horoscope-style lines from hub to every other star
+  // thin horoscope-style lines from hub to every other star - these pulse
+  // during generation to show the signal traveling to whichever star is working
   others.forEach((star) => {
     const p = positions[star.id];
-    svg += `<line x1="${hubX}" y1="${hubY}" x2="${p.x}" y2="${p.y}" stroke="${star.color}" stroke-opacity="0.4" stroke-width="${0.7 * scale}" />`;
+    svg += `<line class="star-line" data-star-id="${star.id}" x1="${hubX}" y1="${hubY}" x2="${p.x}" y2="${p.y}" stroke="${star.color}" stroke-opacity="0.4" stroke-width="${1.1 * scale}" />`;
   });
-  // star-flare nodes - a touch brighter than the plain background stars, smaller on the Bridge
+  // star-flare nodes
   STAR_TEAM.forEach((star) => {
     const p = positions[star.id];
     const s = (star.isHub ? 46 : 34) * scale;
-    svg += `<g class="star-node" data-star-id="${star.id}" style="cursor:${opts.interactive ? "pointer" : "default"}">`;
-    svg += `<circle cx="${p.x}" cy="${p.y}" r="${s * 0.5}" fill="url(#grad-${star.id}-${scale})" opacity="0.65" />`;
+    svg += `<g class="star-node" data-star-id="${star.id}" style="cursor:pointer">`;
+    svg += `<circle class="star-glow" cx="${p.x}" cy="${p.y}" r="${s * 0.5}" fill="url(#grad-${star.id})" opacity="0.65" />`;
     svg += `<g stroke="${star.color}" stroke-linecap="round">
       <line x1="${p.x}" y1="${p.y - s * 0.48}" x2="${p.x}" y2="${p.y + s * 0.48}" stroke-width="${Math.max(0.6, s * 0.02)}" opacity="0.85" />
       <line x1="${p.x - s * 0.48}" y1="${p.y}" x2="${p.x + s * 0.48}" y2="${p.y}" stroke-width="${Math.max(0.6, s * 0.02)}" opacity="0.85" />
     </g>`;
-    svg += `<circle cx="${p.x}" cy="${p.y}" r="${Math.max(1.2, s * 0.09)}" fill="#ffffff" />`;
-    // invisible larger hit-area so hovering/clicking is easy, not just the thin cross
-    svg += `<circle cx="${p.x}" cy="${p.y}" r="${s * 0.7}" fill="transparent" />`;
+    svg += `<circle class="star-core" cx="${p.x}" cy="${p.y}" r="${Math.max(1.2, s * 0.09)}" fill="#ffffff" />`;
+    svg += `<circle cx="${p.x}" cy="${p.y}" r="${s * 0.7}" fill="transparent" />`; // easy hover/click target
     if (showLabels) {
       svg += `<text x="${p.x}" y="${p.y + s * 0.5 + 16}" text-anchor="middle" font-size="12" fill="#EAF2FF" font-family="Segoe UI, Arial">${star.name}</text>`;
     }
@@ -78,8 +77,7 @@ function buildConstellation(container, opts) {
   });
   svg += `</svg>`;
   container.innerHTML = svg;
-
-  if (opts.interactive) setupStarInteractivity(container);
+  setupStarInteractivity(container);
 }
 
 function setupStarInteractivity(container) {
@@ -87,7 +85,7 @@ function setupStarInteractivity(container) {
   container.querySelectorAll(".star-node").forEach((node) => {
     const star = STAR_TEAM.find((s) => s.id === node.dataset.starId);
     if (!star) return;
-    node.addEventListener("mouseenter", (e) => {
+    node.addEventListener("mouseenter", () => {
       tooltip.innerHTML = `<strong>${star.name}</strong><span>${star.role}</span>`;
       tooltip.classList.remove("hidden");
     });
@@ -111,11 +109,39 @@ document.getElementById("closeStarProfileBtn").addEventListener("click", () => {
   document.getElementById("starProfileOverlay").classList.add("hidden");
 });
 
-function renderConstellations() {
-  const mini = document.getElementById("constellationMini");
-  const full = document.getElementById("constellationFull");
-  if (mini) buildConstellation(mini, { showLabels: false, scale: 0.5, interactive: false });
-  if (full) buildConstellation(full, { showLabels: true, scale: 1, interactive: true });
+function renderConstellation() {
+  const el = document.getElementById("constellationMain");
+  if (el) buildConstellation(el, { showLabels: true, scale: 1 });
+}
+
+// ---------- animated progress during generation ----------
+const STAGE_PATTERNS = [
+  { match: /Writer/i, starId: "story" },
+  { match: /Illustrator/i, starId: "design" },
+  { match: /Builder/i, starId: "assembly" },
+  { match: /Inspector/i, starId: "checking" },
+  { match: /Printer/i, starId: "printing" },
+];
+
+function clearStarActivation() {
+  document.querySelectorAll(".star-node.active, .star-line.active").forEach((el) => el.classList.remove("active"));
+}
+
+function activateStar(starId) {
+  clearStarActivation();
+  const container = document.getElementById("constellationMain");
+  if (!container) return;
+  const node = container.querySelector(`.star-node[data-star-id="${starId}"]`);
+  const line = container.querySelector(`.star-line[data-star-id="${starId}"]`);
+  if (node) node.classList.add("active");
+  if (line) line.classList.add("active");
+}
+
+function setGenerationMode(active) {
+  document.getElementById("bridgeNav").classList.toggle("hidden", active);
+  document.getElementById("bridgeCaption").classList.toggle("hidden", active);
+  document.getElementById("genStatus").classList.toggle("hidden", !active);
+  if (!active) clearStarActivation();
 }
 
 // ---------- realistic glowing star icon (SVG, no emoji) ----------
@@ -192,7 +218,8 @@ document.getElementById("passwordInput").addEventListener("keydown", (e) => {
 
 async function enterBridge() {
   showScreen("bridge");
-  renderConstellations();
+  setGenerationMode(false);
+  renderConstellation();
   refreshBalance();
   refreshPrices();
   window.api.getVersion().then((v) => {
@@ -217,10 +244,7 @@ async function enterBridge() {
 
 // ---------- bridge navigation ----------
 document.getElementById("navCreate").addEventListener("click", () => { showScreen("create"); refreshBalanceCreate(); refreshPrices(); });
-document.getElementById("navTeam").addEventListener("click", () => { renderConstellations(); showScreen("starteam"); });
-document.getElementById("constellationMini").addEventListener("click", () => { renderConstellations(); showScreen("starteam"); });
 document.getElementById("backFromCreate").addEventListener("click", () => showScreen("bridge"));
-document.getElementById("backFromTeam").addEventListener("click", () => showScreen("bridge"));
 
 // ---------- balance & prices ----------
 async function refreshBalance() {
@@ -299,15 +323,28 @@ document.querySelectorAll(".tab").forEach((tab) => {
   });
 });
 
-// ---------- create lesson ----------
-const logEl = document.getElementById("log");
+// ---------- create lesson (with animated Star Team progress) ----------
+const genLogEl = document.getElementById("genLog");
+const genStatusEl = document.getElementById("genStatus");
+
 window.api.onLessonLog((msg) => {
-  logEl.classList.remove("hidden");
+  genLogEl.classList.remove("hidden");
   const span = document.createElement("span");
-  if (msg.includes("⚠️") || msg.includes("⚠")) span.className = "log-warning";
+  const isWarning = msg.includes("⚠️") || msg.includes("⚠");
+  if (isWarning) span.className = "log-warning";
   span.textContent = msg;
-  logEl.appendChild(span);
-  logEl.scrollTop = logEl.scrollHeight;
+  genLogEl.appendChild(span);
+  genLogEl.scrollTop = genLogEl.scrollHeight;
+
+  const stage = STAGE_PATTERNS.find((s) => s.match.test(msg));
+  if (stage) {
+    activateStar(stage.starId);
+    const star = STAR_TEAM.find((s) => s.id === stage.starId);
+    const clean = msg.replace(/^[^\w]+/, "").trim();
+    genStatusEl.textContent = `${star ? star.name : ""} ${clean}`;
+  } else if (!isWarning) {
+    genStatusEl.textContent = msg.replace(/^[^\w]+/, "").trim();
+  }
 });
 
 const regenerateModal = document.getElementById("regenerateModal");
@@ -347,20 +384,20 @@ document.getElementById("createBtn").addEventListener("click", async () => {
     regenerate = choice === "fresh";
   }
 
-  logEl.textContent = "";
-  logEl.classList.remove("hidden");
-  const waitWarning = document.getElementById("waitWarning");
-  waitWarning.classList.remove("hidden");
-  const btn = document.getElementById("createBtn");
-  btn.disabled = true;
-  btn.textContent = "Generating...";
-
   const notes = document.getElementById("notesInput").value.trim();
+
+  // switch to the Bridge in "generating" mode: constellation takes over,
+  // each star lights up in turn as the team works
+  genLogEl.textContent = "";
+  genLogEl.classList.add("hidden");
+  showScreen("bridge");
+  setGenerationMode(true);
+  genStatusEl.textContent = "⏳ Please don't close the app - the Star Team is working, this can take a few minutes.";
+
   await window.api.createLesson(topic, currentTrack, notes, regenerate);
 
-  btn.disabled = false;
-  btn.textContent = "Create Presentation";
-  waitWarning.classList.add("hidden");
+  setGenerationMode(false);
+  showScreen("create");
   refreshBalanceCreate();
   refreshBalance();
 });
@@ -398,7 +435,5 @@ window.api.onUpdateStatus((msg) => {
 });
 
 window.addEventListener("resize", () => {
-  if (!screens.bridge.classList.contains("hidden") || !screens.starteam.classList.contains("hidden")) {
-    renderConstellations();
-  }
+  if (!screens.bridge.classList.contains("hidden")) renderConstellation();
 });
