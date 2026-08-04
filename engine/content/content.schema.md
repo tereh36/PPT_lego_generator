@@ -63,6 +63,11 @@ Preschool_Rulebook.md, DESIGN_SYSTEM.md и CONTENT_GENERATION_GUIDE.md.
     "key_phrase": "Swim, swim, little fish!",
     "call_and_response_note": "Children repeat the key phrase chorally when Bubbles appears.",
     "full_story_speaker_notes": "Полный текст истории с ремарками, 6+ предложений.",
+    "archetype": "hungry_offering", // один из 6: antagonist_steal, hide_and_seek,
+                                     // hungry_offering, sad_lonely, pure_joy_surprise,
+                                     // gift_with_property (см. "Story format pool" в гайде).
+                                     // Движок использует это поле для отслеживания
+                                     // разнообразия между уроками (cooldown 3 урока).
     "observation_questions": [
       "What color is the fish?",
       "How many fins does the fish have?"
@@ -94,6 +99,9 @@ Preschool_Rulebook.md, DESIGN_SYSTEM.md и CONTENT_GENERATION_GUIDE.md.
 
   "game1": {
     "title": "Game 1: Swim Away!",
+    "structure_tag": "where_do_we_go", // один из: what_do_we_do, where_do_we_go,
+                                        // what_now, whats_the_plan, up_or_down,
+                                        // cue_word_cross, other. Cooldown 3 урока.
     "script": [
       { "speaker": "children", "text": "Teacher, teacher, where do fish live?" },
       { "speaker": "teacher",  "text": "In the water, swim swim swim!" },
@@ -106,7 +114,9 @@ Preschool_Rulebook.md, DESIGN_SYSTEM.md и CONTENT_GENERATION_GUIDE.md.
 
   "game2": {
     "title": "Game 2: Sort the Sea Creatures",
-    "type": "sorting",
+    "type": "sorting", // sensory | search | matching | sorting | compare
+                        // (sensory всегда в приоритете при наличии реального объекта,
+                        // остальные — мягкий cooldown 2 урока, см. гайд)
     "script": [
       { "speaker": "instruction", "text": "Look at each card together." },
       { "speaker": "instruction", "text": "Sort animals that live in water from animals that live on land." },

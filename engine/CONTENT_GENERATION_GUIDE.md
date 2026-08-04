@@ -165,7 +165,12 @@ The dramaturgy is fixed, only the content changes:
 
 ### Story format pool — don't default to "antagonist steals the prop"
 Vary it from topic to topic (test: could the teacher physically show this
-with 1-3 cutout props on the table, no abstractions?):
+with 1-3 cutout props on the table, no abstractions?). Tag whichever one you
+used in `story.archetype` (values: `antagonist_steal`, `hide_and_seek`,
+`hungry_offering`, `sad_lonely`, `pure_joy_surprise`, `gift_with_property`) -
+the app tracks this server-side and will tell you in the prompt which
+archetypes are still "on cooldown" (used too recently); tag honestly so that
+tracking stays accurate, don't just pick whichever tag sounds safest:
 1. **An antagonist wants to steal the prop** — first play the antagonist
    scene BEFORE handing out props (explains why), then hand out the prop
    "for safekeeping", then the antagonist livens things up trying to grab
@@ -235,6 +240,15 @@ and were real mistakes in past versions:
   can't change on its own.
 - Tearing/damaging a printed prop (breaking an apple in half) — props are
   reusable, they don't get destroyed as part of the plot.
+- A part of a printed prop moving/opening/flapping on its own (wings
+  opening, a mouth opening, a tail wagging, legs walking) — a flat cutout is
+  RIGID paper, nothing on it moves or articulates. REAL MISTAKE (topic
+  Ladybug): "the teacher lifts Dotty's wings open... Dotty opens her wings,
+  ready to fly!" — a paper ladybug's wings cannot physically lift or open.
+  If the plot needs an already-open-wings version, use the honest prop-swap
+  trick below (hide the closed-wings prop, pull out a SEPARATE
+  already-prepared open-wings prop) — never describe the SAME prop's part as
+  moving.
 - Hiding BEHIND a flat background (behind a tree drawn on the background) —
   the background is a flat A4 sheet, nothing can physically hide behind it.
   Hiding is ONLY behind the teacher's back or between two real props (one
@@ -364,7 +378,10 @@ phrases - it needs to work both as a giant headline and as a phrase a
   "[Topic], [Topic], where do we go?", "[Topic] time, what now?", "Hey
   [Topic], what's the plan?", "[Topic], [Topic], up or down?". Always check
   rhyme grammar. Don't tie the commands literally to the LEGO model itself
-  (see the umbrella-rule example).
+  (see the umbrella-rule example). Tag the structure you used in
+  `game1.structure_tag` - the app tracks this server-side and will tell you
+  in the prompt which structures are still "on cooldown" (used too
+  recently); tag honestly so the tracking stays accurate.
 
   ALTERNATE valid structure — cue-word cross game (great fit for predator/
   hiding themes): instead of two rhymed lines, the teacher's two responses
@@ -390,6 +407,12 @@ phrases - it needs to work both as a giant headline and as a phrase a
   feeling too thin and teaches little real language. No open questions like
   "what color", but "do you like it? yes or no" is fine. The script here is
   mostly `instruction` lines (rule steps) + one `action`.
+
+  Tag your choice in `game2.type`. The app tracks recent (non-sensory)
+  choices server-side and will nudge you in the prompt to avoid repeats -
+  but this is a SOFT preference, not a hard rule. `sensory` is NEVER
+  restricted: if the topic has an accessible real object, use `sensory`
+  regardless of how recently it was used elsewhere.
 
   1. **`type: "sensory"`** (PRIORITY if the topic has an accessible real
      object): touch/smell/taste the real object of the topic ("do you like
@@ -420,6 +443,10 @@ phrases - it needs to work both as a giant headline and as a phrase a
      sorting/counting printed cards or REAL objects of the topic by a
      simple trait (size, count) — NOT LEGO bricks: those are already used
      plenty in Model Building/Game 1, no need to repeat that here.
+  5. **`type: "compare"`**: hold up two printed cards or real objects side by
+     side and answer ONE simple comparative question tied to a real trait of
+     the topic (which is bigger/longer/heavier/taller) — not an open-ended
+     "how are they different?".
 
   Selection test: if the topic has an accessible real object — almost
   always `sensory`. If not, but there's a genuine real fact to hook a hunt
@@ -524,6 +551,7 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] The story leads to building a model of the TOPIC, not a derived object (house/container — belongs in challenge)
 - [ ] Every child builds THEIR OWN model from scratch, the story doesn't imply "fixing"/"finishing" the character's model
 - [ ] The story's conflict is concrete and playable with 2-3 paper props (test: could the teacher physically show this?)
+- [ ] No part of a printed prop moves/opens/flaps on its own (wings, mouth, tail, legs) - a flat cutout is rigid; use an honest prop-swap for any "before/after" state instead
 - [ ] No extra invented human characters — only the teacher minifigure + (if needed) a personification of the topic itself
 - [ ] Challenge does NOT use moving/functional parts (that's Brickmoto, not Preschool)
 - [ ] Challenge target is a concrete buildable STRUCTURE, never an environment/terrain (no "build a swamp/forest/ocean" - those aren't buildable, only real objects like a log, nest, fence, bridge are)
@@ -532,9 +560,9 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] The cover has no photo fields
 - [ ] presentation_qa has at least 4 pairs
 - [ ] game1/game2/game3 use the script format (not a wall of text), lines are color-only, no bold/underline
-- [ ] The story format is NOT "antagonist steals the prop" two lessons in a row (see the pool of 6 formats)
-- [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic
-- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting), not defaulting to the same one every time
+- [ ] The story format archetype is tagged accurately in `story.archetype` and doesn't match what the prompt told you is on cooldown (see the pool of 6 formats)
+- [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic; `structure_tag` matches what you actually wrote and isn't on cooldown per the prompt
+- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare), not defaulting to the same one every time; `sensory` used whenever a real object exists regardless of recent history
 - [ ] Challenge.text ends with an explicit "Now YOU build your own..." invitation
 - [ ] Game 3 — two clear slow/fast commands with a clear reason
 - [ ] Challenge — the archetype differs from the previous lesson in the block
