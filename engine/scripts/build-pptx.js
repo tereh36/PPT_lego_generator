@@ -324,7 +324,7 @@ function addScript(slide, script, boxSpec) {
   // into the decorative squares below, instead of guessing from line count alone.
   const sizesToTry = [20, 18, 16, 14, 13, 12, 11];
   let fontSize = sizesToTry[sizesToTry.length - 1];
-  const SAFETY_BUFFER = 1.18; // err toward shrinking rather than risking overflow into the decorative squares
+  const SAFETY_BUFFER = 1.32; // err toward shrinking rather than risking overflow into the decorative squares
   for (const size of sizesToTry) {
     const spacerPt = Math.max(4, Math.round(size * 0.3));
     let totalPt = 0;
@@ -345,12 +345,12 @@ function addScript(slide, script, boxSpec) {
   const runs = [];
   lines.forEach((line, i) => {
     const style = SPEAKER_STYLE[line.speaker] || SPEAKER_STYLE.instruction;
-    runs.push({ text: line.text, options: { color: style.color, italic: style.italic, bold: !!style.bold, fontSize, breakLine: true } });
+    runs.push({ text: line.text, options: { color: style.color, italic: style.italic, bold: !!style.bold, fontSize, breakLine: true, align: "center" } });
     if (i < lines.length - 1) {
       runs.push({ text: "", options: { breakLine: true, fontSize: spacerSize } });
     }
   });
-  slide.addText(runs, { ...boxSpec, fontFace: "Arial", align: "left", valign: "top", autoFit: true });
+  slide.addText(runs, { ...boxSpec, fontFace: "Arial", align: "center", valign: "middle", autoFit: true });
 }
 
 function buildGame1(pres, content) {
@@ -358,7 +358,7 @@ function buildGame1(pres, content) {
   addSquares(slide, STYLE_B);
   addContentTitle(slide, content.game1.title);
   const scriptY = addChantHeader(slide, content.game1.script, boxIn(1.3, 1.5, 10.7, 1.4));
-  addScript(slide, content.game1.script, boxIn(1.3, scriptY, 10.7, 6.25 - scriptY));
+  addScript(slide, content.game1.script, boxIn(1.3, scriptY, 10.7, 6.0 - scriptY));
 }
 
 function buildGame2(pres, content, assetsDir) {
@@ -370,7 +370,7 @@ function buildGame2(pres, content, assetsDir) {
 
   if (hasVisual) {
     const scriptY = addChantHeader(slide, content.game2.script, boxIn(0.8, 1.5, 5.6, 1.4));
-    addScript(slide, content.game2.script, boxIn(0.8, scriptY, 5.6, 6.25 - scriptY));
+    addScript(slide, content.game2.script, boxIn(0.8, scriptY, 5.6, 6.0 - scriptY));
     if (colors.length) {
       const cols = 3;
       colors.forEach((color, i) => {
@@ -386,7 +386,7 @@ function buildGame2(pres, content, assetsDir) {
   } else {
     // Sensory / no-visual games: let the text use the full slide width, like Game 1 and 3.
     const scriptY = addChantHeader(slide, content.game2.script, boxIn(1.3, 1.5, 10.7, 1.4));
-    addScript(slide, content.game2.script, boxIn(1.3, scriptY, 10.7, 6.25 - scriptY));
+    addScript(slide, content.game2.script, boxIn(1.3, scriptY, 10.7, 6.0 - scriptY));
   }
 }
 
@@ -395,7 +395,7 @@ function buildGame3(pres, content) {
   addSquares(slide, STYLE_B);
   addContentTitle(slide, content.game3.title);
   const scriptY = addChantHeader(slide, content.game3.script, boxIn(1.3, 1.5, 10.7, 1.4));
-  addScript(slide, content.game3.script, boxIn(1.3, scriptY, 10.7, 6.25 - scriptY));
+  addScript(slide, content.game3.script, boxIn(1.3, scriptY, 10.7, 6.0 - scriptY));
 }
 
 function buildChallenge(pres, content, assetsDir) {

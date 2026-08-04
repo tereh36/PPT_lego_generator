@@ -140,6 +140,37 @@ function activateStar(starId) {
   if (line) line.classList.add("active");
 }
 
+// Some steps (esp. Checking/Inspector) can finish in milliseconds - without
+// this, their star would flash and vanish before anyone sees it "work".
+// This queue guarantees every star stays lit for at least MIN_STAR_DURATION
+// before the next one takes over, chaining activations in order.
+const MIN_STAR_DURATION = 1000;
+let starQueue = Promise.resolve();
+let lastStarSwitchAt = 0;
+
+function queueActivateStar(starId) {
+  starQueue = starQueue.then(() => {
+    const elapsed = lastStarSwitchAt ? Date.now() - lastStarSwitchAt : MIN_STAR_DURATION;
+    const wait = Math.max(0, MIN_STAR_DURATION - elapsed);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        activateStar(starId);
+        lastStarSwitchAt = Date.now();
+        resolve();
+      }, wait);
+    });
+  });
+  return starQueue;
+}
+
+async function finishStarQueue() {
+  await starQueue;
+  const elapsed = lastStarSwitchAt ? Date.now() - lastStarSwitchAt : 0;
+  const wait = Math.max(0, MIN_STAR_DURATION - elapsed);
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastStarSwitchAt = 0;
+}
+
 function setGenerationMode(active) {
   document.getElementById("bridgeNav").classList.toggle("hidden", active);
   document.getElementById("bridgeCaption").classList.toggle("hidden", active);
@@ -346,7 +377,7 @@ window.api.onLessonLog((msg) => {
 
   const stage = STAGE_PATTERNS.find((s) => s.match.test(msg));
   if (stage) {
-    activateStar(stage.starId);
+    queueActivateStar(stage.starId);
     const star = STAR_TEAM.find((s) => s.id === stage.starId);
     const clean = msg.replace(/^[^\w]+/, "").trim();
     genStatusEl.textContent = `${star ? star.name : ""} ${clean}`;
@@ -399,11 +430,14 @@ document.getElementById("createBtn").addEventListener("click", async () => {
   genLogEl.textContent = "";
   genLogEl.classList.add("hidden");
   logToggleBtn.classList.add("hidden");
+  starQueue = Promise.resolve();
+  lastStarSwitchAt = 0;
   showScreen("bridge");
   setGenerationMode(true);
   genStatusEl.textContent = "⏳ Please don't close the app - the Star Team is working, this can take a few minutes.";
 
   await window.api.createLesson(topic, currentTrack, notes, regenerate);
+  await finishStarQueue();
 
   setGenerationMode(false);
   showScreen("create");
