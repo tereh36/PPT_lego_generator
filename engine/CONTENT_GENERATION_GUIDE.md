@@ -447,6 +447,12 @@ phrases - it needs to work both as a giant headline and as a phrase a
      side and answer ONE simple comparative question tied to a real trait of
      the topic (which is bigger/longer/heavier/taller) — not an open-ended
      "how are they different?".
+  6. **`type: "pattern"`**: a simple AB repeating sequence children copy or
+     extend — two topic-relevant colors alternating (e.g. red-blue-red-blue
+     bricks), or a real pattern the topic actually has (zebra stripes,
+     ladybug spots) recreated with printed cards or LEGO bricks. Keep it to
+     a plain AB pattern (not AAB/ABC) — this age group is just meeting the
+     concept for the first time.
 
   Selection test: if the topic has an accessible real object — almost
   always `sensory`. If not, but there's a genuine real fact to hook a hunt
@@ -562,7 +568,7 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] game1/game2/game3 use the script format (not a wall of text), lines are color-only, no bold/underline
 - [ ] The story format archetype is tagged accurately in `story.archetype` and doesn't match what the prompt told you is on cooldown (see the pool of 6 formats)
 - [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic; `structure_tag` matches what you actually wrote and isn't on cooldown per the prompt
-- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare), not defaulting to the same one every time; `sensory` used whenever a real object exists regardless of recent history
+- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare/pattern), not defaulting to the same one every time; `sensory` used whenever a real object exists regardless of recent history
 - [ ] Challenge.text ends with an explicit "Now YOU build your own..." invitation
 - [ ] Game 3 — two clear slow/fast commands with a clear reason
 - [ ] Challenge — the archetype differs from the previous lesson in the block

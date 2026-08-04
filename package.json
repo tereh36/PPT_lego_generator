@@ -1,6 +1,6 @@
 {
   "name": "star-team",
-  "version": "1.6.5",
+  "version": "1.6.7",
   "description": "Star Team - AI lesson generator desktop app",
   "main": "main.js",
   "author": "Andrei Terekhov",
@@ -38,7 +38,8 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "installerSidebar": "build/installerSidebar.bmp",
-      "include": "build/installer.nsh"
+      "include": "build/installer.nsh",
+      "artifactName": "Star-Team-Setup-${version}.${ext}"
     },
     "publish": {
       "provider": "github",

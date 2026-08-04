@@ -457,6 +457,7 @@ input[type="text"], input[type="password"] { width: 100%; text-align: center; }
 /* ---------- system / constellation ---------- */
 .system-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 40px; }
 .constellation-full { width: 100%; max-width: 900px; height: 60vh; }
+.loading-constellation { max-width: 640px; height: 50vh; }
 .system-caption { max-width: 500px; }
 
 /* ---------- settings modal ---------- */

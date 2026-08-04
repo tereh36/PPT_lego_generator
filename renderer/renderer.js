@@ -3,10 +3,11 @@ function renderBrandName(el) {
   if (!el) return;
   el.innerHTML = "Star Team".split("").map((ch) => `<span class="brand-letter">${ch}</span>`).join("");
 }
-["brandName", "brandName2", "brandName3"].forEach((id) => renderBrandName(document.getElementById(id)));
+["brandName", "brandName2", "brandName3", "brandNameLoading"].forEach((id) => renderBrandName(document.getElementById(id)));
 
 // ---------- screen navigation ----------
 const screens = {
+  loading: document.getElementById("screen-loading"),
   loginUsername: document.getElementById("screen-login-username"),
   loginPassword: document.getElementById("screen-login-password"),
   bridge: document.getElementById("screen-bridge"),
@@ -115,6 +116,51 @@ document.getElementById("closeStarProfileBtn").addEventListener("click", () => {
 function renderConstellation() {
   const el = document.getElementById("constellationMain");
   if (el) buildConstellation(el, { showLabels: true, scale: 1 });
+}
+
+// ---------- loading-screen signal animation (Boss -> Andrei -> whole team) ----------
+// Shown while we check for a saved login, instead of flashing the username
+// field for a split second before auto-login kicks in.
+let loadingAnimTimer = null;
+
+function loadingSetActive(container, starIds) {
+  container.querySelectorAll(".star-node.active, .star-line.active").forEach((el) => el.classList.remove("active"));
+  starIds.forEach((id) => {
+    const node = container.querySelector(`.star-node[data-star-id="${id}"]`);
+    const line = container.querySelector(`.star-line[data-star-id="${id}"]`);
+    if (node) node.classList.add("active");
+    if (line) line.classList.add("active");
+  });
+}
+
+function startLoadingAnimation() {
+  const container = document.getElementById("constellationLoading");
+  if (!container) return;
+  buildConstellation(container, { showLabels: true, scale: 1 });
+
+  const allSpokeIds = STAR_TEAM.filter((s) => !s.isHub).map((s) => s.id);
+
+  // Step 1: signal from Boss (Captain) to Andrei (hub) - lights just that spoke.
+  // Step 2: Andrei relays it out to the whole team - lights every spoke at once.
+  // Then a brief dark pause before looping.
+  const STEP1_MS = 750, STEP2_MS = 950, PAUSE_MS = 450;
+
+  function loop() {
+    loadingSetActive(container, ["captain"]);
+    loadingAnimTimer = setTimeout(() => {
+      loadingSetActive(container, allSpokeIds);
+      loadingAnimTimer = setTimeout(() => {
+        loadingSetActive(container, []);
+        loadingAnimTimer = setTimeout(loop, PAUSE_MS);
+      }, STEP2_MS);
+    }, STEP1_MS);
+  }
+  loop();
+}
+
+function stopLoadingAnimation() {
+  if (loadingAnimTimer) clearTimeout(loadingAnimTimer);
+  loadingAnimTimer = null;
 }
 
 // ---------- animated progress during generation ----------
@@ -262,17 +308,21 @@ async function enterBridge() {
   });
 }
 
-// on load: if already logged in (saved config), skip straight to bridge
+// on load: show the loading constellation while we check for a saved login,
+// instead of flashing the username screen for a split second first
 (async function initialLoad() {
+  startLoadingAnimation();
   const cfg = await window.api.getConfig();
   if (cfg.username && cfg.password) {
     pendingUsername = cfg.username;
     const result = await window.api.checkBalance();
     if (result.ok) {
+      stopLoadingAnimation();
       await enterBridge();
       return;
     }
   }
+  stopLoadingAnimation();
   showScreen("loginUsername");
 })();
 

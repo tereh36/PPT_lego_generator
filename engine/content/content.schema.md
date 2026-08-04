@@ -114,7 +114,7 @@ Preschool_Rulebook.md, DESIGN_SYSTEM.md и CONTENT_GENERATION_GUIDE.md.
 
   "game2": {
     "title": "Game 2: Sort the Sea Creatures",
-    "type": "sorting", // sensory | search | matching | sorting | compare
+    "type": "sorting", // sensory | search | matching | sorting | compare | pattern
                         // (sensory всегда в приоритете при наличии реального объекта,
                         // остальные — мягкий cooldown 2 урока, см. гайд)
     "script": [
