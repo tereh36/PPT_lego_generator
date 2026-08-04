@@ -70,9 +70,10 @@ def page1_story_props(c, content, props_dir):
     page_header(c, "Story Props - Cut Out & Use During Storytelling")
     props = content["story_props"]
     n = len(props)
-    cols = min(n, 3)
+    cols = min(n, 2)  # 2 per row instead of 3 - each image ends up ~70% bigger,
+                       # easier to cut out and show to kids
     rows = (n + cols - 1) // cols
-    margin = 50
+    margin = 40
     cell_w = (PAGE_W - 2 * margin) / cols
     cell_h = (PAGE_H - 160) / rows
     for i, prop in enumerate(props):
@@ -81,7 +82,7 @@ def page1_story_props(c, content, props_dir):
         y = PAGE_H - 100 - (row + 1) * cell_h
         slug = prop["name"].lower().replace(" ", "_")
         img_path = os.path.join(props_dir, f"{slug}.png")
-        draw_image_contain(c, img_path, x + 10, y + 30, cell_w - 20, cell_h - 40)
+        draw_image_contain(c, img_path, x + 6, y + 30, cell_w - 12, cell_h - 40)
         c.setFont("Helvetica", 11)
         c.setFillColorRGB(0, 0, 0)
         c.drawCentredString(x + cell_w / 2, y + 12, prop["name"])
@@ -198,6 +199,30 @@ def page4_game_printout(c, gen_dir, content):
     c.showPage()
 
 
+def page_search_item_bulk(c, gen_dir, content, copies=8):
+    """Tiles many copies of a single search_item on one page - needed when
+    Game 2 is a 'find N of the same thing' hunt (e.g. find 8 cactuses),
+    since the teacher needs enough physical copies to actually hide."""
+    search_item = content.get("game2", {}).get("search_item", {})
+    name = search_item.get("name", "")
+    img_path = os.path.join(gen_dir, "game2_search_item.png")
+    page_header(c, f"Find the {name} - Cut Out {copies} Copies")
+    cols = 4
+    rows = (copies + cols - 1) // cols
+    margin = 40
+    cell_w = (PAGE_W - 2 * margin) / cols
+    cell_h = (PAGE_H - 130) / rows
+    for i in range(copies):
+        col, row = i % cols, i // cols
+        x = margin + col * cell_w
+        y = PAGE_H - 90 - (row + 1) * cell_h
+        draw_image_contain(c, img_path, x + 6, y + 6, cell_w - 12, cell_h - 12)
+    c.setFont("Helvetica-Oblique", 10)
+    c.setFillColorRGB(*GRAY)
+    c.drawCentredString(PAGE_W / 2, 40, f"Print and cut out all {copies} - hide them around the room for the search game.")
+    c.showPage()
+
+
 def page5_pattern_sheet(c, content):
     letter = content["letter"].upper()
     c.setFont("Helvetica-Bold", 16)
@@ -236,6 +261,8 @@ def main():
         page3_full_story(c, content)
         if content.get("game2", {}).get("colors"):
             page4_game_printout(c, gen_dir, content)
+        if content.get("game2", {}).get("search_item"):
+            page_search_item_bulk(c, gen_dir, content)
         page5_pattern_sheet(c, content)
     else:
         print("No images found (no API key) - building story-only page.")

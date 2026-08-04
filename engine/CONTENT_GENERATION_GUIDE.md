@@ -284,6 +284,19 @@ The story needs a clear hook (will they make it in time/not, catch it/not,
 have enough/not) — not just "found an object and played with it, the end".
 A flat scene with no stakes feels empty even when it's physically feasible.
 
+### Mandatory fact-check (real mistake: camel humps supposedly store water)
+Before submitting, check EVERY factual claim about the real animal/object
+against what you actually know to be true - including claims baked into
+the story's core premise, not just isolated trivia lines. Real example of
+the mistake: an entire Camel story was built around "the camel is thirsty
+because her humps are full of water" - this is FALSE, camel humps store
+FAT, not water. The whole plot rested on a wrong fact. If you're not
+confident a fact is correct, either don't use it, or use a safer, more
+general true statement instead (e.g. "camels can go a long time without
+water" is true and still gives a usable story hook). A story that "sounds
+plausible" is not the same as one that is actually correct - treat this
+check with the same seriousness as the physical-feasibility test.
+
 ## Step 3 — Story Props
 A minimal set (usually 2, max 3-4), only directly related to the topic, no
 secondary characters for decoration.
@@ -332,11 +345,21 @@ words), not long phrases.
   1. **`type: "sensory"`** (PRIORITY if the topic has an accessible real
      object): touch/smell/taste the real object of the topic ("do you like
      it?", "tasty/not tasty?", "touch the leaves... green leaves!").
-  2. **`type: "search"`**: the teacher hides several cutout topic cards
-     around the room (under a chair, behind a curtain, etc. — calm, not
-     running), kids take turns searching and happily show what they found;
-     a chorus line on finding it ("Found it!"). Works well if the topic has
-     no accessible real object and sorting feels boring for it.
+  2. **`type: "search"`**: the teacher hides cutout cards around the room
+     (under a chair, behind a curtain, etc. — calm, not running), kids take
+     turns searching and happily show what they found; a chorus line on
+     finding it ("Found it!"). Two sub-modes, pick whichever fits better:
+     - **Reuse story props**: hide the already-printed story-prop cards
+       (2-4 different items), one of each. Good default, needs no extra
+       printing.
+     - **Real-fact item, many copies** (PREFERRED when there's a good real
+       fact to hook it to): tie the search to something interesting and true
+       about the topic — what it eats, what it's drawn to, what it collects
+       (e.g. a camel topic → "find the cactus" because camels eat cactus; a
+       squirrel topic → "find the acorns"). This needs its OWN item, set via
+       `search_item: {name, image_prompt}` on game2 — see below. Prefer this
+       whenever a genuine behavioral/dietary fact fits naturally; it makes
+       the game more interesting than a generic prop hunt.
   3. **`type: "matching"`**: pair up simple printed cards by ONE clear trait
      — size (big/small), shape, "same/not the same" — NOT necessarily
      color, that's just one possible trait.
@@ -346,16 +369,22 @@ words), not long phrases.
      plenty in Model Building/Game 1, no need to repeat that here.
 
   Selection test: if the topic has an accessible real object — almost
-  always `sensory`. If not, but the topic is easy to turn into "find the
-  hidden thing" — `search`. Otherwise `matching` or `sorting` depending on
-  the situation.
+  always `sensory`. If not, but there's a genuine real fact to hook a hunt
+  to — `search` with `search_item`. If not, but reusing story props for a
+  simple hunt still fits — `search` reusing props. Otherwise `matching` or
+  `sorting` depending on the situation.
 
-  For `search` and `matching`, do NOT invent separate new images —
-  no dedicated images are generated for Game 2. Reuse the ALREADY-printed
-  story props (page 1 of the printable set, `story_props`) — e.g. for
-  search: "hide the printed story-prop cards around the room". This makes
-  prep simpler for the teacher (nothing extra to print) and logically ties
-  Game 2 back to the story that was just told.
+  For `matching` and for `search` when reusing story props, do NOT invent
+  separate new images — reuse the ALREADY-printed story props (page 1 of the
+  printable set, `story_props`). This keeps prep simple for the teacher.
+
+  ⚠️ If `search` uses `search_item` (many copies of ONE thing to hide), the
+  printable page for it MUST show MANY copies (about 8) tiled on a full
+  page, not just 1-2 — the teacher needs enough physical copies to actually
+  hide around the room. This is handled automatically by the engine once
+  `game2.search_item` is set; you only need to provide the name and a single
+  `image_prompt` for it (photorealistic per Step 6 rules, on a plain white
+  background) — the engine prints it in bulk.
 - **Game 3**: must physically use the built model, with the same chant
   structure as Game 1 (the same children's line + the teacher randomly picks
   1 of 2 responses), NEW words for the topic, as simple as possible (see the
@@ -445,6 +474,7 @@ of whatever the challenge is about, on a white/transparent background.
 - [ ] Numbers in prose are spelled out, except Game N labels
 - [ ] Presentation questions rely only on what was covered in Story/Observation
 - [ ] Story Props <= 4 items, all directly on-topic
+- [ ] Every factual claim about the real animal/object has been fact-checked (not just plausible-sounding) - see the camel-humps example
 - [ ] The JSON is valid (no fields missing from content.schema.md)
 
 ## Output
