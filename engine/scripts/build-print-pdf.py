@@ -69,23 +69,38 @@ def draw_image_contain(c, img_path, box_x, box_y, box_w, box_h):
 def page1_story_props(c, content, props_dir):
     page_header(c, "Story Props - Cut Out & Use During Storytelling")
     props = content["story_props"]
-    n = len(props)
-    cols = min(n, 2)  # 2 per row instead of 3 - each image ends up ~70% bigger,
-                       # easier to cut out and show to kids
-    rows = (n + cols - 1) // cols
-    margin = 40
-    cell_w = (PAGE_W - 2 * margin) / cols
-    cell_h = (PAGE_H - 160) / rows
-    for i, prop in enumerate(props):
-        col, row = i % cols, i // cols
-        x = margin + col * cell_w
-        y = PAGE_H - 100 - (row + 1) * cell_h
-        slug = prop["name"].lower().replace(" ", "_")
-        img_path = os.path.join(props_dir, f"{slug}.png")
-        draw_image_contain(c, img_path, x + 6, y + 30, cell_w - 12, cell_h - 40)
-        c.setFont("Helvetica", 11)
-        c.setFillColorRGB(0, 0, 0)
-        c.drawCentredString(x + cell_w / 2, y + 12, prop["name"])
+
+    # Fixed target sizes by role, not "divide the page evenly" - that produced
+    # illogical proportions (a tiny character or a giant carrot). A character
+    # prints at roughly a quarter of the page; a handout item (something given
+    # to/eaten by kids - a carrot, a leaf, a cactus) prints noticeably smaller
+    # but never below a size a 3-4 year old can comfortably hold.
+    CHARACTER_BOX = 300   # ~ a quarter of a Letter page
+    HANDOUT_BOX = 170     # floor size for a small handheld item
+    # old content.json files predate the "role" field - default to "character"
+    characters = [p for p in props if p.get("role", "character") == "character"]
+    handouts = [p for p in props if p.get("role") == "handout"]
+
+    def draw_row(items, box_size, top_y):
+        n = len(items)
+        if n == 0:
+            return top_y
+        total_w = n * box_size + (n - 1) * 20
+        start_x = (PAGE_W - total_w) / 2
+        for i, prop in enumerate(items):
+            x = start_x + i * (box_size + 20)
+            slug = prop["name"].lower().replace(" ", "_")
+            img_path = os.path.join(props_dir, f"{slug}.png")
+            draw_image_contain(c, img_path, x, top_y - box_size, box_size, box_size)
+            c.setFont("Helvetica", 11)
+            c.setFillColorRGB(0, 0, 0)
+            c.drawCentredString(x + box_size / 2, top_y - box_size - 16, prop["name"])
+        return top_y - box_size - 40
+
+    y = PAGE_H - 110
+    y = draw_row(characters, CHARACTER_BOX, y)
+    draw_row(handouts, HANDOUT_BOX, y)
+
     c.setFont("Helvetica-Oblique", 10)
     c.setFillColorRGB(*GRAY)
     c.drawCentredString(PAGE_W / 2, 40, "Print, cut out, and use as hand props while telling the story.")
@@ -202,21 +217,23 @@ def page4_game_printout(c, gen_dir, content):
 def page_search_item_bulk(c, gen_dir, content, copies=8):
     """Tiles many copies of a single search_item on one page - needed when
     Game 2 is a 'find N of the same thing' hunt (e.g. find 8 cactuses),
-    since the teacher needs enough physical copies to actually hide."""
+    since the teacher needs enough physical copies to actually hide.
+    3 columns (not 4) keeps each copy a comfortable size for small hands,
+    not shrunk down just to cram everything onto one page."""
     search_item = content.get("game2", {}).get("search_item", {})
     name = search_item.get("name", "")
     img_path = os.path.join(gen_dir, "game2_search_item.png")
     page_header(c, f"Find the {name} - Cut Out {copies} Copies")
-    cols = 4
+    cols = 3
     rows = (copies + cols - 1) // cols
-    margin = 40
+    margin = 30
     cell_w = (PAGE_W - 2 * margin) / cols
     cell_h = (PAGE_H - 130) / rows
     for i in range(copies):
         col, row = i % cols, i // cols
         x = margin + col * cell_w
         y = PAGE_H - 90 - (row + 1) * cell_h
-        draw_image_contain(c, img_path, x + 6, y + 6, cell_w - 12, cell_h - 12)
+        draw_image_contain(c, img_path, x + 12, y + 12, cell_w - 24, cell_h - 24)
     c.setFont("Helvetica-Oblique", 10)
     c.setFillColorRGB(*GRAY)
     c.drawCentredString(PAGE_W / 2, 40, f"Print and cut out all {copies} - hide them around the room for the search game.")

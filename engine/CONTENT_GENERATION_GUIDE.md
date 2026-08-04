@@ -301,6 +301,15 @@ check with the same seriousness as the physical-feasibility test.
 A minimal set (usually 2, max 3-4), only directly related to the topic, no
 secondary characters for decoration.
 
+Every prop needs a `role`: `"character"` for the main story character(s), or
+`"handout"` for a small item that gets given to/collected by children or
+eaten (a carrot, a leaf, krill, a cactus, etc.). This isn't cosmetic - it
+drives the print size: characters print at roughly a quarter of the page
+(bigger for naturally large animals/objects), handout items print noticeably
+smaller but never so small a 3-4 year old can't comfortably hold one. Get
+this wrong and printed sizes look illogical (a tiny character, a giant
+carrot).
+
 ## Step 4 — Games (unified `script` format for game1/game2/game3)
 Each game is described as a `script: [{speaker, text}]` array, speaker is
 one of: `children` (kids initiate a line in chorus), `teacher` (the
@@ -473,7 +482,7 @@ of whatever the challenge is about, on a white/transparent background.
 - [ ] No em-dashes anywhere in the text
 - [ ] Numbers in prose are spelled out, except Game N labels
 - [ ] Presentation questions rely only on what was covered in Story/Observation
-- [ ] Story Props <= 4 items, all directly on-topic
+- [ ] Story Props <= 4 items, all directly on-topic, every prop has a valid `role` (character/handout)
 - [ ] Every factual claim about the real animal/object has been fact-checked (not just plausible-sounding) - see the camel-humps example
 - [ ] The JSON is valid (no fields missing from content.schema.md)
 

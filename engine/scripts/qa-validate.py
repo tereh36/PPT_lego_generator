@@ -41,6 +41,15 @@ def lint_content(content_path, problems):
     props = content.get("story_props", [])
     if len(props) > 4:
         problems.append(f"content.json: story_props has {len(props)} items, keep it minimal (max ~4).")
+    for prop in props:
+        if prop.get("role") not in ("character", "handout"):
+            problems.append(
+                f"content.json: story_props item '{prop.get('name', '?')}' is missing a valid 'role' "
+                f"(character/handout) - printing can't size it correctly without this."
+            )
+    game2 = content.get("game2", {})
+    if game2.get("type") == "search" and game2.get("search_item") and not game2["search_item"].get("image_prompt"):
+        problems.append("content.json: game2.search_item is set but missing image_prompt.")
 
     for game_key in ("game1", "game2", "game3"):
         game = content.get(game_key, {})
