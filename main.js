@@ -76,12 +76,17 @@ let manualUpdateCheck = false;
 function sendUpdateStatus(text, percent) {
   if (mainWindow) mainWindow.webContents.send("update:status", { text, percent: typeof percent === "number" ? percent : null });
 }
-autoUpdater.on("checking-for-update", () => sendUpdateStatus("Checking for updates..."));
+autoUpdater.on("checking-for-update", () => {
+  console.log("[autoUpdater] checking-for-update");
+  sendUpdateStatus("Checking for updates...");
+});
 autoUpdater.on("update-available", (info) => {
+  console.log("[autoUpdater] update-available:", info && info.version);
   manualUpdateCheck = false;
   sendUpdateStatus(`Update ${info.version} found, downloading...`, 0);
 });
 autoUpdater.on("update-not-available", () => {
+  console.log("[autoUpdater] update-not-available");
   if (manualUpdateCheck) {
     sendUpdateStatus("You're on the latest version.");
     manualUpdateCheck = false;
@@ -90,12 +95,21 @@ autoUpdater.on("update-not-available", () => {
     sendUpdateStatus("");
   }
 });
-autoUpdater.on("error", () => {
+autoUpdater.on("error", (err) => {
+  console.error("[autoUpdater] error:", err);
   manualUpdateCheck = false;
-  sendUpdateStatus("");
+  const reason = err && err.message ? err.message : "Unknown error";
+  sendUpdateStatus(`Update failed: ${reason}`);
+  setTimeout(() => sendUpdateStatus(""), 8000);
 });
-autoUpdater.on("download-progress", (p) => sendUpdateStatus(`Downloading update: ${Math.round(p.percent)}%`, p.percent));
-autoUpdater.on("update-downloaded", () => sendUpdateStatus("READY:Update downloaded! Click here to restart and install.", 100));
+autoUpdater.on("download-progress", (p) => {
+  console.log(`[autoUpdater] download-progress: ${Math.round(p.percent)}% (${p.transferred}/${p.total} bytes)`);
+  sendUpdateStatus(`Downloading update: ${Math.round(p.percent)}%`, p.percent);
+});
+autoUpdater.on("update-downloaded", () => {
+  console.log("[autoUpdater] update-downloaded");
+  sendUpdateStatus("READY:Update downloaded! Click here to restart and install.", 100);
+});
 
 ipcMain.handle("update:installNow", () => {
   autoUpdater.quitAndInstall();
