@@ -208,10 +208,24 @@ function runStep(cmd, args, extraEnv) {
     // gets silently split into two args unless quoted. This was the cause
     // of "no such file" errors after renaming folders that contain a space.
     const safeArgs = args.map((a) => (typeof a === "string" && a.includes(" ") && !a.startsWith('"') ? `"${a}"` : a));
-    const proc = spawn(cmd, safeArgs, {
+
+    // For Node scripts, run them through Electron's OWN bundled Node runtime
+    // instead of a system-wide "node" install. This app gets installed on
+    // machines that may not have Node.js at all (e.g. a non-technical
+    // teacher's PC) - spawning the literal "node" command then fails with
+    // "'node' is not recognized as an internal or external command".
+    // process.execPath (the Electron binary itself) + ELECTRON_RUN_AS_NODE
+    // makes Electron behave like a plain Node executable, so this always
+    // works regardless of what is or isn't installed on the target machine.
+    const isNode = cmd === "node";
+    const realCmd = isNode ? process.execPath : cmd;
+    const realEnv = { ...process.env, ...extraEnv };
+    if (isNode) realEnv.ELECTRON_RUN_AS_NODE = "1";
+
+    const proc = spawn(realCmd, safeArgs, {
       cwd: ENGINE_DIR,
       shell: true,
-      env: { ...process.env, ...extraEnv },
+      env: realEnv,
     });
     proc.stdout.on("data", (d) => (output += d.toString()));
     proc.stderr.on("data", (d) => (output += d.toString()));
@@ -271,7 +285,9 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes, regenerate 
     const r = await runStep("node", ["scripts/generate-content-remote.js", topic], extraEnv);
     if (!r.ok || !fs.existsSync(contentPath)) {
       reportFailure("Writer", r.output);
-      send("Check your account balance, then try again.");
+      if (/not enough balance/i.test(r.output)) {
+        send("Check your account balance, then try again.");
+      }
       return { ok: false };
     }
     const balanceMatch = r.output.match(/Balance remaining: \$(-?\d+(\.\d+)?)/);
@@ -299,12 +315,16 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes, regenerate 
   const pptxSrc = path.join(DATA_DIR, "output", `${slug}.pptx`);
   const pdfSrc = path.join(DATA_DIR, "output", `${slug}_printables.pdf`);
 
-  send("🔍 Inspector is checking everything...");
-  const qa = await runStep("python", ["scripts/qa-validate.py", pptxSrc, contentPath], extraEnv);
-  if (!qa.ok) reportFailure("Inspector", qa.output);
+  // Inspector (QA-validate) is disabled for now - it's the last remaining
+  // step that depended on a system Python install, which non-technical end
+  // users' machines don't have. It was never fatal to presentation delivery
+  // anyway (a QA failure only logged a warning, never stopped the build).
+  // TODO: port qa-validate.py to a Node script (like build-print-pdf.js
+  // already was) and re-enable this once that's done, so the app truly
+  // never depends on anything external to the packaged .exe.
 
   send("🖨️  Printer is preparing the handout PDF...");
-  const pdf = await runStep("python", ["scripts/build-print-pdf.py", contentPath], extraEnv);
+  const pdf = await runStep("node", ["scripts/build-print-pdf.js", contentPath], extraEnv);
   if (!pdf.ok) reportFailure("Printer", pdf.output);
 
   const finalDir = path.join(OUTPUT_ROOT, slug);
