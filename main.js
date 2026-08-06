@@ -222,7 +222,15 @@ function runStep(cmd, args, extraEnv) {
     const realEnv = { ...process.env, ...extraEnv };
     if (isNode) realEnv.ELECTRON_RUN_AS_NODE = "1";
 
-    const proc = spawn(realCmd, safeArgs, {
+    // Same quoting problem as args (see above), but for the command itself:
+    // process.execPath is the full path to the installed app's own binary,
+    // e.g. "D:\StarTeam\Star Team.exe" - productName ("Star Team") contains
+    // a space, so without quoting, cmd.exe under shell:true reads only up
+    // to the space as the command ("D:\StarTeam\Star") and chokes on the
+    // rest, producing "'...\Star' is not recognized...".
+    const safeCmd = realCmd.includes(" ") && !realCmd.startsWith('"') ? `"${realCmd}"` : realCmd;
+
+    const proc = spawn(safeCmd, safeArgs, {
       cwd: ENGINE_DIR,
       shell: true,
       env: realEnv,
@@ -315,13 +323,9 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes, regenerate 
   const pptxSrc = path.join(DATA_DIR, "output", `${slug}.pptx`);
   const pdfSrc = path.join(DATA_DIR, "output", `${slug}_printables.pdf`);
 
-  // Inspector (QA-validate) is disabled for now - it's the last remaining
-  // step that depended on a system Python install, which non-technical end
-  // users' machines don't have. It was never fatal to presentation delivery
-  // anyway (a QA failure only logged a warning, never stopped the build).
-  // TODO: port qa-validate.py to a Node script (like build-print-pdf.js
-  // already was) and re-enable this once that's done, so the app truly
-  // never depends on anything external to the packaged .exe.
+  send("🔍 Inspector is checking everything...");
+  const qa = await runStep("node", ["scripts/qa-validate.js", pptxSrc, contentPath], extraEnv);
+  if (!qa.ok) reportFailure("Inspector", qa.output);
 
   send("🖨️  Printer is preparing the handout PDF...");
   const pdf = await runStep("node", ["scripts/build-print-pdf.js", contentPath], extraEnv);

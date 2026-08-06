@@ -85,9 +85,9 @@ async function main() {
     process.exit(1);
   }
 
-  run(`python scripts/qa-validate.py "output/${topic}.pptx" "content/${topic}.json"`, "QA-проверка");
+  run(`node scripts/qa-validate.js "output/${topic}.pptx" "content/${topic}.json"`, "QA-проверка");
 
-  run(`python scripts/build-print-pdf.py "content/${topic}.json"`, "печатный PDF");
+  run(`node scripts/build-print-pdf.js "content/${topic}.json"`, "печатный PDF");
 
   console.log("\n=========== ГОТОВО ===========");
   console.log(`Презентация: output/${topic}.pptx`);

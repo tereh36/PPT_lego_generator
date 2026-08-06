@@ -1,6 +1,6 @@
 {
   "name": "star-team",
-  "version": "1.6.8",
+  "version": "1.6.12",
   "description": "Star Team - AI lesson generator desktop app",
   "main": "main.js",
   "author": "Andrei Terekhov",
@@ -12,7 +12,11 @@
     "dotenv": "^16.4.5",
     "electron-updater": "^6.3.9",
     "pptxgenjs": "^3.12.0",
-    "pdfkit": "^0.15.0"
+    "pdfkit": "^0.15.0",
+    "jszip": "^3.10.1",
+    "fast-xml-parser": "^4.5.0",
+    "pdfjs-dist": "^3.11.174",
+    "pngjs": "^7.0.0"
   },
   "devDependencies": {
     "electron": "^32.0.0",
@@ -27,6 +31,7 @@
       "preload.js",
       "renderer/**/*",
       "engine/**/*",
+      "node_modules/**/*",
       "!engine/output/**",
       "!engine/**/node_modules/**"
     ],
