@@ -107,9 +107,13 @@ function page2StoryBackground(doc, genDir) {
     // write a separate rotated file to disk first.
     doc.save();
     doc.rotate(90, { origin: [PAGE_W / 2, PAGE_H / 2] });
-    // After a 90deg rotation the effective drawing box is swapped (H x W
-    // instead of W x H) relative to the page.
-    doc.image(imgPath, (PAGE_H - PAGE_W) / 2, (PAGE_W - PAGE_H) / 2, {
+    // After a 90deg rotation about the page centre, the drawing box is swapped
+    // (H x W instead of W x H). To land back on the page it must be centred on
+    // the same point, i.e. start at half the difference on each axis:
+    //   x = (PAGE_W - PAGE_H)/2 = -90   y = (PAGE_H - PAGE_W)/2 = +90
+    // These two were previously swapped, which pushed the image off-centre by
+    // 180pt in both directions and left big white strips on the printed page.
+    doc.image(imgPath, (PAGE_W - PAGE_H) / 2, (PAGE_H - PAGE_W) / 2, {
       cover: [PAGE_H, PAGE_W], align: "center", valign: "center"
     });
     doc.restore();
