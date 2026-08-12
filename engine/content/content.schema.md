@@ -38,6 +38,14 @@ Preschool_Rulebook.md, DESIGN_SYSTEM.md и CONTENT_GENERATION_GUIDE.md.
     через `real_object_image_prompt` — фотореалистичный промпт, не LEGO,
     не присылается пользователем вручную (в отличие от фото шагов сборки и
     Our Goal, которые остаются реальными фото от пользователя).
+16. **Любой физический предмет, с которым дети взаимодействуют по отдельности
+    (каждый находит/сортирует/держит СВОЙ экземпляр)** — должен быть описан
+    через `game2.print_items` (для игровых карточек) или `class_copies` на
+    story prop (для хендаутов из истории, например хлебных крошек), иначе
+    движок его физически не напечатает. Реальный баг из первой версии:
+    сценарий говорил "sort the ducks", но `game2.json` не содержал ни одной
+    картинки утки для печати — распечатать было нечего. Число копий ~8
+    (по одной на ребёнка в полном классе), см. CONTENT_GENERATION_GUIDE.md.
 
 ```jsonc
 {
@@ -76,8 +84,16 @@ Preschool_Rulebook.md, DESIGN_SYSTEM.md и CONTENT_GENERATION_GUIDE.md.
   },
 
   "story_props": [
-    { "name": "Fish", "image_prompt": "..." },
-    { "name": "Bubbles", "image_prompt": "..." }
+    { "name": "Fish", "image_prompt": "...", "role": "character" },
+    { "name": "Bubbles", "image_prompt": "...", "role": "character" }
+    // "class_copies" (необязательно, только для role:"handout"): ставится,
+    // когда КАЖДЫЙ ребёнок в истории получает/держит/собирает СВОЙ экземпляр
+    // этого пропса (не разовый реквизит учителя со страницы 1, а раздаточный
+    // материал на весь класс) — например хлебные крошки, которые дети по
+    // очереди подбирают и скармливают персонажу. Стандартное значение — 8
+    // (одна копия на ребёнка в полном классе). Без этого поля пропс печатается
+    // как обычно, один раз, на странице Story Props (для рассказывания истории).
+    // Пример: { "name": "Breadcrumb", "image_prompt": "...", "role": "handout", "class_copies": 8 }
   ],
 
   "real_object_image_prompt": "A real photograph of an actual fish, photorealistic, natural lighting, simple clean background, no text",
@@ -113,20 +129,52 @@ Preschool_Rulebook.md, DESIGN_SYSTEM.md и CONTENT_GENERATION_GUIDE.md.
   },
 
   "game2": {
-    "title": "Game 2: Sort the Sea Creatures",
-    "type": "sorting", // sensory | search | matching | sorting | compare | pattern
+    "title": "Game 2: Sort the Fish",
+    "type": "sorting", // sensory | search | matching | sorting | compare | pattern | shape_build
                         // (sensory всегда в приоритете при наличии реального объекта,
                         // остальные — мягкий cooldown 2 урока, см. гайд)
     "script": [
-      { "speaker": "instruction", "text": "Look at each card together." },
-      { "speaker": "instruction", "text": "Sort animals that live in water from animals that live on land." },
+      { "speaker": "instruction", "text": "Look at each fish card together." },
+      { "speaker": "instruction", "text": "Sort the fish that float near the top from the fish that dive deep." },
       { "speaker": "action", "text": "Children place each card into the matching pile." }
     ],
-    "colors": ["RED","BLUE","GREEN","PURPLE","YELLOW","TEAL","ORANGE"],
-    "base_prop_image": "prop_fish",
-    "shape_reference_prompt": "...",
-    "shape_pieces_prompt": "...",
-    "printout_prompt": "..."
+    // print_items — GENERIC, PREFERRED way to give matching/sorting/compare/
+    // pattern a real printable set. One entry per DISTINCT image; "copies" is
+    // how many of THAT image to print. Every item the script names (here:
+    // "float", "dive") must have an entry, or nothing prints for it — see
+    // КРИТИЧНО #16. Guidance on copies:
+    //  - sorting/matching (each child sorts/holds a piece): copies across all
+    //    entries should sum to about 8 (one class set) — e.g. 2 categories x
+    //    4 copies, or 4 pairs x 2 copies.
+    //  - compare (teacher just holds 2 items up side by side): 1 copy each,
+    //    don't force it to 8.
+    //  - pattern: enough unit cards to lay out and extend one repeating
+    //    sequence (usually 3-6 copies per unit, not 8).
+    "print_items": [
+      { "name": "floating_fish", "image_prompt": "A real photograph of a fish floating near the water surface, photorealistic, isolated on a plain white background, no text", "copies": 4 },
+      { "name": "diving_fish", "image_prompt": "A real photograph of a fish diving deep underwater, photorealistic, isolated on a plain white background, no text", "copies": 4 }
+    ]
+
+    // Other, narrower mechanisms — still supported, use only when they
+    // actually fit (don't force a topic into these just because they exist):
+    //  - "colors" + "base_prop_image": recolors ONE existing story-prop image
+    //    into each listed color (see recolor-game2.py) — only for a genuine
+    //    color-sort/match, not a stand-in for print_items.
+    //  - "shape_reference_prompt" + "shape_pieces_prompt": type "shape_build"
+    //    only — a reference shape image plus a sheet of loose brick-shape
+    //    pieces kids arrange to match it. Not in the six-type list above,
+    //    it's a separate LEGO-shape-copy mechanic.
+    //  - "printout_prompt": DEPRECATED, do not use in new content. A single
+    //    image with no copy count - historically it only ever reached the
+    //    slide, never the print PDF, which is exactly how the "sort the
+    //    ducks but no ducks were printed" bug happened. The engine now also
+    //    prints it as a 1-copy fallback page for old content.json files that
+    //    still have it, but always prefer print_items for anything new.
+    // "colors": ["RED","BLUE","GREEN","PURPLE","YELLOW","TEAL","ORANGE"],
+    // "base_prop_image": "prop_fish",
+    // "shape_reference_prompt": "...",
+    // "shape_pieces_prompt": "...",
+    // "printout_prompt": "..."
   },
 
   "game3": {

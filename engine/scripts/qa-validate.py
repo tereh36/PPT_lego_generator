@@ -29,7 +29,7 @@ except Exception:
     pass
 
 
-def lint_content(content_path, problems):
+def lint_content(content_path, problems, warnings):
     """Checks on content.json itself, besides the visual layout."""
     with open(content_path, encoding="utf-8") as f:
         content = json.load(f)
@@ -50,6 +50,70 @@ def lint_content(content_path, problems):
     game2 = content.get("game2", {})
     if game2.get("type") == "search" and game2.get("search_item") and not game2["search_item"].get("image_prompt"):
         problems.append("content.json: game2.search_item is set but missing image_prompt.")
+
+    # Print-asset completeness: catches the "duck sorting game with no duck
+    # image" bug at generation time instead of at print time. print_items is
+    # the generic mechanism for matching/sorting/compare/pattern; colors is
+    # the older color-recolor mechanism; matching/search may legitimately
+    # reuse already-printed story_props instead (the guide's documented
+    # fallback), so that combination only warns, never fails.
+    print_items = game2.get("print_items", [])
+    has_colors = bool(game2.get("colors"))
+    has_print_assets = bool(print_items) or has_colors
+
+    for i, item in enumerate(print_items):
+        name = item.get("name")
+        if not name:
+            problems.append(f"content.json: game2.print_items[{i}] is missing 'name'.")
+        if not item.get("image_prompt"):
+            problems.append(f"content.json: game2.print_items[{i}] ('{name or '?'}') is missing 'image_prompt'.")
+        copies = item.get("copies")
+        if not isinstance(copies, int) or isinstance(copies, bool) or copies < 1:
+            problems.append(f"content.json: game2.print_items[{i}] ('{name or '?'}') needs a positive integer 'copies', got {copies!r}.")
+
+    game2_type = game2.get("type")
+    if game2_type in ("sorting", "pattern") and not has_print_assets:
+        problems.append(
+            f"content.json: game2.type is '{game2_type}' but neither print_items nor colors is set - "
+            f"nothing will be printed for this game (this is the exact bug that shipped a duck-sorting "
+            f"game with no duck images). Add game2.print_items."
+        )
+    if game2_type == "compare" and not has_print_assets:
+        problems.append(
+            "content.json: game2.type is 'compare' but no print_items/colors is set - 'compare' has no "
+            "story-prop-reuse fallback, it always needs its own print_items (typically 2 entries, copies: 1 each)."
+        )
+    if game2_type == "matching" and not has_print_assets:
+        warnings.append(
+            "content.json: game2.type is 'matching' with no print_items/colors - only OK if this "
+            "intentionally reuses the already-printed story_props cards (per the guide); if not, add print_items."
+        )
+
+    if game2_type in ("sorting", "matching") and print_items:
+        total = sum(int(it.get("copies") or 0) for it in print_items)
+        if total < 4 or total > 12:
+            warnings.append(
+                f"content.json: game2.print_items total copies is {total} for a '{game2_type}' game - "
+                f"usually you want about 8 total (one class set), see CONTENT_GENERATION_GUIDE.md Game 2 print quantity rule."
+            )
+    if game2_type == "compare":
+        for item in print_items:
+            copies = item.get("copies")
+            if isinstance(copies, int) and copies > 2:
+                warnings.append(
+                    f"content.json: game2.print_items '{item.get('name')}' has copies={copies} for a 'compare' game - "
+                    f"compare items are held up by the teacher, not handed out; 1-2 copies is usually enough."
+                )
+
+    for prop in props:
+        if "class_copies" in prop:
+            class_copies = prop["class_copies"]
+            if prop.get("role") != "handout":
+                problems.append(f"content.json: story_props item '{prop.get('name', '?')}' has 'class_copies' but role is '{prop.get('role')}' - class_copies only applies to handout props.")
+            elif not isinstance(class_copies, int) or isinstance(class_copies, bool) or class_copies < 1:
+                problems.append(f"content.json: story_props item '{prop.get('name', '?')}' has an invalid class_copies ({class_copies!r}), must be a positive integer.")
+            elif class_copies < 4:
+                warnings.append(f"content.json: story_props item '{prop.get('name')}' has class_copies={class_copies} - too few for a full class if each child gets one; consider 8.")
 
     for game_key in ("game1", "game2", "game3"):
         game = content.get(game_key, {})
@@ -310,9 +374,12 @@ def main():
     if len(sys.argv) >= 3:
         content_path = os.path.abspath(sys.argv[2])
         print("== 0/4 Content lint ==")
-        lint_content(content_path, problems)
+        lint_warnings = []
+        lint_content(content_path, problems, lint_warnings)
         for p in problems:
             print("LINT:", p)
+        for w in lint_warnings:
+            print("LINT WARNING:", w)
         print("== 0b/4 Video availability (youtube oEmbed, needs internet) ==")
         check_video_availability(content_path, problems, warnings)
         for p in warnings:

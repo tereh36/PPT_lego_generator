@@ -103,6 +103,16 @@ function lintContent(content) {
     }
   });
 
+  // print-asset completeness (see qa-validate.js for the full version run before shipping)
+  const g2 = content.game2 || {};
+  const hasPrintAssets = (g2.print_items && g2.print_items.length) || (g2.colors && g2.colors.length);
+  if (["sorting", "pattern", "compare"].includes(g2.type) && !hasPrintAssets) {
+    warnings.push(
+      `game2.type is "${g2.type}" but neither print_items nor colors is set - nothing will print for ` +
+      `this game (see the duck-sorting example in CONTENT_GENERATION_GUIDE.md). Add game2.print_items.`
+    );
+  }
+
   const topic = (content.topic || "").toLowerCase();
   const summary = ((content.story || {}).short_summary || "").toLowerCase();
   if (topic && !summary.includes(topic)) {

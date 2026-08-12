@@ -76,6 +76,23 @@ reinvented from nothing.
     pushes" — both are movement tests, not building; fixed to "build the
     tallest hangar" and "build the biggest shell, count the bricks"
     respectively.
+15. **Every physical item children interact with individually MUST be a real,
+    printable asset with the right quantity — never a described-but-unmade
+    prop.** If the story or Game 2 says a child finds/sorts/matches/holds/
+    collects their OWN piece of something, that something needs an entry in
+    `game2.print_items` (or `class_copies` on a `story_props` handout) with
+    an `image_prompt` and a `copies` count — see content.schema.md and the
+    "Game 2" section below. Real example of the mistake: a Duck lesson's
+    Game 2 script said "sort the ducks" (`type: "sorting"`), but no duck
+    image or copy count existed anywhere in the JSON — nothing printed, the
+    teacher had zero ducks to hand out. Before finalizing Game 2 (and any
+    story beat that hands children a real object), reread your own script
+    line by line and ask: "if I printed exactly what this JSON defines,
+    would every physical thing the script asks for actually be on paper, in
+    enough copies?" Rule of thumb on quantity: about 8 total (one per child
+    in a full class) when each child gets their own piece to sort/match/
+    find; 1 copy each when the teacher is just holding two things up to
+    compare; a handful (3-6) per repeating unit for a pattern strip.
 
 ## Challenge Archetypes (rotate, don't repeat back to back; ALL are about
 building, see rule 14)
@@ -368,22 +385,41 @@ phrases - it needs to work both as a giant headline and as a phrase a
   WORDS and both responses are NEW for every topic, drawn from the topic's
   own vocabulary (action verbs for that specific animal/object), never reuse
   previous lessons' phrasing verbatim.
+
   CRITICAL about language: the target audience is 3-5 year olds, often
   non-native speakers (e.g. Vietnamese, who just learned "hello"). The chant
   and responses must consist ONLY of the simplest, shortest, highest-
   frequency words (1 syllable preferred, 2 max) — verbs like "go, fly, run,
-  jump, hide, swim" and the topic name, NOT complex constructions. Don't
-  default every time to the same "[Topic], [Topic], what do we do?"
-  structure — this also needs variety (different question structures, not
-  only "what do we do"). Examples of DIFFERENT structures (don't copy
-  verbatim, but don't use the same structure two lessons in a row):
-  "[Topic], [Topic], where do we go?", "[Topic] time, what now?", "Hey
-  [Topic], what's the plan?", "[Topic], [Topic], up or down?". Always check
-  rhyme grammar. Don't tie the commands literally to the LEGO model itself
-  (see the umbrella-rule example). Tag the structure you used in
+  jump, hide, swim" and the topic name, NOT complex constructions.
+
+  CRITICAL about the teacher's response: BOTH of the teacher's two options
+  must be SHORT and RHYME — this is not optional and not specific to the
+  rhymed template's "third line", the whole point of a chant is that it's
+  rhythmic and easy to remember by ear. Say it out loud before you commit to
+  it: if it doesn't scan and doesn't rhyme, rewrite it. This same short+rhyme
+  requirement applies to Game 3's teacher lines too (see below), since Game 3
+  reuses this exact chant structure.
+
+  Don't default every time to the same "[Topic], [Topic], what do we do?"
+  structure. Genuinely vary the QUESTION STRUCTURE from topic to topic, not
+  just the words plugged into it — never reuse the same structure two
+  lessons in a row (per `structure_tag` cooldown below), and treat this list
+  as a starting point to riff on, not an exhaustive menu to cycle through
+  verbatim:
+  "[Topic], [Topic], what do we do?", "[Topic], [Topic], where do we go?",
+  "[Topic] time, what now?", "Hey [Topic], what's the plan?", "[Topic],
+  [Topic], up or down?", "[Topic], [Topic], can you tell?", "Little
+  [Topic], what's next?", "[Topic] friend, what do we do?", "[Topic] says,
+  what now?", "Ready, [Topic], what's the call?", "[Topic], [Topic], loud
+  or quiet?", "[Topic], [Topic], near or far?". Always check rhyme grammar.
+  Don't tie the commands literally to the LEGO model itself (see the
+  umbrella-rule example). Tag the structure you used in
   `game1.structure_tag` - the app tracks this server-side and will tell you
   in the prompt which structures are still "on cooldown" (used too
-  recently); tag honestly so the tracking stays accurate.
+  recently); tag honestly so the tracking stays accurate. If every tagged
+  structure is on cooldown, compose a genuinely new one rather than
+  reusing a cooling-down tag - the pool above is not a hard enum, `other`
+  is always a valid tag for something new.
 
   ALTERNATE valid structure — cue-word cross game (great fit for predator/
   hiding themes): instead of two rhymed lines, the teacher's two responses
@@ -399,16 +435,63 @@ phrases - it needs to work both as a giant headline and as a phrase a
   clean predator/safe-spot pair exists naturally in the topic; otherwise
   default to the rhymed template above.
 - **Game 2** — a MIXED POOL of formats, like the story — pick based on the
-  topic, don't default to the same one every time. General principle: Game 2
-  is noticeably calmer than Game 1 (which already "owns" running/energy) and
-  CLOSER to the real world — no running, only printed materials/a real
-  object/bricks. All questions/steps use SIMPLE words, but responses should
-  still be full, meaningful short phrases where a child speaks (e.g. "Yes, I
-  like it!", "I found the leaf!") rather than a single bare word/interjection
-  every time — a game that's only ever "yes/no" one-word answers ends up
-  feeling too thin and teaches little real language. No open questions like
-  "what color", but "do you like it? yes or no" is fine. The script here is
-  mostly `instruction` lines (rule steps) + one `action`.
+  topic, don't default to the same one every time, and don't default to
+  `search` ("kids must find something") just because it's the most familiar
+  option. Every type below is equally valid when it fits the topic better —
+  the goal is the BEST-fitting concrete mechanic for this specific animal/
+  object's real traits, not habit. General principle: Game 2 is noticeably
+  calmer than Game 1 (which already "owns" running/energy) and CLOSER to the
+  real world — no running, only printed materials/a real object/bricks. All
+  questions/steps use SIMPLE words, but responses should still be full,
+  meaningful short phrases where a child speaks (e.g. "Yes, I like it!", "I
+  found the leaf!") rather than a single bare word/interjection every time —
+  a game that's only ever "yes/no" one-word answers ends up feeling too
+  thin and teaches little real language. No open questions like "what
+  color", but "do you like it? yes or no" is fine. The script here is
+  mostly `instruction` lines (rule steps) + one `action`, and where the
+  teacher does have a line, keep it SHORT — a rhyme is a bonus here (Game 2
+  is calmer, not chanted, so it's not mandatory the way it is for Game 1/3),
+  but a long unrhythmic sentence still doesn't belong on a slide a 4-year-old
+  is meant to glance at.
+
+  **Think like a room of specialists before you commit to a mechanic**, not
+  just a single "pick from the list" pass. Genuinely run through these four
+  angles on your OWN draft idea before finalizing `game2` (this is not
+  cosmetic — each angle below has caught a real, different class of mistake):
+  - **An early-childhood pedagogy specialist** asks: does this actually
+    teach a real concept at a 3-5-year-old's developmental level (sorting,
+    counting, comparing, patterning, cause-and-effect), or is it just
+    busywork dressed up as a game?
+  - **A language-acquisition/ESL specialist** asks: are the phrases the
+    child speaks here DIFFERENT from what they said in Game 1 and in the
+    last few lessons' Game 2, or is this the same sentence shape again with
+    the topic word swapped in?
+  - **A hands-on/motor-development specialist** asks: what does the child's
+    hand actually DO in this game (pick up, flip, place in a pile, hold next
+    to another card)? If you can't answer that concretely, the mechanic is
+    too abstract for this age group.
+  - **A print-production/classroom-logistics specialist** asks the most
+    literal question of all: "if I printed exactly what this JSON defines
+    and nothing else, could a teacher run this game tomorrow morning?" —
+    walk through the script line by line and confirm every physical item it
+    names has a matching `print_items`/`search_item`/`colors` entry with a
+    sane copy count (see КРИТИЧНО #15). This is the check that would have
+    caught the duck-sorting bug (a script that said "sort the ducks" with no
+    duck image defined anywhere).
+  If any of the four would object, revise before moving on — don't write
+  four bullet points of praise and continue with the original idea.
+
+  Pick a real, interesting, TOPIC-SPECIFIC trait to build the mechanic
+  around, not the laziest available one. "Sort by big/small" is the correct
+  answer sometimes, but it's also the easiest answer to reach for by habit —
+  before defaulting to size, ask whether the topic has a more specific, more
+  interesting real trait to sort/match/compare/pattern by (does it float or
+  dive, is it loud or quiet, does it live on land or in water, is it smooth
+  or bumpy, is it awake by day or by night, does it have stripes or spots).
+  A genuine real-world fact almost always makes a more memorable game than a
+  generic size split — apply the same "prefer a real fact" instinct that
+  `search` already uses for `search_item` (see below) to `matching`,
+  `sorting`, `compare`, and `pattern` too.
 
   Tag your choice in `game2.type`. The app tracks recent (non-sensory)
   choices server-side and will nudge you in the prompt to avoid repeats -
@@ -418,7 +501,8 @@ phrases - it needs to work both as a giant headline and as a phrase a
 
   1. **`type: "sensory"`** (PRIORITY if the topic has an accessible real
      object): touch/smell/taste the real object of the topic ("do you like
-     it?", "tasty/not tasty?", "touch the leaves... green leaves!").
+     it?", "tasty/not tasty?", "touch the leaves... green leaves!"). No
+     print assets needed - this uses the real object, not a printout.
   2. **`type: "search"`**: the teacher hides cutout cards around the room
      (under a chair, behind a curtain, etc. — calm, not running), kids take
      turns searching and happily show what they found; a chorus line on
@@ -438,48 +522,74 @@ phrases - it needs to work both as a giant headline and as a phrase a
        `search_item: {name, image_prompt}` on game2 — see below. Prefer this
        whenever a genuine behavioral/dietary fact fits naturally; it makes
        the game more interesting than a generic prop hunt.
-  3. **`type: "matching"`**: pair up simple printed cards by ONE clear trait
-     — size (big/small), shape, "same/not the same" — NOT necessarily
-     color, that's just one possible trait.
-  4. **`type: "sorting"`** (fallback, when nothing else fits organically):
-     sorting/counting printed cards or REAL objects of the topic by a
-     simple trait (size, count) — NOT LEGO bricks: those are already used
-     plenty in Model Building/Game 1, no need to repeat that here.
+  3. **`type: "matching"`**: pair up simple printed cards by ONE clear,
+     genuinely interesting trait — prefer a real behavioral/physical trait
+     of the topic over a generic one when a good one exists (e.g. matching
+     each animal to the sound it makes, to what it eats, to where it
+     sleeps), falling back to size/shape/"same or not the same" only when
+     no such trait fits naturally. Needs `game2.print_items` (see below) —
+     one entry per distinct card image, unless it's a reuse-story-props
+     match (see above), which needs no new images.
+  4. **`type: "sorting"`**: sorting/counting printed cards or REAL objects of
+     the topic into two or more piles by a trait — pick the trait the same
+     way as `matching` above (a real, specific, interesting one first, a
+     generic size/count split only as a fallback) — NOT LEGO bricks: those
+     are already used plenty in Model Building/Game 1, no need to repeat
+     that here. Needs `game2.print_items`: one entry per category (e.g. a
+     "floats"/"dives" sort needs a floating-duck image and a diving-duck
+     image, each with its own `copies`) — see КРИТИЧНО #15, this is exactly
+     the mechanic that broke when the print asset was never defined.
   5. **`type: "compare"`**: hold up two printed cards or real objects side by
      side and answer ONE simple comparative question tied to a real trait of
      the topic (which is bigger/longer/heavier/taller) — not an open-ended
-     "how are they different?".
+     "how are they different?". Needs `game2.print_items` with two entries,
+     `copies: 1` each (the teacher holds these up, they aren't handed out).
   6. **`type: "pattern"`**: a simple AB repeating sequence children copy or
      extend — two topic-relevant colors alternating (e.g. red-blue-red-blue
      bricks), or a real pattern the topic actually has (zebra stripes,
      ladybug spots) recreated with printed cards or LEGO bricks. Keep it to
      a plain AB pattern (not AAB/ABC) — this age group is just meeting the
-     concept for the first time.
+     concept for the first time. If done with printed cards (not bricks),
+     needs `game2.print_items`: one entry per pattern unit, a few `copies`
+     each (enough to lay out and extend one sequence, not a full class set).
+  7. **`type: "shape_build"`** (narrow, LEGO-specific — use only when it
+     genuinely fits, not as a default): children arrange a small sheet of
+     loose brick-shape pieces to match a printed reference shape. Uses
+     `shape_reference_prompt` + `shape_pieces_prompt`, not `print_items`.
 
   Selection test: if the topic has an accessible real object — almost
-  always `sensory`. If not, but there's a genuine real fact to hook a hunt
-  to — `search` with `search_item`. If not, but reusing story props for a
-  simple hunt still fits — `search` reusing props. Otherwise `matching` or
-  `sorting` depending on the situation.
+  always `sensory`. Otherwise, actively consider all of `search` (with a
+  real-fact `search_item`), `matching`, `sorting`, `compare`, and `pattern`
+  against the topic's actual real-world traits, and pick whichever gives
+  the most concrete, specific, interesting game — not whichever you reached
+  for last time. Reusing story props for a simple `search`/`matching` is a
+  fine fallback when nothing more specific presents itself, but a
+  topic-specific trait beats a generic reuse when one is available.
 
   For `matching` and for `search` when reusing story props, do NOT invent
   separate new images — reuse the ALREADY-printed story props (page 1 of the
   printable set, `story_props`). This keeps prep simple for the teacher.
 
-  ⚠️ If `search` uses `search_item` (many copies of ONE thing to hide), the
-  printable page for it MUST show MANY copies (about 8) tiled on a full
-  page, not just 1-2 — the teacher needs enough physical copies to actually
-  hide around the room. This is handled automatically by the engine once
-  `game2.search_item` is set; you only need to provide the name and a single
-  `image_prompt` for it (photorealistic per Step 6 rules, on a plain white
-  background) — the engine prints it in bulk.
+  ⚠️ Print quantity, by mechanic: `search` with `search_item` needs about 8
+  physical copies of the one item tiled on a full page (handled
+  automatically once `game2.search_item` is set — you only provide `name`
+  and a single `image_prompt`, photorealistic per Step 6 rules, on a plain
+  white background). `matching`/`sorting` with `print_items` needs copies
+  across all entries to sum to about 8 (one class set - e.g. 2 categories x
+  4, or 4 pairs x 2) - set each entry's `copies` accordingly, the engine
+  tiles them together on one page. `compare` needs only 1 copy per entry.
+  `pattern` needs a handful (3-6) per unit. Never leave a `print_items`
+  entry without a `copies` number, and never describe a card or category in
+  the script that has no matching `print_items` entry - see КРИТИЧНО #15.
 - **Game 3**: must physically use the built model, with the same chant
   structure as Game 1 (the same children's line + the teacher randomly picks
   1 of 2 responses), NEW words for the topic, as simple as possible (see the
-  language rule under Game 1). You need TWO clearly different teacher
-  commands with a clear reason tied to the topic's weather/mood (e.g. "sunny
-  day, fly high!" / "storm is coming, fly low!") — simply a different
-  height/speed of movement for the model, WITHOUT a specific destination.
+  language rule under Game 1). Both teacher responses must be SHORT and
+  RHYME, same as Game 1's - say them out loud before finalizing. You need
+  TWO clearly different teacher commands with a clear reason tied to the
+  topic's weather/mood (e.g. "sunny day, fly high!" / "storm is coming, fly
+  low!") — simply a different height/speed of movement for the model,
+  WITHOUT a specific destination.
   CRITICAL: NEVER mention an object/structure the kids haven't built yet
   (e.g. "fly to the hangar", "run to the house") — at this point in the
   lesson only the topic's own model has been built, the Challenge object
@@ -569,20 +679,24 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] presentation_qa has at least 4 pairs
 - [ ] game1/game2/game3 use the script format (not a wall of text), lines are color-only, no bold/underline
 - [ ] The story format archetype is tagged accurately in `story.archetype` and doesn't match what the prompt told you is on cooldown (see the pool of 6 formats)
-- [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic; `structure_tag` matches what you actually wrote and isn't on cooldown per the prompt
-- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare/pattern), not defaulting to the same one every time; `sensory` used whenever a real object exists regardless of recent history
+- [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic; `structure_tag` matches what you actually wrote and isn't on cooldown per the prompt; say both teacher lines out loud — do they actually rhyme and scan, or just kind of?
+- [ ] Game 1's question structure is genuinely different from the last couple of lessons, not just the same "what do we do?" shape with the topic word swapped in
+- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare/pattern/shape_build), not defaulting to `search`/size-sorting out of habit; `sensory` used whenever a real object exists regardless of recent history; you actually ran the pedagogy/language/motor/print-logistics four-angle pass on this game (see Step 4) rather than committing to the first idea
+- [ ] Game 2's sorting/matching/compare/pattern trait is a real, specific, interesting fact about the topic where one was available, not a lazy default (size/color) chosen without considering alternatives
+- [ ] Every physical item the story or any game asks a child to find/sort/match/hold/collect individually has a real print asset backing it (`game2.print_items` with `image_prompt` + `copies`, `game2.search_item`, `game2.colors`, or a handout `story_props` entry with `class_copies`) — reread every game script line by line and confirm nothing describes a physical object with nothing printed for it (the duck-sorting bug)
+- [ ] Print copy counts make sense for how the item is used: ~8 total when each child gets their own piece (search/matching/sorting/most handouts), 1 each for a `compare` the teacher just holds up, a handful per unit for `pattern`
 - [ ] Challenge.text ends with an explicit "Now YOU build your own..." invitation
-- [ ] Game 3 — two clear slow/fast commands with a clear reason
+- [ ] Game 3 — two clear slow/fast commands with a clear reason, both teacher lines short and rhyming like Game 1's
 - [ ] Challenge — the archetype differs from the previous lesson in the block
 - [ ] All youtube ids were found via web_search in this same chat, not from memory
 - [ ] No em-dashes anywhere in the text
 - [ ] Numbers in prose are spelled out, except Game N labels
 - [ ] Presentation questions rely only on what was covered in Story/Observation
-- [ ] Story Props <= 4 items, all directly on-topic, every prop has a valid `role` (character/handout)
+- [ ] Story Props <= 4 items, all directly on-topic, every prop has a valid `role` (character/handout); any handout that each child receives individually during the story has `class_copies` set (not just the single storytelling cutout)
 - [ ] Every factual claim about the real animal/object has been fact-checked (not just plausible-sounding) - see the camel-humps example
 - [ ] The JSON is valid (no fields missing from content.schema.md)
 
 ## Output
 One `content/<topic_slug>.json` file, fully self-contained — from there it's
-handled only by the engine (build-pptx.js / build-print-pdf.py /
-qa-validate.py), no further instructions needed in chat.
+handled only by the engine (build-pptx.js / build-print-pdf.js /
+qa-validate.js), no further instructions needed in chat.

@@ -189,32 +189,108 @@ function page4GamePrintout(doc, genDir, content) {
   });
 }
 
+// Generic bulk-print helper: tiles a flat list of image paths (each entry is
+// ONE physical copy to cut out) across as many pages as needed, 3 per row.
+// This is the mechanism behind every "print N physical copies" need in the
+// deck - search_item (many copies of one image), game2.print_items (several
+// distinct images, each with its own copy count, tiled together on the same
+// page), and story_props handouts that go to every child (class_copies).
+// Manages its own pagination via `nextPage` - callers should NOT call
+// nextPage() themselves before invoking this.
+function pageBulkTiles(doc, nextPage, title, note, imagePaths) {
+  const existing = imagePaths.filter((p) => fs.existsSync(p));
+  if (!existing.length) return; // nothing generated for this yet - skip rather than print a blank page
+  const cols = 3;
+  const perPage = cols * 3; // 3 rows/page keeps each copy a comfortable size for small hands
+  for (let start = 0; start < existing.length; start += perPage) {
+    const chunk = existing.slice(start, start + perPage);
+    nextPage();
+    pageHeader(doc, title);
+    const rows = Math.ceil(chunk.length / cols);
+    const margin = 30;
+    const cellW = (PAGE_W - 2 * margin) / cols;
+    const cellH = (PAGE_H - 130) / rows;
+    chunk.forEach((imgPath, i) => {
+      const col = i % cols, row = Math.floor(i / cols);
+      const x = margin + col * cellW;
+      const y = 90 + row * cellH;
+      drawImageContain(doc, imgPath, x + 12, y + 12, cellW - 24, cellH - 24);
+    });
+    doc.font("Helvetica-Oblique").fontSize(10).fillColor(GRAY);
+    doc.text(note, 0, PAGE_H - 50, { width: PAGE_W, align: "center" });
+  }
+}
+
 // Tiles many copies of a single search_item on one page - needed when
 // Game 2 is a "find N of the same thing" hunt (e.g. find 8 cactuses), since
-// the teacher needs enough physical copies to actually hide. 3 columns (not
-// 4) keeps each copy a comfortable size for small hands, not shrunk down
-// just to cram everything onto one page.
-function pageSearchItemBulk(doc, genDir, content, copies = 8) {
+// the teacher needs enough physical copies to actually hide.
+function pageSearchItemBulk(doc, nextPage, genDir, content, copies = 8) {
   const searchItem = (content.game2 && content.game2.search_item) || {};
   const name = searchItem.name || "";
   const imgPath = path.join(genDir, "game2_search_item.png");
-  if (!fs.existsSync(imgPath)) return; // image was never generated - skip rather than print a blank page
+  pageBulkTiles(
+    doc, nextPage,
+    `Find the ${name} - Cut Out ${copies} Copies`,
+    `Print and cut out all ${copies} - hide them around the room for the search game.`,
+    Array(copies).fill(imgPath)
+  );
+}
 
-  pageHeader(doc, `Find the ${name} - Cut Out ${copies} Copies`);
-  const cols = 3;
-  const rows = Math.ceil(copies / cols);
-  const margin = 30;
-  const cellW = (PAGE_W - 2 * margin) / cols;
-  const cellH = (PAGE_H - 130) / rows;
-  for (let i = 0; i < copies; i++) {
-    const col = i % cols, row = Math.floor(i / cols);
-    const x = margin + col * cellW;
-    const y = 90 + row * cellH;
-    drawImageContain(doc, imgPath, x + 12, y + 12, cellW - 24, cellH - 24);
-  }
-  doc.font("Helvetica-Oblique").fontSize(10).fillColor(GRAY);
-  doc.text(`Print and cut out all ${copies} - hide them around the room for the search game.`, 0, PAGE_H - 50, {
-    width: PAGE_W, align: "center"
+// game2.print_items: the generic matching/sorting/compare/pattern print set.
+// One image per distinct item, repeated by that item's own `copies` - e.g. a
+// "floats/dives" sort with 4 copies each tiles 8 cards total, 4 of each,
+// together on the same page(s). This is what the duck-sorting bug needed and
+// never had: without an entry here (or search_item/colors), a game that asks
+// kids to sort/match/compare a real-world item prints nothing for it.
+function pageGamePrintItems(doc, nextPage, genDir, content) {
+  const printItems = (content.game2 && content.game2.print_items) || [];
+  if (!printItems.length) return;
+  const imagePaths = [];
+  printItems.forEach((item) => {
+    const slug = (item.name || "").toLowerCase().replace(/\s+/g, "_");
+    const imgPath = path.join(genDir, `game2_item_${slug}.png`);
+    const copies = Math.max(1, Number(item.copies) || 1);
+    for (let i = 0; i < copies; i++) imagePaths.push(imgPath);
+  });
+  pageBulkTiles(
+    doc, nextPage,
+    (content.game2 && content.game2.title) || "Game 2 - Cut Out These Cards",
+    "Print and cut out - use for the sorting/matching/comparing game.",
+    imagePaths
+  );
+}
+
+// DEPRECATED single-image fallback (content.game2.printout_prompt) - only
+// reached when print_items is absent, so old content.json files that
+// predate print_items still get SOMETHING printed instead of nothing (this
+// field historically only ever reached the presentation slide, never the
+// print PDF - the exact bug print_items exists to fix). New content should
+// always use print_items instead.
+function pagePrintoutFallback(doc, genDir, content) {
+  const imgPath = path.join(genDir, "game2_printout.png");
+  if (!fs.existsSync(imgPath)) return;
+  pageHeader(doc, (content.game2 && content.game2.title) || "Game 2 Printout");
+  drawImageContain(doc, imgPath, 60, 100, PAGE_W - 120, PAGE_H - 200);
+}
+
+// story_props handouts that each child gets their OWN copy of during the
+// story (class_copies set) - separate from the single storytelling cutout
+// already printed on page 1 (Story Props). E.g. breadcrumbs each child
+// collects and feeds to a character need a full class set, not just one.
+function pageHandoutClassCopies(doc, nextPage, propsDir, content) {
+  const handouts = (content.story_props || []).filter(
+    (p) => p.role === "handout" && Number(p.class_copies) > 1
+  );
+  handouts.forEach((prop) => {
+    const slug = prop.name.toLowerCase().replace(/\s+/g, "_");
+    const imgPath = path.join(propsDir, `${slug}.png`);
+    const copies = Number(prop.class_copies);
+    pageBulkTiles(
+      doc, nextPage,
+      `${prop.name} - Cut Out ${copies} Copies`,
+      `Print and cut out all ${copies} - hand one to each child.`,
+      Array(copies).fill(imgPath)
+    );
   });
 }
 
@@ -277,9 +353,15 @@ function main() {
       page4GamePrintout(doc, genDir, content);
     }
     if (content.game2 && content.game2.search_item) {
-      nextPage();
-      pageSearchItemBulk(doc, genDir, content);
+      pageSearchItemBulk(doc, nextPage, genDir, content);
     }
+    if (content.game2 && content.game2.print_items && content.game2.print_items.length) {
+      pageGamePrintItems(doc, nextPage, genDir, content);
+    } else if (content.game2 && content.game2.printout_prompt) {
+      nextPage();
+      pagePrintoutFallback(doc, genDir, content);
+    }
+    pageHandoutClassCopies(doc, nextPage, propsDir, content);
 
     nextPage();
     page5PatternSheet(doc, content);

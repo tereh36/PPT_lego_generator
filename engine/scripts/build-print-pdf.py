@@ -212,32 +212,111 @@ def page4_game_printout(c, gen_dir, content):
     c.showPage()
 
 
+def page_bulk_tiles(c, title, note, image_paths):
+    """Generic bulk-print helper: tiles a flat list of image paths (each
+    entry is ONE physical copy to cut out) across as many pages as needed,
+    3 per row. Backs search_item (many copies of one image), print_items
+    (several distinct images, each with its own copy count, tiled together),
+    and story_props handouts that go to every child (class_copies). Calls
+    c.showPage() itself for every page it emits, including the last."""
+    existing = [p for p in image_paths if os.path.exists(p)]
+    if not existing:
+        return  # nothing generated for this yet - skip rather than print a blank page
+    cols = 3
+    per_page = cols * 3  # 3 rows/page keeps each copy a comfortable size for small hands
+    for start in range(0, len(existing), per_page):
+        chunk = existing[start:start + per_page]
+        page_header(c, title)
+        rows = (len(chunk) + cols - 1) // cols
+        margin = 30
+        cell_w = (PAGE_W - 2 * margin) / cols
+        cell_h = (PAGE_H - 130) / rows
+        for i, img_path in enumerate(chunk):
+            col, row = i % cols, i // cols
+            x = margin + col * cell_w
+            y = PAGE_H - 90 - (row + 1) * cell_h
+            draw_image_contain(c, img_path, x + 12, y + 12, cell_w - 24, cell_h - 24)
+        c.setFont("Helvetica-Oblique", 10)
+        c.setFillColorRGB(*GRAY)
+        c.drawCentredString(PAGE_W / 2, 40, note)
+        c.showPage()
+
+
 def page_search_item_bulk(c, gen_dir, content, copies=8):
     """Tiles many copies of a single search_item on one page - needed when
     Game 2 is a 'find N of the same thing' hunt (e.g. find 8 cactuses),
-    since the teacher needs enough physical copies to actually hide.
-    3 columns (not 4) keeps each copy a comfortable size for small hands,
-    not shrunk down just to cram everything onto one page."""
+    since the teacher needs enough physical copies to actually hide."""
     search_item = content.get("game2", {}).get("search_item", {})
     name = search_item.get("name", "")
     img_path = os.path.join(gen_dir, "game2_search_item.png")
+    page_bulk_tiles(
+        c,
+        f"Find the {name} - Cut Out {copies} Copies",
+        f"Print and cut out all {copies} - hide them around the room for the search game.",
+        [img_path] * copies,
+    )
+
+
+def page_game_print_items(c, gen_dir, content):
+    """game2.print_items: the generic matching/sorting/compare/pattern print
+    set. One image per distinct item, repeated by that item's own `copies` -
+    e.g. a 'floats/dives' sort with 4 copies each tiles 8 cards total, 4 of
+    each, together on the same page(s). This is what the duck-sorting bug
+    needed and never had: without an entry here (or search_item/colors), a
+    game that asks kids to sort/match/compare a real-world item prints
+    nothing for it."""
+    print_items = content.get("game2", {}).get("print_items", [])
+    if not print_items:
+        return
+    image_paths = []
+    for item in print_items:
+        slug = (item.get("name") or "").lower().replace(" ", "_")
+        img_path = os.path.join(gen_dir, f"game2_item_{slug}.png")
+        copies = max(1, int(item.get("copies") or 1))
+        image_paths.extend([img_path] * copies)
+    page_bulk_tiles(
+        c,
+        content.get("game2", {}).get("title") or "Game 2 - Cut Out These Cards",
+        "Print and cut out - use for the sorting/matching/comparing game.",
+        image_paths,
+    )
+
+
+def page_printout_fallback(c, gen_dir, content):
+    """DEPRECATED single-image fallback (content.game2.printout_prompt) -
+    only reached when print_items is absent, so old content.json files that
+    predate print_items still get SOMETHING printed instead of nothing (this
+    field historically only ever reached the presentation slide, never the
+    print PDF - the exact bug print_items exists to fix). New content should
+    always use print_items instead."""
+    img_path = os.path.join(gen_dir, "game2_printout.png")
     if not os.path.exists(img_path):
-        return  # image was never generated (bad/missing prompt) - skip rather than print a blank page
-    page_header(c, f"Find the {name} - Cut Out {copies} Copies")
-    cols = 3
-    rows = (copies + cols - 1) // cols
-    margin = 30
-    cell_w = (PAGE_W - 2 * margin) / cols
-    cell_h = (PAGE_H - 130) / rows
-    for i in range(copies):
-        col, row = i % cols, i // cols
-        x = margin + col * cell_w
-        y = PAGE_H - 90 - (row + 1) * cell_h
-        draw_image_contain(c, img_path, x + 12, y + 12, cell_w - 24, cell_h - 24)
-    c.setFont("Helvetica-Oblique", 10)
-    c.setFillColorRGB(*GRAY)
-    c.drawCentredString(PAGE_W / 2, 40, f"Print and cut out all {copies} - hide them around the room for the search game.")
+        return
+    page_header(c, content.get("game2", {}).get("title") or "Game 2 Printout")
+    draw_image_contain(c, img_path, 60, 100, PAGE_W - 120, PAGE_H - 200)
     c.showPage()
+
+
+def page_handout_class_copies(c, props_dir, content):
+    """story_props handouts that each child gets their OWN copy of during
+    the story (class_copies set) - separate from the single storytelling
+    cutout already printed on page 1 (Story Props). E.g. breadcrumbs each
+    child collects and feeds to a character need a full class set, not just
+    one."""
+    handouts = [
+        p for p in content.get("story_props", [])
+        if p.get("role") == "handout" and int(p.get("class_copies") or 0) > 1
+    ]
+    for prop in handouts:
+        slug = prop["name"].lower().replace(" ", "_")
+        img_path = os.path.join(props_dir, f"{slug}.png")
+        copies = int(prop["class_copies"])
+        page_bulk_tiles(
+            c,
+            f"{prop['name']} - Cut Out {copies} Copies",
+            f"Print and cut out all {copies} - hand one to each child.",
+            [img_path] * copies,
+        )
 
 
 def page5_pattern_sheet(c, content):
@@ -284,6 +363,11 @@ def main():
             page4_game_printout(c, gen_dir, content)
         if content.get("game2", {}).get("search_item"):
             page_search_item_bulk(c, gen_dir, content)
+        if content.get("game2", {}).get("print_items"):
+            page_game_print_items(c, gen_dir, content)
+        elif content.get("game2", {}).get("printout_prompt"):
+            page_printout_fallback(c, gen_dir, content)
+        page_handout_class_copies(c, props_dir, content)
         page5_pattern_sheet(c, content)
     else:
         print("No images found (no API key) - building story-only page.")

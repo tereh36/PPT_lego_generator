@@ -369,7 +369,8 @@ function buildGame2(pres, content, assetsDir) {
   addSquares(slide, STYLE_B);
   addContentTitle(slide, content.game2.title);
   const colors = content.game2.colors || [];
-  const hasVisual = colors.length > 0 || fs.existsSync(path.join(assetsDir, "game2_printout.png"));
+  const printItems = content.game2.print_items || [];
+  const hasVisual = colors.length > 0 || printItems.length > 0 || fs.existsSync(path.join(assetsDir, "game2_printout.png"));
 
   if (hasVisual) {
     const scriptY = addChantHeader(slide, content.game2.script, boxIn(0.8, 1.5, 5.6, 1.4));
@@ -381,6 +382,18 @@ function buildGame2(pres, content, assetsDir) {
         const cy = 1.85 + Math.floor(i / cols) * 1.7;
         const imgPath = path.join(assetsDir, `game2_${color.toLowerCase()}.png`);
         if (fs.existsSync(imgPath)) slide.addImage({ path: imgPath, ...containFit(imgPath, cx, cy, 1.5, 1.5) });
+      });
+    } else if (printItems.length) {
+      // One sample tile per DISTINCT item (not all physical copies - the
+      // print PDF handles the full class-quantity run separately).
+      const cols = printItems.length > 2 ? 2 : 1;
+      const tileW = 5.6 / cols, tileH = printItems.length > 2 ? 2.4 : 4.9;
+      printItems.forEach((item, i) => {
+        const cx = 6.7 + (i % cols) * tileW;
+        const cy = 1.85 + Math.floor(i / cols) * tileH;
+        const slug = (item.name || "").toLowerCase().replace(/\s+/g, "_");
+        const imgPath = path.join(assetsDir, `game2_item_${slug}.png`);
+        if (fs.existsSync(imgPath)) slide.addImage({ path: imgPath, ...containFit(imgPath, cx, cy, tileW - 0.2, tileH - 0.2) });
       });
     } else {
       const printoutImg = path.join(assetsDir, "game2_printout.png");

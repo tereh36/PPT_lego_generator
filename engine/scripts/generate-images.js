@@ -100,8 +100,16 @@ async function main() {
     if (g2.shape_reference_prompt) jobs.push({ prompt: g2.shape_reference_prompt, out: path.join(genDir, "game2_shape_reference.png"), size: "1024x1024" });
     if (g2.shape_pieces_prompt) jobs.push({ prompt: g2.shape_pieces_prompt, out: path.join(genDir, "game2_shape_pieces.png"), size: "1024x1024" });
   } else if (g2.printout_prompt) {
+    // deprecated single-image field, kept for old content.json files - see content.schema.md
     jobs.push({ prompt: g2.printout_prompt, out: path.join(genDir, "game2_printout.png"), size: "1024x1024" });
   }
+  // print_items - the generic matching/sorting/compare/pattern print set (one
+  // image per distinct card; build-print-pdf.js tiles each by its own "copies").
+  (g2.print_items || []).forEach((item) => {
+    if (!item.image_prompt) return;
+    const slug = (item.name || "").toLowerCase().replace(/\s+/g, "_");
+    jobs.push({ prompt: item.image_prompt, out: path.join(genDir, `game2_item_${slug}.png`), size: "1024x1024" });
+  });
 
   console.log(`Generating ${jobs.length} image(s) for topic "${content.topic}"...`);
   for (const job of jobs) {
