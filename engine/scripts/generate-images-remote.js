@@ -25,39 +25,61 @@ async function main() {
 
   // See generate-content-remote.js for why this is generous and overridable.
   const timeoutMs = Number(BRICK_IMAGES_TIMEOUT_MS) || 9 * 60 * 1000;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const MAX_ATTEMPTS = 3;
+
+  async function attemptOnce() {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let res;
+    try {
+      res = await fetch(BRICK_BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate_images", username: BRICK_USERNAME, password: BRICK_PASSWORD, content }),
+        signal: controller.signal
+      });
+    } catch (e) {
+      if (e.name === "AbortError") {
+        throw new Error(
+          `Gave up waiting for the backend after ${Math.round(timeoutMs / 1000)}s generating images. If it ` +
+          "genuinely needs longer, raise BRICK_IMAGES_TIMEOUT_MS (milliseconds) and try again."
+        );
+      }
+      throw e;
+    } finally {
+      clearTimeout(timer);
+    }
+    const rawText = await res.text();
+    try {
+      return JSON.parse(rawText);
+    } catch (e) {
+      const snippet = rawText.trim().slice(0, 500) || "(empty response)";
+      const err = new Error(
+        `Backend returned HTTP ${res.status} with a non-JSON response while generating images. ` +
+        `Raw response:\n${snippet}`
+      );
+      err.isNonJson = true;
+      throw err;
+    }
+  }
 
   console.log("Generating images via the Brick4Kidz backend...");
-  let res;
-  try {
-    res = await fetch(BRICK_BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "generate_images", username: BRICK_USERNAME, password: BRICK_PASSWORD, content }),
-      signal: controller.signal
-    });
-  } catch (e) {
-    if (e.name === "AbortError") {
-      throw new Error(
-        `Gave up waiting for the backend after ${Math.round(timeoutMs / 1000)}s generating images. If it ` +
-        "genuinely needs longer, raise BRICK_IMAGES_TIMEOUT_MS (milliseconds) and try again."
-      );
-    }
-    throw e;
-  } finally {
-    clearTimeout(timer);
-  }
-  const rawText = await res.text();
   let data;
-  try {
-    data = JSON.parse(rawText);
-  } catch (e) {
-    const snippet = rawText.trim().slice(0, 500) || "(empty response)";
-    throw new Error(
-      `Backend returned HTTP ${res.status} with a non-JSON response while generating images, so it ` +
-      `likely errored out server-side rather than timing out. Raw response:\n${snippet}`
-    );
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      data = await attemptOnce();
+      break;
+    } catch (e) {
+      const isLastAttempt = attempt === MAX_ATTEMPTS;
+      if (!e.isNonJson || isLastAttempt) {
+        if (e.isNonJson) {
+          throw new Error(e.message + ` (gave up after ${MAX_ATTEMPTS} attempts)`);
+        }
+        throw e;
+      }
+      console.log(`Attempt ${attempt} got a bad response from the backend, retrying...`);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
   }
   if (!data.ok) {
     throw new Error(data.error || "Unknown backend error");
