@@ -93,6 +93,31 @@ reinvented from nothing.
     in a full class) when each child gets their own piece to sort/match/
     find; 1 copy each when the teacher is just holding two things up to
     compare; a handful (3-6) per repeating unit for a pattern strip.
+16. **HARD WORD-COUNT CEILINGS for Game 1/3 chant lines — this is a
+    frequently-broken rule, read it every single time.** The entire audience
+    for this program is 3-5 year old children who are learning English AS A
+    SECOND LANGUAGE (this program runs for Vietnamese-speaking children who
+    often know close to zero English words) — every extra word in a chant
+    line is a word most of the class cannot understand, and a long line
+    stops being chantable/memorable at all. Concrete, checkable limits, not
+    a vague "keep it short":
+    - `children` chant question: max 6 words.
+    - EACH of the teacher's two rhymed responses in Game 1/Game 3: max 8
+      words TOTAL (that includes the action words AND the rhymed line
+      together, not 8 words per clause). If your line is longer than 8 words
+      when you count them, it is too long — cut words, don't just reformat.
+    - REAL MISTAKE (topic Goat) that must never be repeated: "Quiet steps,
+      tip-toe slow, munching grass down in a row!" (10 words) and "Climb up
+      high, reach the sky, hop along, way up high!" (11 words, and reuses
+      "high" twice, which also breaks the "new words every time" rule).
+      Both read like flowing sentences, not a chantable rhyme a
+      non-English-speaking 4-year-old could echo. FIX pattern: 2-3 words of
+      action + a short 3-4 word rhymed tag, e.g. "Tip-toe slow, off we go!"
+      (5 words) or "Hop up high, touch the sky!" (6 words) - punchy,
+      chantable, still rhymes.
+    - Before finalizing ANY Game 1 or Game 3 teacher line, literally count
+      the words. If it's over 8, it fails this check regardless of how good
+      the rhyme sounds - shorten it.
 
 ## Challenge Archetypes (rotate, don't repeat back to back; ALL are about
 building, see rule 14)
@@ -372,11 +397,20 @@ stands out clearly. Keep it short and conversational (3-8 words), not long
 phrases - it needs to work both as a giant headline and as a phrase a
 4-year-old can actually say.
 
+⚠️ REMINDER (applies to every game below, see CRITICAL rule 16 above for
+exact numbers): this audience is 3-5 year old non-native English learners
+who often know almost no English words yet. Every single line in Game 1,
+Game 2, and Game 3 needs a hard word-count check before you move on, not
+just a general "keep it short" feeling - see rule 16 for the exact ceilings
+and a real example of what happens when this gets skipped.
+
 - **Game 1** — an established template (not a free choice between two
   styles): the same children's chant-question (`speaker: children`) repeats
   EVERY round the same way within the lesson; the teacher (`speaker:
   teacher`) answers with one of TWO rhymed options — following the
-  pattern "[action], [action], [action], + a rhymed line with real meaning".
+  pattern "[action], [action], + a short rhymed line" (2-3 short action
+  words, then a punchy rhymed tag - see the hard word-count ceiling in
+  CRITICAL rule 16, max 8 words total per response, no exceptions).
   One option is real running (kids scatter, the teacher play-chases them,
   a separate `action` line describes this), the other is a big action in
   place (jumping, etc., genuinely high and energetic). EXACTLY 3 rounds (not
@@ -393,13 +427,18 @@ phrases - it needs to work both as a giant headline and as a phrase a
   duplicated consecutively while still ending on the chase.
   The chant's WORDS and both responses are NEW for every topic, drawn from
   the topic's own vocabulary (action verbs for that specific animal/object),
-  never reuse previous lessons' phrasing verbatim.
+  never reuse previous lessons' phrasing verbatim, and never reuse the same
+  word twice within one lesson's two responses either (REAL MISTAKE, topic
+  Goat: "reach the sky" then "way up high" in the same lesson - "high"
+  appeared twice, which also padded the line past the word-count ceiling).
 
   CRITICAL about language: the target audience is 3-5 year olds, often
   non-native speakers (e.g. Vietnamese, who just learned "hello"). The chant
   and responses must consist ONLY of the simplest, shortest, highest-
   frequency words (1 syllable preferred, 2 max) — verbs like "go, fly, run,
-  jump, hide, swim" and the topic name, NOT complex constructions.
+  jump, hide, swim" and the topic name, NOT complex constructions. See the
+  hard word-count ceiling (rule 16) - this is not a suggestion, count the
+  words before finalizing.
 
   CRITICAL about the teacher's response: BOTH of the teacher's two options
   must be SHORT and RHYME — this is not optional and not specific to the
@@ -453,17 +492,17 @@ phrases - it needs to work both as a giant headline and as a phrase a
   object's real traits, not habit. General principle: Game 2 is noticeably
   calmer than Game 1 (which already "owns" running/energy) and CLOSER to the
   real world — no running, only printed materials/a real object/bricks. All
-  questions/steps use SIMPLE words, but responses should still be full,
-  meaningful short phrases where a child speaks (e.g. "Yes, I like it!", "I
-  found the leaf!") rather than a single bare word/interjection every time —
-  a game that's only ever "yes/no" one-word answers ends up feeling too
-  thin and teaches little real language. No open questions like "what
-  color", but "do you like it? yes or no" is fine. The script here is
-  mostly `instruction` lines (rule steps) + one `action`, and where the
-  teacher does have a line, keep it SHORT — a rhyme is a bonus here (Game 2
-  is calmer, not chanted, so it's not mandatory the way it is for Game 1/3),
-  but a long unrhythmic sentence still doesn't belong on a slide a 4-year-old
-  is meant to glance at.
+  questions/steps use SIMPLE words (remember: non-native 3-5 year olds, see
+  rule 16), but responses should still be full, meaningful short phrases
+  where a child speaks (e.g. "Yes, I like it!", "I found the leaf!") rather
+  than a single bare word/interjection every time — a game that's only ever
+  "yes/no" one-word answers ends up feeling too thin and teaches little real
+  language. No open questions like "what color", but "do you like it? yes or
+  no" is fine. The script here is mostly `instruction` lines (rule steps) +
+  one `action`, and where the teacher does have a line, keep it SHORT (aim
+  for the same ~8-word ceiling as Game 1/3 even though a rhyme isn't
+  mandatory here) — a long unrhythmic sentence still doesn't belong on a
+  slide a 4-year-old is meant to glance at.
 
   **Think like a room of specialists before you commit to a mechanic**, not
   just a single "pick from the list" pass. Genuinely run through these four
@@ -476,7 +515,8 @@ phrases - it needs to work both as a giant headline and as a phrase a
   - **A language-acquisition/ESL specialist** asks: are the phrases the
     child speaks here DIFFERENT from what they said in Game 1 and in the
     last few lessons' Game 2, or is this the same sentence shape again with
-    the topic word swapped in?
+    the topic word swapped in? And just as important: is every line still
+    inside the word-count ceiling for a beginner who barely speaks English?
   - **A hands-on/motor-development specialist** asks: what does the child's
     hand actually DO in this game (pick up, flip, place in a pile, hold next
     to another card)? If you can't answer that concretely, the mechanic is
@@ -611,11 +651,19 @@ phrases - it needs to work both as a giant headline and as a phrase a
 - **Game 3**: must physically use the built model, with the same chant
   structure as Game 1 (the same children's line + the teacher randomly picks
   1 of 2 responses), NEW words for the topic, as simple as possible (see the
-  language rule under Game 1). Both teacher responses must be SHORT and
-  RHYME, same as Game 1's - say them out loud before finalizing. You need
-  TWO clearly different teacher commands with a clear reason tied to the
-  topic's weather/mood (e.g. "sunny day, fly high!" / "storm is coming, fly
-  low!") — simply a different height/speed of movement for the model,
+  language rule under Game 1 AND the hard word-count ceiling in CRITICAL
+  rule 16 - max 8 words per teacher response, same as Game 1). Both teacher
+  responses must be SHORT and RHYME, same as Game 1's - say them out loud
+  before finalizing, and count the words. REAL MISTAKE (topic Goat), never
+  repeat this: "Climb up high, reach the sky, hop along, way up high!" (11
+  words, and "high" used twice) and "Wind blows strong, hold on tight,
+  creep down low, out of sight!" (11 words) - both far over the 8-word
+  ceiling and read as full sentences, not a chant. FIX pattern: something
+  like "Hop up high, touch the sky!" (6 words) / "Creep down low, nice and
+  slow!" (6 words) - short, punchy, actually chantable by a beginner. You
+  need TWO clearly different teacher commands with a clear reason tied to
+  the topic's weather/mood (e.g. "sunny day, fly high!" / "storm is coming,
+  fly low!") — simply a different height/speed of movement for the model,
   WITHOUT a specific destination.
   CRITICAL: NEVER mention an object/structure the kids haven't built yet
   (e.g. "fly to the hangar", "run to the house") — at this point in the
@@ -706,15 +754,15 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] presentation_qa has at least 4 pairs
 - [ ] game1/game2/game3 use the script format (not a wall of text), lines are color-only, no bold/underline
 - [ ] The story format archetype is tagged accurately in `story.archetype` and doesn't match what the prompt told you is on cooldown (see the pool of 6 formats)
-- [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic; `structure_tag` matches what you actually wrote and isn't on cooldown per the prompt; say both teacher lines out loud — do they actually rhyme and scan, or just kind of?
+- [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic; `structure_tag` matches what you actually wrote and isn't on cooldown per the prompt; say both teacher lines out loud — do they actually rhyme and scan, or just kind of? COUNT THE WORDS: children line <= 6 words, each teacher response <= 8 words total (rule 16) - if over, shorten it now.
 - [ ] Game 1's Round 2 and Round 3 are NOT the same option as each other (Round 3 is always chase, Round 2 is always the other one) - reread the actual text of rounds 2 and 3, they must not be verbatim identical
 - [ ] Game 1's question structure is genuinely different from the last couple of lessons, not just the same "what do we do?" shape with the topic word swapped in
-- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare/pattern/shape_build), not defaulting to `search`/size-sorting out of habit; `sensory` used whenever a real object exists regardless of recent history, UPGRADED to `compare`/`sorting` by texture when a second contrasting-texture material genuinely exists (not left as a thin single-object touch-and-say-one-word game); you actually ran the pedagogy/language/motor/print-logistics four-angle pass on this game (see Step 4) rather than committing to the first idea
+- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare/pattern/shape_build), not defaulting to `search`/size-sorting out of habit; `sensory` used whenever a real object exists regardless of recent history, UPGRADED to `compare`/`sorting` by texture when a second contrasting-texture material genuinely exists (not left as a thin single-object touch-and-say-one-word game); you actually ran the pedagogy/language/motor/print-logistics four-angle pass on this game (see Step 4) rather than committing to the first idea; every teacher line here also respects the ~8-word ceiling
 - [ ] Game 2's sorting/matching/compare/pattern trait is a real, specific, interesting fact about the topic where one was available, not a lazy default (size/color) chosen without considering alternatives
 - [ ] Every physical item the story or any game asks a child to find/sort/match/hold/collect individually has a real print asset backing it (`game2.print_items` with `image_prompt` + `copies`, `game2.search_item`, `game2.colors`, or a handout `story_props` entry with `class_copies`) — reread every game script line by line and confirm nothing describes a physical object with nothing printed for it (the duck-sorting bug)
 - [ ] Print copy counts make sense for how the item is used: ~8 total when each child gets their own piece (search/matching/sorting/most handouts), 1 each for a `compare` the teacher just holds up, a handful per unit for `pattern`
 - [ ] Challenge.text ends with an explicit "Now YOU build your own..." invitation
-- [ ] Game 3 — two clear slow/fast commands with a clear reason, both teacher lines short and rhyming like Game 1's
+- [ ] Game 3 — two clear slow/fast commands with a clear reason, both teacher lines short and rhyming like Game 1's, COUNT THE WORDS (<= 8 total per response, rule 16)
 - [ ] Challenge — the archetype differs from the previous lesson in the block
 - [ ] All youtube ids were found via web_search in this same chat, not from memory
 - [ ] No em-dashes anywhere in the text

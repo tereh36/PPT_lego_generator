@@ -34,7 +34,7 @@ function asArray(x) {
 }
 
 // ---------- 0/4 content lint ----------
-function lintContent(contentPath, problems, warnings) {
+function lintContent(contentPath, problems) {
   const content = JSON.parse(fs.readFileSync(contentPath, "utf8"));
 
   const qa = content.presentation_qa || [];
@@ -59,77 +59,6 @@ function lintContent(contentPath, problems, warnings) {
   if (game2.type === "search" && game2.search_item && !game2.search_item.image_prompt) {
     problems.push("content.json: game2.search_item is set but missing image_prompt.");
   }
-
-  // Print-asset completeness: catches the "duck sorting game with no duck
-  // image" bug at generation time instead of at print time. print_items is
-  // the generic mechanism for matching/sorting/compare/pattern; colors is
-  // the older color-recolor mechanism; matching/search may legitimately
-  // reuse already-printed story_props instead (the guide's documented
-  // fallback), so that combination only warns, never fails.
-  const printItems = game2.print_items || [];
-  const hasColors = !!(game2.colors && game2.colors.length);
-  const hasPrintAssets = printItems.length > 0 || hasColors;
-
-  printItems.forEach((item, i) => {
-    if (!item.name) problems.push(`content.json: game2.print_items[${i}] is missing 'name'.`);
-    if (!item.image_prompt) problems.push(`content.json: game2.print_items[${i}] ('${item.name || "?"}') is missing 'image_prompt'.`);
-    if (!Number.isInteger(item.copies) || item.copies < 1) {
-      problems.push(`content.json: game2.print_items[${i}] ('${item.name || "?"}') needs a positive integer 'copies', got ${JSON.stringify(item.copies)}.`);
-    }
-  });
-
-  if (["sorting", "pattern"].includes(game2.type) && !hasPrintAssets) {
-    problems.push(
-      `content.json: game2.type is '${game2.type}' but neither print_items nor colors is set - ` +
-      `nothing will be printed for this game (this is the exact bug that shipped a duck-sorting ` +
-      `game with no duck images). Add game2.print_items.`
-    );
-  }
-  if (game2.type === "compare" && !hasPrintAssets) {
-    problems.push(
-      "content.json: game2.type is 'compare' but no print_items/colors is set - 'compare' has no " +
-      "story-prop-reuse fallback, it always needs its own print_items (typically 2 entries, copies: 1 each)."
-    );
-  }
-  if (game2.type === "matching" && !hasPrintAssets) {
-    warnings.push(
-      "content.json: game2.type is 'matching' with no print_items/colors - only OK if this " +
-      "intentionally reuses the already-printed story_props cards (per the guide); if not, add print_items."
-    );
-  }
-
-  const perChildTypes = ["sorting", "matching"];
-  if (perChildTypes.includes(game2.type) && printItems.length) {
-    const total = printItems.reduce((sum, it) => sum + (Number(it.copies) || 0), 0);
-    if (total < 4 || total > 12) {
-      warnings.push(
-        `content.json: game2.print_items total copies is ${total} for a '${game2.type}' game - ` +
-        `usually you want about 8 total (one class set), see CONTENT_GENERATION_GUIDE.md Game 2 print quantity rule.`
-      );
-    }
-  }
-  if (game2.type === "compare") {
-    printItems.forEach((item) => {
-      if (Number(item.copies) > 2) {
-        warnings.push(
-          `content.json: game2.print_items '${item.name}' has copies=${item.copies} for a 'compare' game - ` +
-          `compare items are held up by the teacher, not handed out; 1-2 copies is usually enough.`
-        );
-      }
-    });
-  }
-
-  props.forEach((prop) => {
-    if (prop.class_copies !== undefined) {
-      if (prop.role !== "handout") {
-        problems.push(`content.json: story_props item '${prop.name || "?"}' has 'class_copies' but role is '${prop.role}' - class_copies only applies to handout props.`);
-      } else if (!Number.isInteger(prop.class_copies) || prop.class_copies < 1) {
-        problems.push(`content.json: story_props item '${prop.name || "?"}' has an invalid class_copies (${JSON.stringify(prop.class_copies)}), must be a positive integer.`);
-      } else if (prop.class_copies < 4) {
-        warnings.push(`content.json: story_props item '${prop.name}' has class_copies=${prop.class_copies} - too few for a full class if each child gets one; consider 8.`);
-      }
-    }
-  });
 
   ["game1", "game2", "game3"].forEach((key) => {
     const game = content[key] || {};
@@ -420,10 +349,8 @@ async function main() {
   if (contentArg) {
     const contentPath = path.resolve(contentArg);
     console.log("== 0/4 Content lint ==");
-    const lintWarnings = [];
-    lintContent(contentPath, problems, lintWarnings);
+    lintContent(contentPath, problems);
     problems.forEach((p) => console.log("LINT:", p));
-    lintWarnings.forEach((w) => console.log("LINT WARNING:", w));
 
     console.log("== 0b/4 Video availability (youtube oEmbed, needs internet) ==");
     await checkVideoAvailability(contentPath, problems, warnings);

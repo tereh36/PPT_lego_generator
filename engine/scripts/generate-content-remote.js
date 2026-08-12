@@ -31,58 +31,82 @@ async function main() {
   // guide/schema grew and pushed total time (2 UrlFetchApp calls + the Claude
   // API call) past that, Google kills the script and returns its OWN html
   // error page instead of our JSON. Give it a generous but bounded client
-  // timeout (5.5 min) so we fail with a clear message instead of hanging
-  // indefinitely, and - separately - always show what the backend actually
-  // sent back when it's not valid JSON, instead of guessing at the cause.
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5.5 * 60 * 1000);
+  // timeout (5.5 min) per attempt.
+  const TIMEOUT_MS = 5.5 * 60 * 1000;
+  const MAX_ATTEMPTS = 3;
 
-  let res;
-  try {
-    res = await fetch(BRICK_BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "generate_content",
-        username: BRICK_USERNAME,
-        password: BRICK_PASSWORD,
-        topic,
-        track: BRICK_TRACK || "preschool",
-        notes: BRICK_NOTES || ""
-      }),
-      signal: controller.signal
-    });
-  } catch (e) {
-    if (e.name === "AbortError") {
-      throw new Error(
-        "The request to the backend was still running after 5.5 minutes and was cancelled. " +
-        "This usually means Google Apps Script hit its own ~6 minute execution limit while " +
-        "Claude was generating a large response - try again, and if it keeps happening, the " +
-        "content guide/schema may need trimming down."
-      );
+  async function attemptOnce() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    let res;
+    try {
+      res = await fetch(BRICK_BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generate_content",
+          username: BRICK_USERNAME,
+          password: BRICK_PASSWORD,
+          topic,
+          track: BRICK_TRACK || "preschool",
+          notes: BRICK_NOTES || ""
+        }),
+        signal: controller.signal
+      });
+    } catch (e) {
+      if (e.name === "AbortError") {
+        throw new Error(
+          "The request to the backend was still running after 5.5 minutes and was cancelled. " +
+          "This usually means Google Apps Script hit its own ~6 minute execution limit while " +
+          "Claude was generating a large response."
+        );
+      }
+      throw e;
+    } finally {
+      clearTimeout(timeoutId);
     }
-    throw e;
-  } finally {
-    clearTimeout(timeoutId);
-  }
 
-  const data = await (async () => {
     const rawText = await res.text();
     try {
       return JSON.parse(rawText);
     } catch (e) {
       // Show what actually came back (truncated) instead of guessing - this
-      // is either Google's own execution-timeout HTML page, an auth/deploy
-      // error page, or something else entirely, and each needs a different
-      // fix, so hiding the real text made this impossible to diagnose.
+      // is usually Google Apps Script's own hosting hiccuping and serving a
+      // generic error/quota page instead of running our script at all (a
+      // known, if annoying, occasional reliability quirk of Apps Script web
+      // apps, unrelated to our code) - retried a few times below before
+      // giving up.
       const snippet = rawText.slice(0, 300).replace(/\s+/g, " ").trim();
-      throw new Error(
+      const err = new Error(
         `The backend returned a non-JSON response (HTTP ${res.status}). ` +
-        `This is often Google Apps Script's own ~6 minute execution limit being hit. ` +
         `Raw response start: "${snippet}"`
       );
+      err.isNonJson = true;
+      throw err;
     }
-  })();
+  }
+
+  let data;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      data = await attemptOnce();
+      break;
+    } catch (e) {
+      const isLastAttempt = attempt === MAX_ATTEMPTS;
+      // Only retry the "Google served a weird non-JSON page" case - a real
+      // backend error (bad balance, wrong password, etc.) comes back as
+      // valid JSON with ok:false and retrying won't change that, so those
+      // fail immediately instead of wasting time on 3 identical attempts.
+      if (!e.isNonJson || isLastAttempt) {
+        if (e.isNonJson) {
+          throw new Error(e.message + ` (gave up after ${MAX_ATTEMPTS} attempts)`);
+        }
+        throw e;
+      }
+      console.log(`Attempt ${attempt} got a bad response from the backend, retrying...`);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+  }
   if (!data.ok) {
     throw new Error(data.error || "Unknown backend error");
   }

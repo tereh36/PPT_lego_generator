@@ -152,52 +152,47 @@ ipcMain.handle("config:setImageMode", (e, withImages) => {
   return true;
 });
 
-// ---------- IPC: balance check ----------
-ipcMain.handle("account:checkBalance", async () => {
+// Calls the Apps Script backend and retries a couple times if it comes back
+// with a non-JSON response - Google Apps Script's own hosting occasionally
+// serves a generic error/quota page instead of actually running the script,
+// a known if annoying reliability quirk unrelated to our code. A real
+// backend error (bad password, not enough balance) comes back as valid
+// JSON with ok:false and is NOT retried, since retrying won't fix that.
+async function callBackendWithRetry(action, extraBody, maxAttempts = 3) {
   const cfg = loadConfig();
   if (!cfg.username || !cfg.password) return { ok: false, error: "No account set" };
-  try {
-    const res = await fetch(BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "check_balance", username: cfg.username, password: cfg.password }),
-    });
-    const rawText = await res.text();
-    try {
-      return JSON.parse(rawText);
-    } catch {
-      // Surface what actually came back (truncated) instead of a blanket
-      // "took too long" message that hides the real cause - this is often
-      // Google Apps Script serving an authorization/consent page instead of
-      // our JSON after a redeploy, not an actual timeout.
-      const snippet = rawText.slice(0, 300).replace(/\s+/g, " ").trim();
-      return { ok: false, error: `Backend returned a non-JSON response (HTTP ${res.status}): "${snippet}"` };
-    }
-  } catch (err) {
-    return { ok: false, error: String(err.message || err) };
-  }
-});
 
-ipcMain.handle("account:getPrices", async () => {
-  const cfg = loadConfig();
-  if (!cfg.username || !cfg.password) return { ok: false, error: "No account set" };
-  try {
-    const res = await fetch(BACKEND_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "get_prices", username: cfg.username, password: cfg.password }),
-    });
-    const rawText = await res.text();
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return JSON.parse(rawText);
-    } catch {
-      const snippet = rawText.slice(0, 300).replace(/\s+/g, " ").trim();
-      return { ok: false, error: `Backend returned a non-JSON response (HTTP ${res.status}): "${snippet}"` };
+      const res = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, username: cfg.username, password: cfg.password, ...extraBody }),
+      });
+      const rawText = await res.text();
+      try {
+        return JSON.parse(rawText);
+      } catch {
+        const snippet = rawText.slice(0, 300).replace(/\s+/g, " ").trim();
+        const err = new Error(`Backend returned a non-JSON response (HTTP ${res.status}): "${snippet}"`);
+        err.isNonJson = true;
+        throw err;
+      }
+    } catch (err) {
+      const isLastAttempt = attempt === maxAttempts;
+      if (!err.isNonJson || isLastAttempt) {
+        const suffix = err.isNonJson ? ` (gave up after ${maxAttempts} attempts)` : "";
+        return { ok: false, error: String(err.message || err) + suffix };
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-  } catch (err) {
-    return { ok: false, error: String(err.message || err) };
   }
-});
+}
+
+// ---------- IPC: balance check ----------
+ipcMain.handle("account:checkBalance", () => callBackendWithRetry("check_balance"));
+
+ipcMain.handle("account:getPrices", () => callBackendWithRetry("get_prices"));
 
 // ---------- IPC: open the folder with finished files ----------
 ipcMain.handle("files:openOutputFolder", () => {
