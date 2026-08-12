@@ -1,11 +1,15 @@
 {
-  "_comment": "Verified real youtube ids for fun movement/dance intro videos (slide 2). Picked randomly when the AI leaves intro_video_youtube_id empty (it has no internet access to find one itself). Add more here any time - just verify the id is real first.",
+  "_comment": "Movement/dance videos for the 'Let's Get Moving!' slide (slide 2) and the 'Let's Move Again!' slide at the end - both use the same pick. One is chosen at random when intro_video_youtube_id is empty in content.json, which is the normal case (the AI writing the content has no internet access and is told not to invent an id).",
+  "_selection_rule": "Real people and kids actually dancing hard - jumping, stomping, freeze-dance games. NOT cartoon/lyric-video songs where nothing moves, and NOT a single adult sitting and singing with a guitar. An energetic video that has nothing to do with the lesson topic beats a sluggish one that matches it.",
+  "_verified": "2026-08-11: every id below checked live - the video exists, the title/channel is what it says here, and playableInEmbed is true (a video with embedding disabled shows up as an error box inside PowerPoint). Re-check with the same two calls before adding any new one: https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=<ID>&format=json for title/channel, and the watch page for \"playableInEmbed\":true.",
   "videos": [
-    { "id": "3BLgIzdnvo8", "title": "Freeze Dance Song 2 - The Kiboomers" },
-    { "id": "nInqzrC7P0U", "title": "Preschool Freeze Dance Game - The Kiboomers" },
-    { "id": "2UcZWXvgMZE", "title": "Party Freeze Dance Song - The Kiboomers" },
-    { "id": "B3mIG7ECzHQ", "title": "Numbers Freeze Dance - The Kiboomers" },
-    { "id": "cap54yZoiQ8", "title": "Colors Freeze Dance - The Kiboomers" },
-    { "id": "c0gU7pyGrkQ", "title": "Shake My Sillies Out - Jammin With You" }
+    { "id": "BQ9q4U2P3ig", "title": "Banana Banana Meatball - Blazer Fresh", "channel": "GoNoodle", "length": "3:09" },
+    { "id": "8YNbSgSbL6c", "title": "Pop See Ko - Koo Koo Kanga Roo", "channel": "GoNoodle", "length": "2:26" },
+    { "id": "Imhi98dHa5w", "title": "Dinosaur Stomp (Dance-A-Long)", "channel": "Koo Koo", "length": "3:37" },
+    { "id": "dF4gje4oGGY", "title": "Freeze Dance for Kids - Brain Break", "channel": "Lah-Lah & Bounce Patrol", "length": "2:39" },
+    { "id": "30ePPeUbwSs", "title": "If Animals Danced - Dance Song with Actions", "channel": "Bounce Patrol", "length": "3:35" },
+    { "id": "c9YiakkdS8k", "title": "The Ice King Freeze Dance!", "channel": "Danny Go!", "length": "3:27" },
+    { "id": "Tw0pd6Z6Qds", "title": "Kids Vs. Adults Freeze Dance Game!", "channel": "Danny Go!", "length": "3:39" },
+    { "id": "XYEjLXxT2xg", "title": "Fire & Ice FREEZE Dance!", "channel": "Danny Go!", "length": "3:36" }
   ]
 }
