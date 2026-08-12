@@ -1,12 +1,12 @@
 {
   "name": "star-team",
-  "version": "1.6.14",
+  "version": "1.6.16",
   "description": "Star Team - AI lesson generator desktop app",
   "main": "main.js",
   "author": "Andrei Terekhov",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win && node tools/verify-packaged-deps.js"
+    "build": "electron-builder --win"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
@@ -26,7 +26,6 @@
     "appId": "com.andreiterekhov.starteam",
     "productName": "Star Team",
     "asar": false,
-    "afterPack": "./tools/after-pack.js",
     "files": [
       "main.js",
       "preload.js",

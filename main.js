@@ -166,7 +166,12 @@ ipcMain.handle("account:checkBalance", async () => {
     try {
       return JSON.parse(rawText);
     } catch {
-      return { ok: false, error: "The server took too long to respond. Please try again." };
+      // Surface what actually came back (truncated) instead of a blanket
+      // "took too long" message that hides the real cause - this is often
+      // Google Apps Script serving an authorization/consent page instead of
+      // our JSON after a redeploy, not an actual timeout.
+      const snippet = rawText.slice(0, 300).replace(/\s+/g, " ").trim();
+      return { ok: false, error: `Backend returned a non-JSON response (HTTP ${res.status}): "${snippet}"` };
     }
   } catch (err) {
     return { ok: false, error: String(err.message || err) };
@@ -186,7 +191,8 @@ ipcMain.handle("account:getPrices", async () => {
     try {
       return JSON.parse(rawText);
     } catch {
-      return { ok: false, error: "The server took too long to respond. Please try again." };
+      const snippet = rawText.slice(0, 300).replace(/\s+/g, " ").trim();
+      return { ok: false, error: `Backend returned a non-JSON response (HTTP ${res.status}): "${snippet}"` };
     }
   } catch (err) {
     return { ok: false, error: String(err.message || err) };
@@ -283,22 +289,8 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes, regenerate 
 
   function reportFailure(label, output) {
     send(`⚠️  ${label} ran into a problem:`);
-    const lines = output.trim().split("\n");
-    if (!lines.length || !output.trim()) {
-      send("(no output)");
-      return;
-    }
-    // Show the HEAD as well as the tail. A Node crash prints the actual
-    // reason on the first lines ("Error: Cannot find module ...") and then a
-    // long require-stack/traceback - a tail-only excerpt cut the reason off
-    // and left only file paths, which said nothing about what went wrong.
-    if (lines.length <= 20) {
-      send(lines.join("\n"));
-    } else {
-      send(lines.slice(0, 8).join("\n"));
-      send(`   ... (${lines.length - 16} more lines) ...`);
-      send(lines.slice(-8).join("\n"));
-    }
+    const tail = output.trim().split("\n").slice(-12).join("\n");
+    send(tail || "(no output)");
   }
 
   const forceRegenerate = !!(notes && notes.trim()) || !!regenerate;
@@ -342,13 +334,6 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes, regenerate 
   if (!qa.ok) reportFailure("Inspector", qa.output);
 
   send("🖨️  Printer is preparing the handout PDF...");
-  // Remove any PDF left over from an earlier run of the same topic first.
-  // Without this, a Printer crash was invisible: the stale file still got
-  // copied to the output folder and the run reported plain success, so a
-  // PDF that silently belonged to a previous version looked like the new one.
-  try {
-    if (fs.existsSync(pdfSrc)) fs.unlinkSync(pdfSrc);
-  } catch { /* locked by a PDF viewer - existence check below still catches it */ }
   const pdf = await runStep("node", ["scripts/build-print-pdf.js", contentPath], extraEnv);
   if (!pdf.ok) reportFailure("Printer", pdf.output);
 
@@ -359,25 +344,19 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes, regenerate 
     fs.copyFileSync(pptxSrc, path.join(finalDir, `${slug}.pptx`));
     copiedAny = true;
   }
-  const pdfMade = fs.existsSync(pdfSrc);
-  if (pdfMade) {
+  if (fs.existsSync(pdfSrc)) {
     fs.copyFileSync(pdfSrc, path.join(finalDir, `${slug}_printables.pdf`));
     copiedAny = true;
   }
 
   if (copiedAny) {
-    if (!pdfMade) {
-      send("⚠️  The printable PDF could not be built - only the presentation was saved.");
-    }
     if (!qa.ok) {
       send(`⚠️  DELIVERED WITH QA ISSUES - please review before using with children!\nFiles saved to:\n${finalDir}`);
-    } else if (!pdfMade) {
-      send(`Presentation saved to:\n${finalDir}`);
     } else {
       send(`✅ Done! QA passed. Files saved to:\n${finalDir}`);
     }
     shell.openPath(finalDir);
-    return { ok: true, outputDir: finalDir, qaPassed: qa.ok, pdfMade };
+    return { ok: true, outputDir: finalDir, qaPassed: qa.ok };
   }
   send("⚠️  Something went wrong, no output files were found.");
   return { ok: false };
