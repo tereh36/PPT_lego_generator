@@ -311,7 +311,10 @@ ipcMain.handle("lesson:create", async (event, { topic, track, notes, regenerate 
   send("🎨 Illustrator is painting the pictures...");
   {
     const r = await runStep("node", ["scripts/generate-images-remote.js", contentPath], extraEnv);
-    if (!r.ok) reportFailure("Illustrator", r.output);
+    if (!r.ok) {
+      reportFailure("Illustrator", r.output);
+      send("ℹ️  Continuing without images - the presentation will still be built, but image slots will be empty.");
+    }
   }
 
   send("🧱 Builder is assembling the slides...");

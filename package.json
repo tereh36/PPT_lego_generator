@@ -1,15 +1,15 @@
 {
   "name": "star-team",
-  "version": "1.6.19",
+  "version": "1.6.20",
   "description": "Star Team - AI lesson generator desktop app",
   "main": "main.js",
   "author": "Andrei Terekhov",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win"
+    "build": "electron-builder --win",
+    "postbuild": "node tools/verify-packaged-deps.js"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
     "electron-updater": "^6.3.9",
     "pptxgenjs": "^3.12.0",
     "jszip": "^3.10.1",
@@ -20,7 +20,8 @@
   },
   "devDependencies": {
     "electron": "^32.0.0",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^25.1.8",
+    "dotenv": "^16.4.5"
   },
   "build": {
     "appId": "com.andreiterekhov.starteam",
@@ -32,6 +33,7 @@
       "renderer/**/*",
       "engine/**/*",
       "node_modules/**/*",
+      "!engine/scripts/*.py",
       "!engine/output/**",
       "!engine/**/node_modules/**"
     ],
@@ -51,6 +53,7 @@
       "provider": "github",
       "owner": "Tereh36",
       "repo": "PPT_lego_generator"
-    }
+    },
+    "afterPack": "tools/after-pack.js"
   }
 }

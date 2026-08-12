@@ -33,7 +33,7 @@ async function main() {
   // error page instead of our JSON. Give it a generous but bounded client
   // timeout (5.5 min) per attempt.
   const TIMEOUT_MS = 5.5 * 60 * 1000;
-  const MAX_ATTEMPTS = 3;
+  const MAX_ATTEMPTS = 5;
 
   async function attemptOnce() {
     const controller = new AbortController();
@@ -67,8 +67,9 @@ async function main() {
     }
 
     const rawText = await res.text();
+    let parsed;
     try {
-      return JSON.parse(rawText);
+      parsed = JSON.parse(rawText);
     } catch (e) {
       // Show what actually came back (truncated) instead of guessing - this
       // is usually Google Apps Script's own hosting hiccuping and serving a
@@ -81,9 +82,22 @@ async function main() {
         `The backend returned a non-JSON response (HTTP ${res.status}). ` +
         `Raw response start: "${snippet}"`
       );
-      err.isNonJson = true;
+      err.isRetryable = true;
       throw err;
     }
+
+    // Claude's own API occasionally returns a valid JSON error response with
+    // overloaded_error (HTTP 529) when Anthropic's servers are at capacity -
+    // this is documented as retryable by Anthropic itself, unrelated to our
+    // code or the backend. Unlike the non-JSON case above, this comes back
+    // as ok:false with a real error message, so it needs its own check here.
+    if (!parsed.ok && /overloaded_error|"Overloaded"/i.test(parsed.error || "")) {
+      const err = new Error(parsed.error);
+      err.isRetryable = true;
+      err.isOverloaded = true;
+      throw err;
+    }
+    return parsed;
   }
 
   let data;
@@ -93,18 +107,24 @@ async function main() {
       break;
     } catch (e) {
       const isLastAttempt = attempt === MAX_ATTEMPTS;
-      // Only retry the "Google served a weird non-JSON page" case - a real
-      // backend error (bad balance, wrong password, etc.) comes back as
-      // valid JSON with ok:false and retrying won't change that, so those
-      // fail immediately instead of wasting time on 3 identical attempts.
-      if (!e.isNonJson || isLastAttempt) {
-        if (e.isNonJson) {
+      // Only retry known-transient cases (a non-JSON response from the
+      // backend, or Claude's own overloaded_error) - a real backend error
+      // (bad balance, wrong password, etc.) comes back as valid JSON with
+      // ok:false and retrying won't change that, so those fail immediately
+      // instead of wasting time on identical attempts.
+      if (!e.isRetryable || isLastAttempt) {
+        if (e.isRetryable) {
           throw new Error(e.message + ` (gave up after ${MAX_ATTEMPTS} attempts)`);
         }
         throw e;
       }
-      console.log(`Attempt ${attempt} got a bad response from the backend, retrying...`);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // Exponential backoff for overload (Anthropic's own recommendation:
+      // https://docs.claude.com/en/api/errors) - a flat 3s retry hits the
+      // same overloaded servers again too soon. Other retryable cases (a
+      // Google Apps Script hiccup) don't need backoff, but it doesn't hurt.
+      const delayMs = e.isOverloaded ? 3000 * attempt : 3000;
+      console.log(`Attempt ${attempt} got "${e.message.slice(0, 80)}", retrying in ${delayMs / 1000}s...`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
   if (!data.ok) {

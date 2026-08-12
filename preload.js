@@ -11,15 +11,18 @@ contextBridge.exposeInMainWorld("api", {
   createLesson: (topic, track, notes, regenerate) => ipcRenderer.invoke("lesson:create", { topic, track, notes, regenerate }),
   checkContentExists: (topic) => ipcRenderer.invoke("lesson:checkExists", { topic }),
   onLessonLog: (callback) => {
+    ipcRenderer.removeAllListeners("lesson:log");
     ipcRenderer.on("lesson:log", (event, msg) => callback(msg));
   },
   onBalanceUpdated: (callback) => {
+    ipcRenderer.removeAllListeners("account:balanceUpdated");
     ipcRenderer.on("account:balanceUpdated", (event, balance) => callback(balance));
   },
 
   openOutputFolder: () => ipcRenderer.invoke("files:openOutputFolder"),
 
   onUpdateStatus: (callback) => {
+    ipcRenderer.removeAllListeners("update:status");
     ipcRenderer.on("update:status", (event, msg) => callback(msg));
   },
   installUpdateNow: () => ipcRenderer.invoke("update:installNow"),
