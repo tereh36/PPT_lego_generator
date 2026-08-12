@@ -375,16 +375,25 @@ phrases - it needs to work both as a giant headline and as a phrase a
 - **Game 1** — an established template (not a free choice between two
   styles): the same children's chant-question (`speaker: children`) repeats
   EVERY round the same way within the lesson; the teacher (`speaker:
-  teacher`) answers RANDOMLY with one of TWO rhymed options — following the
+  teacher`) answers with one of TWO rhymed options — following the
   pattern "[action], [action], [action], + a rhymed line with real meaning".
   One option is real running (kids scatter, the teacher play-chases them,
   a separate `action` line describes this), the other is a big action in
   place (jumping, etc., genuinely high and energetic). EXACTLY 3 rounds (not
   4) - 4 rounds crams too much text onto the slide and forces the font
-  smaller than it should be. End on the running/chase option. The chant's
-  WORDS and both responses are NEW for every topic, drawn from the topic's
-  own vocabulary (action verbs for that specific animal/object), never reuse
-  previous lessons' phrasing verbatim.
+  smaller than it should be.
+  ⚠️ Round assignment is NOT fully random - it's fixed to avoid a real
+  repetition bug: Round 3 is ALWAYS the running/chase option (the mandatory
+  ending). Round 2 is ALWAYS the OTHER option (in-place/jumping) - never
+  the same option as Round 3, since two identical rounds back-to-back
+  (verbatim-identical text shown twice in a row) is boring and was a real
+  observed bug (topic Goat: rounds 2 and 3 both came out as "Down the hill,
+  run and dance!" word-for-word). Round 1 can be either option (this is the
+  only round with genuine choice). This guarantees rounds are never
+  duplicated consecutively while still ending on the chase.
+  The chant's WORDS and both responses are NEW for every topic, drawn from
+  the topic's own vocabulary (action verbs for that specific animal/object),
+  never reuse previous lessons' phrasing verbatim.
 
   CRITICAL about language: the target audience is 3-5 year olds, often
   non-native speakers (e.g. Vietnamese, who just learned "hello"). The chant
@@ -433,7 +442,9 @@ phrases - it needs to work both as a giant headline and as a phrase a
   essentially "red light, green light" retextured to the topic - simple,
   familiar to kids, and doesn't need a rhyme. Use this variant when a
   clean predator/safe-spot pair exists naturally in the topic; otherwise
-  default to the rhymed template above.
+  default to the rhymed template above. (The Round 2/Round 3 anti-repeat
+  rule above applies here too: the calm cue and danger cue must not repeat
+  back-to-back the same way.)
 - **Game 2** — a MIXED POOL of formats, like the story — pick based on the
   topic, don't default to the same one every time, and don't default to
   `search` ("kids must find something") just because it's the most familiar
@@ -501,8 +512,22 @@ phrases - it needs to work both as a giant headline and as a phrase a
 
   1. **`type: "sensory"`** (PRIORITY if the topic has an accessible real
      object): touch/smell/taste the real object of the topic ("do you like
-     it?", "tasty/not tasty?", "touch the leaves... green leaves!"). No
-     print assets needed - this uses the real object, not a printout.
+     it?", "tasty/not tasty?", "touch the leaves... green leaves!").
+     ⚠️ A single object + a single one-word reaction ("Yes, so soft!") is a
+     thin, weak experience for the whole game - REAL MISTAKE (topic Goat):
+     the entire sensory game was "pass around one cotton ball, say soft".
+     Whenever there's a genuine second material with a CONTRASTING texture
+     available (the topic's real object AND something else clearly
+     different - e.g. a goat's soft fur vs. its hard hoof/horn, a turtle's
+     soft belly vs. its hard shell), upgrade this into a real `compare` or
+     `sorting` game instead of plain `sensory`: kids feel/handle 2+ distinct
+     things and sort or compare them by the texture trait (soft vs. hard,
+     rough vs. smooth), using `game2.print_items` or real objects - this
+     gives a genuinely fuller interaction and richer language than one item
+     and one adjective. Only use plain single-object `sensory` when there
+     genuinely isn't a second contrasting material naturally available. No
+     print assets needed for plain single-object sensory - this uses the
+     real object, not a printout.
   2. **`type: "search"`**: the teacher hides cutout cards around the room
      (under a chair, behind a curtain, etc. — calm, not running), kids take
      turns searching and happily show what they found; a chorus line on
@@ -558,13 +583,15 @@ phrases - it needs to work both as a giant headline and as a phrase a
      `shape_reference_prompt` + `shape_pieces_prompt`, not `print_items`.
 
   Selection test: if the topic has an accessible real object — almost
-  always `sensory`. Otherwise, actively consider all of `search` (with a
-  real-fact `search_item`), `matching`, `sorting`, `compare`, and `pattern`
-  against the topic's actual real-world traits, and pick whichever gives
-  the most concrete, specific, interesting game — not whichever you reached
-  for last time. Reusing story props for a simple `search`/`matching` is a
-  fine fallback when nothing more specific presents itself, but a
-  topic-specific trait beats a generic reuse when one is available.
+  always `sensory` (upgraded to `compare`/`sorting` when a second
+  contrasting-texture material exists, see above). Otherwise, actively
+  consider all of `search` (with a real-fact `search_item`), `matching`,
+  `sorting`, `compare`, and `pattern` against the topic's actual real-world
+  traits, and pick whichever gives the most concrete, specific, interesting
+  game — not whichever you reached for last time. Reusing story props for a
+  simple `search`/`matching` is a fine fallback when nothing more specific
+  presents itself, but a topic-specific trait beats a generic reuse when
+  one is available.
 
   For `matching` and for `search` when reusing story props, do NOT invent
   separate new images — reuse the ALREADY-printed story props (page 1 of the
@@ -680,8 +707,9 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] game1/game2/game3 use the script format (not a wall of text), lines are color-only, no bold/underline
 - [ ] The story format archetype is tagged accurately in `story.archetype` and doesn't match what the prompt told you is on cooldown (see the pool of 6 formats)
 - [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic; `structure_tag` matches what you actually wrote and isn't on cooldown per the prompt; say both teacher lines out loud — do they actually rhyme and scan, or just kind of?
+- [ ] Game 1's Round 2 and Round 3 are NOT the same option as each other (Round 3 is always chase, Round 2 is always the other one) - reread the actual text of rounds 2 and 3, they must not be verbatim identical
 - [ ] Game 1's question structure is genuinely different from the last couple of lessons, not just the same "what do we do?" shape with the topic word swapped in
-- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare/pattern/shape_build), not defaulting to `search`/size-sorting out of habit; `sensory` used whenever a real object exists regardless of recent history; you actually ran the pedagogy/language/motor/print-logistics four-angle pass on this game (see Step 4) rather than committing to the first idea
+- [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare/pattern/shape_build), not defaulting to `search`/size-sorting out of habit; `sensory` used whenever a real object exists regardless of recent history, UPGRADED to `compare`/`sorting` by texture when a second contrasting-texture material genuinely exists (not left as a thin single-object touch-and-say-one-word game); you actually ran the pedagogy/language/motor/print-logistics four-angle pass on this game (see Step 4) rather than committing to the first idea
 - [ ] Game 2's sorting/matching/compare/pattern trait is a real, specific, interesting fact about the topic where one was available, not a lazy default (size/color) chosen without considering alternatives
 - [ ] Every physical item the story or any game asks a child to find/sort/match/hold/collect individually has a real print asset backing it (`game2.print_items` with `image_prompt` + `copies`, `game2.search_item`, `game2.colors`, or a handout `story_props` entry with `class_copies`) — reread every game script line by line and confirm nothing describes a physical object with nothing printed for it (the duck-sorting bug)
 - [ ] Print copy counts make sense for how the item is used: ~8 total when each child gets their own piece (search/matching/sorting/most handouts), 1 each for a `compare` the teacher just holds up, a handful per unit for `pattern`

@@ -320,22 +320,26 @@ async function enterBridge() {
 (async function initialLoad() {
   startLoadingAnimation();
 
-  // Safety net: if checking the saved login hangs (e.g. a network stall),
-  // don't leave the user staring at the loading animation forever - fall
-  // through to the login screen after 8s so they can at least try manually.
+  // Safety net: if reading the saved config hangs, don't leave the user
+  // staring at the loading animation forever - fall through to the login
+  // screen after 8s so they can at least try manually.
   const withTimeout = (promise, ms) =>
     Promise.race([promise, new Promise((resolve) => setTimeout(() => resolve(null), ms))]);
 
   try {
     const cfg = await withTimeout(window.api.getConfig(), 8000);
     if (cfg && cfg.username && cfg.password) {
+      // Trust the saved login and go straight in - do NOT gate this behind
+      // a startup checkBalance() call. enterBridge() already independently
+      // refreshes balance/prices and shows a clear "unavailable" state if
+      // that fails - a transient network hiccup here should never bounce a
+      // legitimately logged-in user back to a fresh login screen (that's
+      // exactly what was happening before this fix: any blip in the backend
+      // made it look like the saved login had been "forgotten").
       pendingUsername = cfg.username;
-      const result = await withTimeout(window.api.checkBalance(), 8000);
-      if (result && result.ok) {
-        stopLoadingAnimation();
-        await enterBridge();
-        return;
-      }
+      stopLoadingAnimation();
+      await enterBridge();
+      return;
     }
   } catch (e) {
     console.error("[initialLoad] failed:", e);
@@ -371,9 +375,15 @@ async function refreshBalanceCreate() {
 }
 async function refreshPrices() {
   const result = await window.api.getPrices();
+  const preschoolTag = document.getElementById("priceTagPreschool");
+  const brickmotoTag = document.getElementById("priceTagBrickmoto");
   if (result.ok) {
-    document.getElementById("priceTagPreschool").textContent = `$${result.prices.preschool} per presentation`;
-    document.getElementById("priceTagBrickmoto").textContent = `$${result.prices.brickmoto} per presentation`;
+    preschoolTag.textContent = `$${result.prices.preschool} per presentation`;
+    brickmotoTag.textContent = `$${result.prices.brickmoto} per presentation`;
+  } else {
+    preschoolTag.textContent = "Price unavailable (couldn't reach backend)";
+    brickmotoTag.textContent = "Price unavailable (couldn't reach backend)";
+    console.error("[refreshPrices] failed:", result.error);
   }
 }
 window.api.onBalanceUpdated((balance) => {
