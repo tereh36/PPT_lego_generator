@@ -26,25 +26,60 @@ async function main() {
   const dataDir = BRICK_DATA_DIR || path.resolve(__dirname, "..");
 
   console.log(`Generating content.json for "${topic}" via the Brick4Kidz backend...`);
-  const res = await fetch(BRICK_BACKEND_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "generate_content",
-      username: BRICK_USERNAME,
-      password: BRICK_PASSWORD,
-      topic,
-      track: BRICK_TRACK || "preschool",
-      notes: BRICK_NOTES || ""
-    })
-  });
+
+  // Apps Script's own execution limit is ~6 minutes for a single run - if the
+  // guide/schema grew and pushed total time (2 UrlFetchApp calls + the Claude
+  // API call) past that, Google kills the script and returns its OWN html
+  // error page instead of our JSON. Give it a generous but bounded client
+  // timeout (5.5 min) so we fail with a clear message instead of hanging
+  // indefinitely, and - separately - always show what the backend actually
+  // sent back when it's not valid JSON, instead of guessing at the cause.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5.5 * 60 * 1000);
+
+  let res;
+  try {
+    res = await fetch(BRICK_BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "generate_content",
+        username: BRICK_USERNAME,
+        password: BRICK_PASSWORD,
+        topic,
+        track: BRICK_TRACK || "preschool",
+        notes: BRICK_NOTES || ""
+      }),
+      signal: controller.signal
+    });
+  } catch (e) {
+    if (e.name === "AbortError") {
+      throw new Error(
+        "The request to the backend was still running after 5.5 minutes and was cancelled. " +
+        "This usually means Google Apps Script hit its own ~6 minute execution limit while " +
+        "Claude was generating a large response - try again, and if it keeps happening, the " +
+        "content guide/schema may need trimming down."
+      );
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
   const data = await (async () => {
     const rawText = await res.text();
     try {
       return JSON.parse(rawText);
     } catch (e) {
+      // Show what actually came back (truncated) instead of guessing - this
+      // is either Google's own execution-timeout HTML page, an auth/deploy
+      // error page, or something else entirely, and each needs a different
+      // fix, so hiding the real text made this impossible to diagnose.
+      const snippet = rawText.slice(0, 300).replace(/\s+/g, " ").trim();
       throw new Error(
-        "The backend took too long or timed out. This is usually temporary - please try again."
+        `The backend returned a non-JSON response (HTTP ${res.status}). ` +
+        `This is often Google Apps Script's own ~6 minute execution limit being hit. ` +
+        `Raw response start: "${snippet}"`
       );
     }
   })();
