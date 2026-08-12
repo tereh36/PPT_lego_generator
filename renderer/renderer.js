@@ -381,8 +381,9 @@ async function refreshPrices() {
     preschoolTag.textContent = `$${result.prices.preschool} per presentation`;
     brickmotoTag.textContent = `$${result.prices.brickmoto} per presentation`;
   } else {
-    preschoolTag.textContent = "Price unavailable (couldn't reach backend)";
-    brickmotoTag.textContent = "Price unavailable (couldn't reach backend)";
+    const reason = (result.error || "unknown error").slice(0, 120);
+    preschoolTag.textContent = `Price unavailable: ${reason}`;
+    brickmotoTag.textContent = `Price unavailable: ${reason}`;
     console.error("[refreshPrices] failed:", result.error);
   }
 }

@@ -370,7 +370,11 @@ function buildGame2(pres, content, assetsDir) {
   addContentTitle(slide, content.game2.title);
   const colors = content.game2.colors || [];
   const printItems = content.game2.print_items || [];
-  const hasVisual = colors.length > 0 || printItems.length > 0 || fs.existsSync(path.join(assetsDir, "game2_printout.png"));
+  const printItemsHaveImages = printItems.some((item) => {
+    const slug = (item.name || "").toLowerCase().replace(/\s+/g, "_");
+    return fs.existsSync(path.join(assetsDir, `game2_item_${slug}.png`));
+  });
+  const hasVisual = colors.length > 0 || printItemsHaveImages || fs.existsSync(path.join(assetsDir, "game2_printout.png"));
 
   if (hasVisual) {
     const scriptY = addChantHeader(slide, content.game2.script, boxIn(0.8, 1.5, 5.6, 1.4));
