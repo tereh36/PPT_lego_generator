@@ -116,6 +116,28 @@ reinvented from nothing.
     - Before finalizing ANY Game 1 or Game 3 teacher line, literally count
       the words. If it's over 5, it fails this check regardless of how good
       the rhyme sounds - shorten it.
+17. **Every story MUST include a real, physical, hands-on interaction with
+    the children — not just a line the children say once.** A story where
+    kids only speak a chorus line and watch the teacher move props around is
+    NOT ENOUGH. The children's bodies/hands need to actually DO something
+    physical tied to the plot at least once, ideally twice, beyond just
+    talking - this is not optional flavor, it's a required part of every
+    story. Concrete pattern (REAL EXAMPLE, topic Goat, use this as the
+    template): kids chant "Jump, jump, little goat!" while the teacher
+    "hops" the goat prop from child to child around the circle, actually
+    passing near/in front of each kid in turn (not just holding it in one
+    spot) - THEN the story continues with the kids "feeding" the goat by
+    holding up a hand/pretend grass and the teacher walks the goat prop
+    around to "nibble" from each child's hand in turn. That is two rounds of
+    real physical engagement (moving prop child-to-child + feeding gesture),
+    not one static chorus line. Reuse this exact pattern (a character
+    prop physically visiting/interacting with each child in turn, doing
+    something concrete - hopping to them, eating from their hand, hiding
+    with them, getting a "pat", racing past them) for every story - it's
+    already covered by the "Pool of interactive techniques" below (see
+    techniques 2 and 4 especially), but those techniques are NOT optional
+    extras to sprinkle in if you feel like it - AT LEAST ONE of them is
+    REQUIRED in every story, checked in Step 7's final review.
 
 ## Challenge Archetypes (rotate, don't repeat back to back; ALL are about
 building, see rule 14)
@@ -307,8 +329,10 @@ honest prop swap: hide one prop behind the teacher's back for a second and
 pull out an ALREADY-PREPARED different prop. Never claim a prop itself
 "cracked open"/"grew"/"melted" — paper doesn't do that.
 
-### Pool of interactive techniques (combine with the archetypes above, don't
-build from scratch)
+### Pool of interactive techniques — MANDATORY, not optional flavor (see
+CRITICAL rule 17). At least ONE of these must appear in every story - pick
+whichever fits the archetype/plot best, don't build a version with none of
+them:
 1. **Mimicry/choosing among background objects** — the background already
    contains 2-3 large objects; the character (in 2-3 color versions/copies,
    if needed) ends up at each object in turn, kids guess/react in chorus at
@@ -731,6 +755,21 @@ photorealism (no scene, no natural background).
 **Challenge image**: a real photo matching the meaning of the challenge,
 WITHOUT any hint of LEGO/bricks/toys — just an ordinary realistic photograph
 of whatever the challenge is about, on a white/transparent background.
+⚠️ This gets broken often, read carefully: the photo is of the REAL-WORLD
+OBJECT the challenge references, not a photo/render of what the LEGO
+model would look like. If the challenge is "build a hill for your goat to
+climb", the image is a real photograph of an actual hill (grass, dirt,
+rocks - a real landscape photo) - NOT a LEGO hill, NOT a brick-built hill,
+NOT any kind of toy/model render of a hill. If the challenge is "build a
+nest", the image is a real photograph of an actual bird's nest (twigs,
+real texture) - NOT a LEGO nest. Same rule as `real_object_image_prompt`
+and story props: this field is ALWAYS a plain real-world photograph of the
+plain real-world thing, exactly as if you searched Google Images for "real
+[object] photo" - the fact that the challenge will be BUILT out of LEGO
+afterward is completely irrelevant to what this image shows. If you catch
+yourself writing anything like "LEGO-style", "toy version of", "brick
+representation of", or imagining bricks/studs in this image_prompt at all -
+that's the mistake, delete it and describe the plain real object instead.
 
 ## Step 7 — final QA review (act as a strict, separate reviewer)
 Before returning anything, switch mindset: stop being the writer and become
@@ -742,6 +781,8 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] The story leads to building a model of the TOPIC, not a derived object (house/container — belongs in challenge)
 - [ ] Every child builds THEIR OWN model from scratch, the story doesn't imply "fixing"/"finishing" the character's model
 - [ ] The story's conflict is concrete and playable with 2-3 paper props (test: could the teacher physically show this?)
+- [ ] The story includes at least one REAL physical hands-on interaction with the children (a prop visiting each child in turn, a feeding gesture, etc.) - not just a chorus line said once (rule 17)
+- [ ] Challenge image_prompt describes a plain REAL-WORLD photograph of the object (a real hill, a real nest) - it does NOT describe a LEGO/brick/toy version of it
 - [ ] No part of a printed prop moves/opens/flaps on its own (wings, mouth, tail, legs) - a flat cutout is rigid; use an honest prop-swap for any "before/after" state instead
 - [ ] No extra invented human characters — only the teacher minifigure + (if needed) a personification of the topic itself
 - [ ] Challenge does NOT use moving/functional parts (that's Brickmoto, not Preschool)
