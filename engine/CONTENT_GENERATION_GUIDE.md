@@ -329,6 +329,37 @@ honest prop swap: hide one prop behind the teacher's back for a second and
 pull out an ALREADY-PREPARED different prop. Never claim a prop itself
 "cracked open"/"grew"/"melted" — paper doesn't do that.
 
+
+### MANDATORY: every story must have real physical child interaction
+
+This is not optional — every story MUST contain at least ONE moment where
+children physically do something, beyond just saying one line in chorus.
+Test before submitting: "does a child's body do something during this
+story, or do they just sit and watch?" If only the teacher moves the props
+and kids say one line — it is not enough, rewrite until kids are physically
+involved.
+
+What counts as real interaction (at least ONE must be present):
+(a) **The character prop visits each child** around the circle — teacher
+    carries it to each child, that child does something specific: "feeds"
+    it a handout prop, says a command and the teacher makes the prop obey,
+    touches it, receives something from it. This is the single most
+    powerful technique — every child gets a personal moment.
+(b) **Every child holds their own prop** (handout role) and uses it
+    actively during a story beat — raises it, hides it, places it,
+    "gives" it to the character.
+(c) **Every child repeats a topic-specific physical movement** 2+ times —
+    stomp like an elephant, flap like a bird, crouch-and-jump like a frog.
+    NOT a generic "wiggle" or "clap" — it must be the topic's defining
+    action so the movement itself teaches something.
+
+REAL MISTAKE (topic Goat): kids said "Jump, Billy!" once while teacher
+moved the prop. No individual turn, no handout, no repeated movement.
+FIX: the goat prop visits EACH child in the circle — child says "Jump,
+Billy!", teacher makes prop hop on their knee, child gives a grass card
+(handout), goat chomps it dramatically, moves to next child. Same time,
+but every child physically participates.
+
 ### Pool of interactive techniques — MANDATORY, not optional flavor (see
 CRITICAL rule 17). At least ONE of these must appear in every story - pick
 whichever fits the archetype/plot best, don't build a version with none of
@@ -752,9 +783,19 @@ photograph of an actual [object], photorealistic, isolated on a plain white
 background, no text". This is the only field that needs full studio-quality
 photorealism (no scene, no natural background).
 
-**Challenge image**: a real photo matching the meaning of the challenge,
-WITHOUT any hint of LEGO/bricks/toys — just an ordinary realistic photograph
-of whatever the challenge is about, on a white/transparent background.
+**Challenge image** (`challenge.challenge_image_prompt`): ALWAYS a photograph
+of the REAL-WORLD object the challenge is about — a real hill, a real nest,
+a real log, a real fence. NOT LEGO, NOT bricks, NOT toys, NOT a render.
+Think "photo from a nature encyclopedia or Google Images", not "AI art of
+bricks shaped like a hill". Concrete examples:
+- Challenge "build a hill" → "A real photograph of a green grassy hill,
+  natural light, no people, no text"
+- Challenge "build a nest" → "A real photograph of a bird's nest with eggs,
+  natural setting, no text"
+- Challenge "build a log" → "A real photograph of a fallen log in a forest,
+  no text"
+NEVER use the words "LEGO", "brick", "block", "toy", "model", or "build"
+in this prompt — they push image generators toward plastic toy aesthetics.
 ⚠️ This gets broken often, read carefully: the photo is of the REAL-WORLD
 OBJECT the challenge references, not a photo/render of what the LEGO
 model would look like. If the challenge is "build a hill for your goat to
@@ -781,6 +822,7 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] The story leads to building a model of the TOPIC, not a derived object (house/container — belongs in challenge)
 - [ ] Every child builds THEIR OWN model from scratch, the story doesn't imply "fixing"/"finishing" the character's model
 - [ ] The story's conflict is concrete and playable with 2-3 paper props (test: could the teacher physically show this?)
+- [ ] The story has MANDATORY real physical child interaction — at least one of: (a) prop visits each child individually, (b) every child holds their own prop copy and uses it, (c) every child does a topic-specific movement 2+ times. If none applies, add it.
 - [ ] The story includes at least one REAL physical hands-on interaction with the children (a prop visiting each child in turn, a feeding gesture, etc.) - not just a chorus line said once (rule 17)
 - [ ] Challenge image_prompt describes a plain REAL-WORLD photograph of the object (a real hill, a real nest) - it does NOT describe a LEGO/brick/toy version of it
 - [ ] No part of a printed prop moves/opens/flaps on its own (wings, mouth, tail, legs) - a flat cutout is rigid; use an honest prop-swap for any "before/after" state instead
