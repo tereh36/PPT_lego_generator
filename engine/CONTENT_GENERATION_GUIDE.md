@@ -360,6 +360,19 @@ Billy!", teacher makes prop hop on their knee, child gives a grass card
 (handout), goat chomps it dramatically, moves to next child. Same time,
 but every child physically participates.
 
+CRITICAL STORY LOGIC ERROR (topic Snake, must never repeat): the story
+was about "making the snake longer" — a self-modification with no stakes
+and no clear child role. Wrong on two levels: (1) bridge to building
+should be "build YOUR OWN snake", not modify the character's body; (2)
+there is no reason WHY kids are involved. CORRECT LOGIC: the snake is
+HUNGRY and wants fruit — kids each receive a fruit card (handout) and
+feed the snake one by one as it travels the circle. Bridge: "Sami ate so
+much fruit! Now let's build our own long snake!" General rule: the
+story's goal should be something kids help the CHARACTER achieve — not
+something the character does to itself. "Character wants X → kids help
+provide X → character happy → build." Never "character changes
+shape/size → kids watch → build."
+
 ### Pool of interactive techniques — MANDATORY, not optional flavor (see
 CRITICAL rule 17). At least ONE of these must appear in every story - pick
 whichever fits the archetype/plot best, don't build a version with none of
@@ -823,6 +836,8 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] Every child builds THEIR OWN model from scratch, the story doesn't imply "fixing"/"finishing" the character's model
 - [ ] The story's conflict is concrete and playable with 2-3 paper props (test: could the teacher physically show this?)
 - [ ] The story has MANDATORY real physical child interaction — at least one of: (a) prop visits each child individually, (b) every child holds their own prop copy and uses it, (c) every child does a topic-specific movement 2+ times. If none applies, add it.
+- [ ] Story logic: kids help the CHARACTER achieve a goal — not "character changes itself". If story is about a snake getting longer/bigger on its own, rewrite: snake is hungry, kids each feed it a fruit (handout), snake visits each child.
+- [ ] Sensory Game 2: if the topic's real object is inaccessible (snake skin, shark teeth, bat wings), pivot to classroom objects with the same property (smooth desk vs rough wall = smooth like a snake vs not) instead of abandoning sensory for card games.
 - [ ] The story includes at least one REAL physical hands-on interaction with the children (a prop visiting each child in turn, a feeding gesture, etc.) - not just a chorus line said once (rule 17)
 - [ ] Challenge image_prompt describes a plain REAL-WORLD photograph of the object (a real hill, a real nest) - it does NOT describe a LEGO/brick/toy version of it
 - [ ] No part of a printed prop moves/opens/flaps on its own (wings, mouth, tail, legs) - a flat cutout is rigid; use an honest prop-swap for any "before/after" state instead
