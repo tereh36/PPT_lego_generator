@@ -655,6 +655,19 @@ and a real example of what happens when this gets skipped.
      physical interaction, actually runnable. Topic Snake: smooth desk =
      smooth like scales; rough wall/brick = rough, NOT like scales.
      The `type` stays "sensory" — script just references classroom objects.
+     ⚠️ BEFORE defaulting to classroom objects, always ask: "is there a simple
+     REAL PRODUCT tied to this topic that a teacher can bring in a bag?"
+     The best sensory games use the topic's most famous real-world product:
+     - Topic COW → bring a small carton/pack of MILK. "Where does milk come
+       from? From the cow! Let's smell it... taste it... do you like milk?"
+       Every child gets a turn. Teaches the most important cow fact (cows
+       give milk) through direct sensory experience. Zero printing needed.
+     - Topic BEE → bring a small jar of HONEY. Same logic.
+     - Topic HEN/CHICKEN → bring a real EGG. Kids feel the shell.
+     - Topic ORANGE/APPLE (fruit topics) → bring the actual fruit.
+     These "bring the product" games are the gold standard for sensory —
+     more memorable than classroom objects, more honest than animal body
+     parts. Use classroom objects only when no such product exists.
   2. **`type: "search"`**: the teacher hides cutout cards around the room
      (under a chair, behind a curtain, etc. — calm, not running), kids take
      turns searching and happily show what they found; a chorus line on
