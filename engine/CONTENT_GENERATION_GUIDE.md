@@ -365,9 +365,10 @@ was about "making the snake longer" — a self-modification with no stakes
 and no clear child role. Wrong on two levels: (1) bridge to building
 should be "build YOUR OWN snake", not modify the character's body; (2)
 there is no reason WHY kids are involved. CORRECT LOGIC: the snake is
-HUNGRY and wants fruit — kids each receive a fruit card (handout) and
-feed the snake one by one as it travels the circle. Bridge: "Sami ate so
-much fruit! Now let's build our own long snake!" General rule: the
+HUNGRY and wants to eat (mice, frogs, eggs — pick what's true for the
+species) — kids each receive a prey card (handout, e.g. a little mouse)
+and feed the snake one by one as it travels the circle. Bridge: "Sami
+ate so much! Now let's build our own long snake!" General rule: the
 story's goal should be something kids help the CHARACTER achieve — not
 something the character does to itself. "Character wants X → kids help
 provide X → character happy → build." Never "character changes
@@ -506,13 +507,20 @@ and a real example of what happens when this gets skipped.
   hard word-count ceiling (rule 16) - this is not a suggestion, count the
   words before finalizing.
 
-  CRITICAL about the teacher's response: BOTH of the teacher's two options
-  must be SHORT and RHYME — this is not optional and not specific to the
-  rhymed template's "third line", the whole point of a chant is that it's
-  rhythmic and easy to remember by ear. Say it out loud before you commit to
-  it: if it doesn't scan and doesn't rhyme, rewrite it. This same short+rhyme
-  requirement applies to Game 3's teacher lines too (see below), since Game 3
-  reuses this exact chant structure.
+  CRITICAL about the teacher's response: BOTH options must be SHORT (4-5
+  words) and RHYME. Apply this exact test: read the LAST WORD of each line —
+  do they end with the SAME SOUND? If not, they don't rhyme. Rewrite.
+  FALSE RHYMES (FAIL — must never appear):
+  - "Jump up, moo out loud!" — "up" vs "loud" → different sounds ✗
+  - "Barn is close, run and go!" — "close" vs "go" → different sounds ✗
+  - "Fly high, wings so wide!" — "high" vs "wide" → different sounds ✗
+  REAL RHYMES (PASS):
+  - "Stomp down, shake the ground!" — "down/ground" (-ound) ✓
+  - "Moo loud, turn around!" — "loud/around" (-oud) ✓
+  - "Run fast, zoom right past!" — "fast/past" (-ast) ✓
+  - "Fly high, touch the sky!" — "high/sky" (-ai) ✓
+  - "Creep low, nice and slow!" — "low/slow" (-oh) ✓
+  Say it out loud before committing. This same rule applies to Game 3.
 
   Don't default every time to the same "[Topic], [Topic], what do we do?"
   structure. Genuinely vary the QUESTION STRUCTURE from topic to topic, not
@@ -634,6 +642,19 @@ and a real example of what happens when this gets skipped.
      genuinely isn't a second contrasting material naturally available. No
      print assets needed for plain single-object sensory - this uses the
      real object, not a printout.
+     ⚠️ ANIMAL BODY PARTS ARE NEVER IN THE CLASSROOM — HARD RULE. A
+     preschool classroom in Vietnam will NEVER have: cow fur patches, cow
+     hooves, snake skin, shark teeth, bat wings, bird feathers, fish scales,
+     or any part of the topic animal's body. Generating a sensory game that
+     asks kids to "feel the soft cow fur" or "touch the hard hoof" is
+     generating a game the teacher CANNOT run. REAL MISTAKE (topic Cow):
+     Game 2 said "feel the soft cow fur patch... now feel the hard hoof" —
+     neither prop exists. FIX: pivot to CLASSROOM OBJECTS with the same
+     property — soft fabric of shirt/cushion = soft like cow fur; hard edge
+     of a book/table = hard like a hoof. Same vocabulary (soft/hard), same
+     physical interaction, actually runnable. Topic Snake: smooth desk =
+     smooth like scales; rough wall/brick = rough, NOT like scales.
+     The `type` stays "sensory" — script just references classroom objects.
   2. **`type: "search"`**: the teacher hides cutout cards around the room
      (under a chair, behind a curtain, etc. — calm, not running), kids take
      turns searching and happily show what they found; a chorus line on
@@ -850,7 +871,9 @@ one check, and do not rationalize a borderline case as "probably fine".
 - [ ] presentation_qa has at least 4 pairs
 - [ ] game1/game2/game3 use the script format (not a wall of text), lines are color-only, no bold/underline
 - [ ] The story format archetype is tagged accurately in `story.archetype` and doesn't match what the prompt told you is on cooldown (see the pool of 6 formats)
-- [ ] Game 1 — the same children's chant + the teacher randomly picks 1 of 2 rhymed responses (running/action-in-place), NEW words for the topic; `structure_tag` matches what you actually wrote and isn't on cooldown per the prompt; say both teacher lines out loud — do they actually rhyme and scan, or just kind of? COUNT THE WORDS: children line <= 6 words, each teacher response <= 5 words total (rule 16) - if over 5, shorten it now, no exceptions.
+- [ ] Game 1 — same children's chant + teacher picks 1 of 2 rhymed responses (running/action-in-place), NEW words for topic; `structure_tag` not on cooldown; COUNT THE WORDS: children line <= 6 words, each teacher response <= 5 words - if over 5, shorten.
+- [ ] RHYME CHECK: read LAST WORD of each teacher line — same ending sound? "up" ≠ "loud" FAIL. "down"/"ground" PASS. "fast"/"past" PASS. If last words don't match by sound → rewrite.
+- [ ] SENSORY REALITY CHECK: Game 2 sensory asks for animal body parts (fur, hoof, scales, feathers, teeth)? → REWRITE with classroom objects that have the same property (soft shirt = cow fur, hard book edge = hoof).
 - [ ] Game 1's Round 2 and Round 3 are NOT the same option as each other (Round 3 is always chase, Round 2 is always the other one) - reread the actual text of rounds 2 and 3, they must not be verbatim identical
 - [ ] Game 1's question structure is genuinely different from the last couple of lessons, not just the same "what do we do?" shape with the topic word swapped in
 - [ ] Game 2 — a fitting format was chosen from the pool (sensory/search/matching/sorting/compare/pattern/shape_build), not defaulting to `search`/size-sorting out of habit; `sensory` used whenever a real object exists regardless of recent history, UPGRADED to `compare`/`sorting` by texture when a second contrasting-texture material genuinely exists (not left as a thin single-object touch-and-say-one-word game); you actually ran the pedagogy/language/motor/print-logistics four-angle pass on this game (see Step 4) rather than committing to the first idea; every teacher line here also respects the ~5-word ceiling
